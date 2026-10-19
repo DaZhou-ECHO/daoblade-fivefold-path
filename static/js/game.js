@@ -62,14 +62,87 @@ const DEFAULT_STATE = () => ({
 let saveData = DEFAULT_STATE();
 let selectedBeadId = null;
 let pendingSocket = null;
+let keepSocketPreview = false;
 let activeGame = null;
 let toastTimer = 0;
+let pendingRebindListener = null;
+const DEFAULT_CONTROLS = Object.freeze({ left: "KeyA", right: "KeyD", jump: "Space", slash: "KeyJ", block: "KeyK", qi: "KeyL", dao: "KeyQ", dash: "ShiftLeft", pause: "Escape" });
+let controls = loadControls();
+let feedback = loadFeedback();
+let audioContext = null;
+const ACTION_LABELS = { left: "左移", right: "右移", jump: "跳跃", slash: "劈砍", block: "格挡", qi: "剑气", dao: "道法", dash: "闪避", pause: "暂停" };
 
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
 const esc = value => String(value).replace(/[&<>'"]/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[char]));
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const randomItem = items => items[Math.floor(Math.random() * items.length)];
+const elementColor = key => key ? ELEMENTS[key].color : "#dce8ee";
+
+function loadControls() {
+  try {
+    const saved = JSON.parse(localStorage.getItem("daoblade-controls") || "null");
+    if (saved && Object.keys(DEFAULT_CONTROLS).every(key => typeof saved[key] === "string" && saved[key])) return saved;
+  } catch (_) { /* 损坏的本地设置使用默认按键。 */ }
+  return { ...DEFAULT_CONTROLS };
+}
+
+function loadFeedback() {
+  try {
+    const saved = JSON.parse(localStorage.getItem("daoblade-feedback") || "null");
+    if (saved && typeof saved.shake === "boolean" && typeof saved.sound === "boolean") return saved;
+  } catch (_) { /* 损坏的本地设置使用默认效果。 */ }
+  return { shake: true, sound: false };
+}
+
+function playHitSound(parry = false) {
+  if (!feedback.sound || !window.AudioContext) return;
+  try {
+    audioContext ||= new window.AudioContext();
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    oscillator.type = parry ? "triangle" : "square";
+    oscillator.frequency.setValueAtTime(parry ? 740 : 180, audioContext.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(parry ? 420 : 90, audioContext.currentTime + .075);
+    gain.gain.setValueAtTime(.025, audioContext.currentTime);
+    gain.gain.exponentialRampToValueAtTime(.001, audioContext.currentTime + .08);
+    oscillator.connect(gain).connect(audioContext.destination);
+    oscillator.start(); oscillator.stop(audioContext.currentTime + .085);
+  } catch (_) { /* 浏览器禁止音频时游戏仍正常运行。 */ }
+}
+
+function actionForCode(code) {
+  if (code === "KeyW" && controls.jump === "Space") return "jump";
+  if (code === "ShiftRight" && controls.dash === "ShiftLeft") return "dash";
+  return Object.keys(controls).find(action => controls[action] === code) || null;
+}
+
+function keyLabel(code) {
+  return code.replace(/^Key|^Digit/, "").replace("ShiftLeft", "Shift").replace("Escape", "Esc").replace("Space", "空格").replace("Arrow", "方向");
+}
+
+function renderControls() {
+  $$('[data-control]').forEach(node => { node.textContent = keyLabel(controls[node.dataset.control]); });
+  $("#control-settings").innerHTML = Object.entries(ACTION_LABELS).map(([action, label]) => `<button type="button" class="pixel-button" data-rebind="${action}"><span>${label}</span><kbd>${keyLabel(controls[action])}</kbd></button>`).join("");
+  $$('[data-rebind]').forEach(button => button.addEventListener("click", () => {
+    if (pendingRebindListener) window.removeEventListener("keydown", pendingRebindListener, true);
+    $$('[data-rebind]').forEach(other => other.classList.remove("listening"));
+    button.classList.add("listening"); button.querySelector("kbd").textContent = "请按键";
+    const listener = event => {
+      event.preventDefault(); event.stopPropagation();
+      window.removeEventListener("keydown", listener, true);
+      pendingRebindListener = null;
+      const action = button.dataset.rebind;
+      if (event.code !== "Escape" || action === "pause") {
+        if (Object.entries(controls).some(([key, value]) => key !== action && value === event.code)) showToast("该按键已被其他动作使用", true);
+        else { controls[action] = event.code; localStorage.setItem("daoblade-controls", JSON.stringify(controls)); }
+      }
+      renderControls();
+    };
+    pendingRebindListener = listener;
+    window.addEventListener("keydown", listener, true);
+  }));
+}
 
 function showToast(message, danger = false) {
   const toast = $("#toast");
@@ -121,7 +194,7 @@ async function saveState(message = "进度已保存") {
 }
 
 function showPanel(name) {
-  if (activeGame && name !== "game") activeGame.pause = true;
+  if (activeGame && name !== "game" && !activeGame.finished) activeGame.setPause(true);
   $$(".panel").forEach(panel => panel.classList.toggle("active", panel.id === `panel-${name}`));
   $$(".nav-button").forEach(button => button.classList.toggle("active", button.dataset.panel === name));
   if (name === "inventory") renderInventory();
@@ -130,41 +203,44 @@ function showPanel(name) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-function elementTotals() {
+function elementTotals(state = saveData) {
   const totals = Object.fromEntries(Object.keys(ELEMENTS).map(key => [key, 1]));
-  Object.values(saveData.cultivation).flat().filter(Boolean).forEach(bead => { totals[bead.element] += bead.level + bead.quality; });
+  Object.values(state.cultivation).flat().filter(Boolean).forEach(bead => { totals[bead.element] += bead.level + bead.quality; });
   return totals;
 }
 
-function primarySecondary() {
-  const totals = elementTotals();
-  return Object.keys(ELEMENTS).sort((a, b) => totals[b] - totals[a]);
+function primarySecondary(state = saveData) {
+  const totals = elementTotals(state);
+  const ranked = Object.keys(ELEMENTS).sort((a, b) => totals[b] - totals[a]);
+  const primary = totals[ranked[0]] > totals[ranked[1]] ? ranked[0] : null;
+  const secondary = primary && totals[ranked[1]] > totals[ranked[2]] ? ranked[1] : null;
+  return [primary, secondary];
 }
 
-function socketedBeads() { return Object.values(saveData.cultivation).flat().filter(Boolean); }
+function socketedBeads(state = saveData) { return Object.values(state.cultivation).flat().filter(Boolean); }
 
-function getAffixTotals() {
+function getAffixTotals(state = saveData) {
   const result = {};
-  socketedBeads().forEach(bead => bead.affixes.forEach(affix => { result[affix.key] = (result[affix.key] || 0) + affix.value; }));
+  socketedBeads(state).forEach(bead => bead.affixes.forEach(affix => { result[affix.key] = (result[affix.key] || 0) + affix.value; }));
   return result;
 }
 
-function calculateStats() {
-  const totals = elementTotals();
-  const affixes = getAffixTotals();
-  const depth = Object.fromEntries(Object.entries(saveData.cultivation).map(([key, slots]) => [key, slots.filter(Boolean).length]));
-  const [primary, secondary] = primarySecondary();
+function calculateStats(state = saveData) {
+  const totals = elementTotals(state);
+  const affixes = getAffixTotals(state);
+  const depth = Object.fromEntries(Object.entries(state.cultivation).map(([key, slots]) => [key, slots.filter(Boolean).length]));
+  const [primary, secondary] = primarySecondary(state);
   const stat = {
     primary, secondary, totals, depth,
     hpMax: Math.round(94 + totals.wood * 3 + depth.kun * 8 + (affixes.hp || 0)),
     qiMax: Math.round(70 + totals.water * 3 + depth.kan * 8 + (affixes.qiMax || 0)),
     attack: 12 + totals.metal * .85 + depth.qian * 2 + (affixes.attack || 0) * .45,
-    defense: totals.earth * .45 + depth.kun * 1.4 + (affixes.defense || 0) * .4,
+    defense: Math.min(35, totals.earth * .45 + depth.kun * 1.4 + (affixes.defense || 0) * .4),
     speed: 205 + depth.xun * 15,
     crit: clamp(.04 + totals.fire * .009 + depth.li * .03 + (affixes.crit || 0) / 100, .04, .55),
     qiRegen: 7 + totals.water * .3 + (affixes.qiRegen || 0) * .2,
     block: clamp(.62 + depth.gen * .06 + (affixes.block || 0) / 100, .62, .92),
-    stagger: 1 + totals.earth * .015 + depth.zhen * .09 + (affixes.stagger || 0) / 100,
+    stagger: Math.min(2.5, 1 + totals.earth * .015 + depth.zhen * .09 + (affixes.stagger || 0) / 100),
     cooldown: clamp(1 - (affixes.cooldown || 0) / 100, .65, 1),
     affixes,
   };
@@ -174,15 +250,11 @@ function calculateStats() {
 
 function renderHeader() {
   const stats = calculateStats();
-  const rankedTotals = Object.values(stats.totals).sort((a, b) => b - a);
-  const hasCultivation = socketedBeads().length > 0;
-  const hasPrimary = hasCultivation && rankedTotals[0] > rankedTotals[1];
-  const hasSecondary = hasCultivation && rankedTotals[1] > rankedTotals[2];
   $("#spirit-value").textContent = saveData.player.spirit;
-  $("#primary-label").textContent = hasPrimary ? ELEMENTS[stats.primary].zh : "未定";
-  $("#primary-label").style.color = hasPrimary ? ELEMENTS[stats.primary].color : "#9aabbd";
-  $("#secondary-label").textContent = hasSecondary ? ELEMENTS[stats.secondary].zh : "未定";
-  $("#secondary-label").style.color = hasSecondary ? ELEMENTS[stats.secondary].color : "#9aabbd";
+  $("#primary-label").textContent = stats.primary ? ELEMENTS[stats.primary].zh : "未定";
+  $("#primary-label").style.color = stats.primary ? elementColor(stats.primary) : "#9aabbd";
+  $("#secondary-label").textContent = stats.secondary ? ELEMENTS[stats.secondary].zh : "未定";
+  $("#secondary-label").style.color = stats.secondary ? elementColor(stats.secondary) : "#9aabbd";
   $("#inventory-count").textContent = saveData.inventory.length;
   $("#runs-value").textContent = saveData.progress.runs;
   $("#victories-value").textContent = saveData.progress.victories;
@@ -301,6 +373,38 @@ function renderCultivation() {
   const max = Math.max(...Object.values(totals), 10);
   $("#element-bars").innerHTML = Object.entries(ELEMENTS).map(([key, element]) => `<div class="element-row" style="--element-color:${element.color}"><b>${element.zh}</b><span class="element-track"><i style="width:${Math.max(5, totals[key] / max * 100)}%"></i></span><em>${totals[key]}</em></div>`).join("");
   $("#selected-bead-summary").innerHTML = selected ? `<b style="color:${QUALITY[selected.quality].color}">${esc(selected.name)}</b><br>${ELEMENTS[selected.element].zh}行 · 等级 ${selected.level}<br><small>点击任意闪烁节点选择道路</small>` : "请先在珠匣选择灵珠";
+  $("#current-build").innerHTML = buildSummary(saveData);
+}
+
+function moveDescriptions(stats) {
+  const styles = {
+    metal: ["第三剑延长剑锋并增强破甲", "反击更适合穿透正面防线", "剑气可额外穿透两名敌人"],
+    wood: ["灵种叠层，第三剑消耗灵种恢复生命", "完美格挡小幅回血", "剑气快速种下灵种"],
+    water: ["劈砍附加寒滞", "完美格挡令近敌减速", "剑气延长控制时间"],
+    fire: ["劈砍点燃，第三剑引爆燃烧", "完美格挡强化下一剑", "剑气延长燃烧"],
+    earth: ["第三剑重击并击退", "完美格挡获得护盾", "剑气稳定击退敌人"],
+  };
+  return styles[stats.primary] || ["标准三段连斩", "完美格挡后按劈砍反击", "标准远程剑气"];
+}
+
+function buildSummary(state) {
+  const stats = calculateStats(state);
+  const moves = moveDescriptions(stats);
+  const main = stats.primary ? ELEMENTS[stats.primary].zh : "未定";
+  const sub = stats.secondary ? ELEMENTS[stats.secondary].zh : "未定";
+  const values = Object.entries(ELEMENTS).map(([key, item]) => `${item.zh}${stats.totals[key]}`).join(" · ");
+  return `<div class="build-preview"><p>${values}</p><p>主修 ${main} · 辅修 ${sub} · 攻击 ${stats.attack.toFixed(1)} · 生命 ${stats.hpMax} · 剑意 ${stats.qiMax}</p>
+    <p>劈砍：${moves[0]}</p><p>格挡：${moves[1]}</p><p>剑气：${moves[2]}</p>
+    <p>道法：${stats.dao ? `${TRIGRAMS[stats.dao].zh}卦 · ${TRIGRAMS[stats.dao].effects[2]}` : "尚未解锁"}</p></div>`;
+}
+
+function previewSocketState(socket = pendingSocket) {
+  const state = JSON.parse(JSON.stringify(saveData));
+  if (!socket) return state;
+  const index = state.inventory.findIndex(bead => bead.id === socket.beadId);
+  if (index < 0 || state.cultivation[socket.trigramKey]?.[socket.layer] !== null) return state;
+  state.cultivation[socket.trigramKey][socket.layer] = state.inventory.splice(index, 1)[0];
+  return state;
 }
 
 function openSocketDialog(trigramKey, layer) {
@@ -309,7 +413,8 @@ function openSocketDialog(trigramKey, layer) {
   pendingSocket = { trigramKey, layer, beadId: bead.id };
   const trigram = TRIGRAMS[trigramKey];
   $("#socket-title").textContent = `${trigram.zh}卦 · ${["入门", "化境", "道法"][layer]}层`;
-  $("#socket-preview").innerHTML = `<p><b style="color:${ELEMENTS[bead.element].color}">${esc(bead.name)}</b></p><p>${esc(trigram.effects[layer])}</p><p>组合方向：${ELEMENTS[bead.element].zh}行力量用于${trigram.use}</p>`;
+  $("#socket-preview").innerHTML = `<p><b style="color:${ELEMENTS[bead.element].color}">${esc(bead.name)}</b></p><p>${esc(trigram.effects[layer])}</p>
+    <div class="preview-grid"><div><b>当前</b>${buildSummary(saveData)}</div><div><b>镶嵌后</b>${buildSummary(previewSocketState())}</div></div>`;
   $("#socket-dialog").showModal();
 }
 
@@ -353,16 +458,17 @@ function grantBeadExperience(amount) {
   return evolved;
 }
 
-function startRealm(key) {
+function startRealm(key, options = {}) {
   showPanel("game");
   if (activeGame) activeGame.destroy();
-  activeGame = new BattleGame(key);
+  activeGame = new BattleGame(key, options);
   activeGame.start();
 }
 
 class BattleGame {
-  constructor(realmKey) {
+  constructor(realmKey, options = {}) {
     this.realmKey = realmKey;
+    this.practice = Boolean(options.practice);
     this.realm = REALMS[realmKey];
     this.element = ELEMENTS[realmKey];
     this.canvas = $("#game-canvas");
@@ -376,19 +482,24 @@ class BattleGame {
     this.pause = false;
     this.finished = false;
     this.lastTime = performance.now();
+    this.elapsed = 0;
+    this.screenShake = 0;
+    this.hitStop = 0;
     this.keys = new Set();
     this.projectiles = [];
     this.particles = [];
-    this.stats = calculateStats();
+    this.stats = calculateStats(options.state || saveData);
     this.player = this.makePlayer();
     this.platforms = [{ x: 0, y: this.floorY, w: this.worldWidth, h: 80 }, { x: 520, y: 390, w: 240, h: 25 }, { x: 1080, y: 355, w: 210, h: 25 }, { x: 1730, y: 400, w: 260, h: 25 }, { x: 2380, y: 360, w: 210, h: 25 }];
-    this.enemies = this.makeEnemies();
+    this.enemies = this.practice ? [this.enemy("dummy", "试剑木桩", 620, 99999, "dummy")] : this.makeEnemies();
     this.boundKeyDown = event => this.keyDown(event);
     this.boundKeyUp = event => this.keyUp(event);
+    this.boundBlur = () => this.setPause(true);
+    this.boundVisibility = () => { if (document.hidden) this.setPause(true); };
   }
 
   makePlayer() {
-    return { x: 120, y: 380, w: 38, h: 70, vx: 0, vy: 0, face: 1, onGround: false, hp: this.stats.hpMax, qi: this.stats.qiMax, invuln: 0, slash: 0, slashDuration: .28, slashCooldown: 0, qiCast: 0, qiCooldown: 0, daoCooldown: 0, attackId: 0, combo: 0, lastSlashAt: 0, blocking: false, blockStarted: 0, blockFlash: 0, jumpCount: 0, animTime: 0 };
+    return { x: 120, y: this.floorY - 70, w: 38, h: 70, vx: 0, vy: 0, face: 1, onGround: true, hp: this.stats.hpMax, qi: this.stats.qiMax, invuln: 0, slash: 0, slashDuration: .28, slashCooldown: 0, qiCast: 0, qiCooldown: 0, daoCooldown: 0, attackId: 0, combo: 0, lastSlashAt: -10, blocking: false, blockStarted: -10, parryArmed: 0, parryLock: 0, counterWindow: 0, counterAttack: false, blockFlash: 0, dash: 0, dashCooldown: 0, dashDirection: 1, jumpCount: 0, jumpBuffer: 0, coyote: .1, queuedSlash: 0, hurt: 0, shield: 0, shieldTime: 0, flameBuff: 0, healCooldown: 0, animTime: 0 };
   }
 
   makeEnemies() {
@@ -414,15 +525,18 @@ class BattleGame {
     const boss = kind === "boss";
     const height = boss ? 100 : variant === "caster" ? 64 : 62;
     const width = boss ? 66 : variant === "charger" ? 48 : 42;
-    return { kind, variant, name, x, y: this.floorY - height, w: width, h: height, hp, maxHp: hp, vx: 0, face: -1, attackCd: .8 + Math.random(), attackState: "idle", attackTimer: 0, attackType: "", attackHit: false, comboStep: 0, hurt: 0, burn: 0, burnTick: 0, slow: 0, dead: false, lastHit: -1 };
+    return { kind, variant, name, x, y: this.floorY - height, w: width, h: height, hp, maxHp: hp, vx: 0, face: -1, attackCd: .8 + Math.random(), attackState: "idle", attackTimer: 0, attackType: "", attackHit: false, attackDirection: -1, comboStep: 0, hurt: 0, burn: 0, burnTick: 0, slow: 0, seeds: 0, dead: false, lastHit: -1 };
   }
 
   start() {
-    $("#realm-name").textContent = `${this.element.zh} · ${this.element.realm}`;
-    $("#objective-text").textContent = `击败 ${this.realm.enemies.join("、")}与${this.realm.boss}`;
-    saveData.progress.runs += 1;
+    $("#realm-name").textContent = this.practice ? "练功场 · 临时试招" : `${this.element.zh} · ${this.element.realm}`;
+    $("#objective-text").textContent = this.practice ? "木桩会恢复，不结算战利品" : `击败 ${this.realm.enemies.join("、")}与${this.realm.boss}`;
+    if (!this.practice) saveData.progress.runs += 1;
+    $("#pause-overlay").classList.add("hidden");
     window.addEventListener("keydown", this.boundKeyDown);
     window.addEventListener("keyup", this.boundKeyUp);
+    window.addEventListener("blur", this.boundBlur);
+    document.addEventListener("visibilitychange", this.boundVisibility);
     this.bindTouch();
     this.updateHud();
     requestAnimationFrame(time => this.loop(time));
@@ -432,72 +546,135 @@ class BattleGame {
     this.finished = true;
     window.removeEventListener("keydown", this.boundKeyDown);
     window.removeEventListener("keyup", this.boundKeyUp);
+    window.removeEventListener("blur", this.boundBlur);
+    document.removeEventListener("visibilitychange", this.boundVisibility);
+    this.clearInput();
+    $("#pause-overlay").classList.add("hidden");
+  }
+
+  clearInput() { this.keys.clear(); this.player.blocking = false; this.player.parryArmed = 0; this.player.queuedSlash = 0; this.player.jumpBuffer = 0; }
+
+  quit() { const target = this.practice ? "cultivation" : "realms"; this.destroy(); activeGame = null; showPanel(target); }
+
+  setPause(value) {
+    if (this.finished) return;
+    this.pause = value;
+    this.lastTime = performance.now();
+    this.clearInput();
+    $("#pause-overlay").classList.toggle("hidden", !value);
   }
 
   keyDown(event) {
-    if (["KeyA", "KeyD", "KeyW", "Space", "KeyJ", "KeyK", "KeyL", "KeyQ"].includes(event.code)) event.preventDefault();
+    const action = actionForCode(event.code);
+    if (action) event.preventDefault();
     if (event.repeat) return;
-    this.keys.add(event.code);
-    if (event.code === "KeyW" || event.code === "Space") this.jump();
-    if (event.code === "KeyJ") this.slash();
-    if (event.code === "KeyK") { this.player.blocking = true; this.player.blockStarted = performance.now(); }
-    if (event.code === "KeyL") this.swordQi();
-    if (event.code === "KeyQ") this.daoSkill();
+    if (action === "pause") return this.setPause(!this.pause);
+    if (this.pause || !action) return;
+    this.keys.add(action);
+    this.performAction(action);
   }
 
-  keyUp(event) { this.keys.delete(event.code); if (event.code === "KeyK") this.player.blocking = false; }
+  keyUp(event) {
+    const action = actionForCode(event.code);
+    if (action) this.keys.delete(action);
+    if (action === "block") this.player.blocking = false;
+  }
+
+  performAction(action) {
+    if (action === "jump") this.jump();
+    else if (action === "slash") this.slash();
+    else if (action === "block") this.beginBlock();
+    else if (action === "qi") this.swordQi();
+    else if (action === "dao") this.daoSkill();
+    else if (action === "dash") this.dash();
+  }
 
   bindTouch() {
     $$('[data-touch]').forEach(button => {
       button.onpointerdown = event => {
         event.preventDefault();
         const action = button.dataset.touch;
-        if (action === "left" || action === "right") this.keys.add(action === "left" ? "KeyA" : "KeyD");
-        if (action === "jump") this.jump(); if (action === "slash") this.slash(); if (action === "qi") this.swordQi(); if (action === "dao") this.daoSkill();
-        if (action === "block") { this.player.blocking = true; this.player.blockStarted = performance.now(); }
+        if (this.pause) return;
+        if (action === "left" || action === "right") this.keys.add(action);
+        this.performAction(action);
       };
-      button.onpointerup = button.onpointercancel = () => { this.keys.delete("KeyA"); this.keys.delete("KeyD"); if (button.dataset.touch === "block") this.player.blocking = false; };
+      button.onpointerup = button.onpointercancel = () => { this.keys.delete(button.dataset.touch); if (button.dataset.touch === "block") this.player.blocking = false; };
     });
   }
 
   jump() {
-    const maxJumps = this.stats.depth.xun >= 2 ? 2 : 1;
-    if (this.player.onGround || this.player.jumpCount < maxJumps) { this.player.vy = -500; this.player.onGround = false; this.player.jumpCount += 1; this.burst(this.player.x + 16, this.player.y + 70, "#dbe8ed", 7); }
+    this.player.jumpBuffer = .14;
+    this.tryJump();
+  }
+
+  tryJump() {
+    const p = this.player;
+    const first = p.onGround || p.coyote > 0;
+    if (!p.jumpBuffer || p.dash > 0 || p.hurt > 0 || (!first && (this.stats.depth.xun < 2 || p.jumpCount >= 2))) return;
+    p.vy = -500; p.onGround = false; p.coyote = 0; p.jumpCount = first ? 1 : p.jumpCount + 1; p.jumpBuffer = 0;
+    this.burst(p.x + 16, p.y + p.h, "#dbe8ed", 7);
   }
 
   slash() {
     const p = this.player;
-    if (p.slashCooldown > 0) return;
-    const now = performance.now();
-    p.combo = now - p.lastSlashAt < 560 ? p.combo % 3 + 1 : 1;
-    p.lastSlashAt = now;
+    if (p.dash > 0 || p.hurt > 0 || p.qiCast > 0) return;
+    if (p.slashCooldown > 0 || p.slash > 0) { p.queuedSlash = .2; return; }
+    this.beginSlash();
+  }
+
+  beginSlash() {
+    const p = this.player;
+    p.blocking = false; p.parryArmed = 0;
+    p.counterAttack = p.counterWindow > 0;
+    p.counterWindow = 0;
+    p.combo = this.elapsed - p.lastSlashAt < .68 ? p.combo % 3 + 1 : 1;
+    p.lastSlashAt = this.elapsed;
     p.slashDuration = p.combo === 3 ? .36 : .28;
     p.slash = p.slashDuration;
-    p.slashCooldown = (p.combo === 3 ? .46 : .34) * this.stats.cooldown;
+    p.slashCooldown = (p.combo === 3 ? .47 : .32) * this.stats.cooldown;
+    p.queuedSlash = 0;
     p.attackId += 1;
-    p.vx += p.face * (p.combo === 3 ? 95 : 48);
-    this.burst(p.x + p.w / 2 + p.face * 28, p.y + 34, "#dcecff", 5);
+    p.vx += p.face * (p.combo === 3 ? 105 : 48);
+    this.burst(p.x + p.w / 2 + p.face * 28, p.y + 34, elementColor(this.stats.primary), p.counterAttack ? 14 : 5);
+  }
+
+  beginBlock() {
+    const p = this.player;
+    if (p.dash > 0 || p.hurt > 0 || p.qiCast > 0 || (p.slash > .12)) return;
+    if (p.slash > 0 && p.combo === 3) return;
+    p.slash = 0; p.queuedSlash = 0; p.blocking = true; p.blockStarted = this.elapsed;
+    p.parryArmed = p.parryLock <= 0 ? .22 : 0;
+    p.parryLock = .5;
+  }
+
+  dash() {
+    const p = this.player;
+    if (p.dashCooldown > 0 || p.dash > 0 || p.hurt > 0 || p.qiCast > 0 || (p.slash > 0 && (p.combo === 3 || p.slash > .12))) return;
+    p.blocking = false; p.parryArmed = 0; p.slash = 0; p.queuedSlash = 0;
+    p.dash = .2; p.dashCooldown = .88; p.dashDirection = (this.keys.has("right") ? 1 : 0) - (this.keys.has("left") ? 1 : 0) || p.face;
+    p.face = p.dashDirection; p.vy = Math.min(0, p.vy);
+    this.burst(p.x + p.w / 2, p.y + p.h / 2, elementColor(this.stats.primary), 9);
   }
 
   swordQi() {
     const p = this.player;
-    if (p.qi < 20 || p.qiCooldown > 0) return;
+    if (p.qi < 20 || p.qiCooldown > 0 || p.dash > 0 || p.hurt > 0 || p.blocking || p.slash > 0) return;
     p.qi -= 20; p.qiCooldown = .65 * this.stats.cooldown;
     const damage = this.stats.attack * (.72 + this.stats.depth.qian * .12) * (1 + (this.stats.affixes.qiPower || 0) / 100);
-    p.qiCast = .28;
+    p.qiCast = .25;
     p.vx -= p.face * 35;
-    this.projectiles.push({ type: "swordQi", owner: "player", x: p.x + (p.face > 0 ? p.w : -38), y: p.y + 24, vx: p.face * 640, vy: 0, w: 48, h: 20, damage, life: 1.8, maxLife: 1.8, pierce: this.stats.depth.qian >= 2 ? 2 : 0, color: ELEMENTS[this.stats.primary].color });
+    this.projectiles.push({ type: "swordQi", owner: "player", x: p.x + (p.face > 0 ? p.w : -38), y: p.y + 24, vx: p.face * (this.stats.primary === "earth" ? 430 : 640), vy: 0, w: this.stats.primary === "earth" ? 58 : 48, h: this.stats.primary === "earth" ? 26 : 20, damage, life: 1.8, maxLife: 1.8, pierce: (this.stats.primary === "metal" ? 2 : 0) + (this.stats.secondary === "metal" ? 1 : 0) + (this.stats.depth.qian >= 2 ? 1 : 0), hitIds: new Set(), color: elementColor(this.stats.primary) });
     this.burst(p.x + p.w / 2 + p.face * 32, p.y + 33, "#dff6ff", 12);
   }
 
   daoSkill() {
     if (!this.stats.dao) return showToast("将任一八卦路线修至第三层后才能施展道法", true);
-    if (this.player.daoCooldown > 0 || this.player.qi < 35) return;
+    if (this.player.daoCooldown > 0 || this.player.qi < 35 || this.player.dash > 0 || this.player.slash > 0 || this.player.blocking) return;
     this.player.qi -= 35; this.player.daoCooldown = 8;
     const dao = this.stats.dao;
     if (dao === "qian" || dao === "li" || dao === "zhen") {
       this.enemies.filter(e => !e.dead && Math.abs(e.x - this.player.x) < 480).forEach(e => this.hitEnemy(e, this.stats.attack * 2.2, true));
-      this.burst(this.player.x, this.player.y, ELEMENTS[this.stats.primary].color, 34);
+      this.burst(this.player.x, this.player.y, elementColor(this.stats.primary), 34);
     } else if (dao === "xun") { this.player.x += this.player.face * 300; this.player.invuln = 1.5; }
     else if (dao === "kan") { this.enemies.forEach(e => { e.slow = 5; }); }
     else if (dao === "gen" || dao === "kun") { this.player.invuln = 4; }
@@ -509,23 +686,40 @@ class BattleGame {
     if (this.finished) return;
     const dt = Math.min((time - this.lastTime) / 1000, .034);
     this.lastTime = time;
-    if (!this.pause) this.update(dt);
+    if (!this.pause) {
+      this.screenShake = Math.max(0, this.screenShake - dt);
+      if (this.hitStop > 0) this.hitStop = Math.max(0, this.hitStop - dt);
+      else this.update(dt);
+    }
     this.draw();
     requestAnimationFrame(next => this.loop(next));
   }
 
   update(dt) {
     const p = this.player;
+    this.elapsed += dt;
     p.animTime += dt;
     p.invuln = Math.max(0, p.invuln - dt); p.slash = Math.max(0, p.slash - dt); p.slashCooldown = Math.max(0, p.slashCooldown - dt); p.qiCast = Math.max(0, p.qiCast - dt); p.qiCooldown = Math.max(0, p.qiCooldown - dt); p.daoCooldown = Math.max(0, p.daoCooldown - dt); p.blockFlash = Math.max(0, p.blockFlash - dt);
+    p.parryArmed = Math.max(0, p.parryArmed - dt); p.parryLock = Math.max(0, p.parryLock - dt);
+    p.counterWindow = Math.max(0, p.counterWindow - dt); p.queuedSlash = Math.max(0, p.queuedSlash - dt);
+    p.jumpBuffer = Math.max(0, p.jumpBuffer - dt); p.dashCooldown = Math.max(0, p.dashCooldown - dt);
+    p.dash = Math.max(0, p.dash - dt); p.hurt = Math.max(0, p.hurt - dt);
+    p.shieldTime = Math.max(0, p.shieldTime - dt); if (!p.shieldTime) p.shield = 0;
+    p.flameBuff = Math.max(0, p.flameBuff - dt); p.healCooldown = Math.max(0, p.healCooldown - dt);
+    if (p.queuedSlash > 0 && p.slashCooldown <= 0 && p.slash <= 0 && p.dash <= 0) this.beginSlash();
     p.qi = Math.min(this.stats.qiMax, p.qi + this.stats.qiRegen * dt);
-    const move = (this.keys.has("KeyD") ? 1 : 0) - (this.keys.has("KeyA") ? 1 : 0);
-    if (move) p.face = move;
-    p.vx += (move * this.stats.speed - p.vx) * Math.min(1, dt * 11);
-    if (!move) p.vx *= Math.pow(.001, dt);
+    const move = (this.keys.has("right") ? 1 : 0) - (this.keys.has("left") ? 1 : 0);
+    if (move && p.dash <= 0 && p.slash <= 0 && !p.blocking) p.face = move;
+    if (p.dash > 0) p.vx = p.dashDirection * 570;
+    else {
+      const target = p.blocking || p.qiCast > 0 ? move * this.stats.speed * .35 : move * this.stats.speed;
+      p.vx += (target - p.vx) * Math.min(1, dt * 11);
+      if (!move) p.vx *= Math.pow(.001, dt);
+    }
     p.vy += 1250 * dt;
     p.x = clamp(p.x + p.vx * dt, 0, this.worldWidth - p.w);
     p.y += p.vy * dt;
+    const wasGrounded = p.onGround;
     p.onGround = false;
     for (const platform of this.platforms) {
       const oldBottom = p.y + p.h - p.vy * dt;
@@ -533,19 +727,22 @@ class BattleGame {
         p.y = platform.y - p.h; p.vy = 0; p.onGround = true; p.jumpCount = 0;
       }
     }
+    p.coyote = p.onGround ? .11 : wasGrounded ? .11 : Math.max(0, p.coyote - dt);
+    this.tryJump();
     if (p.y > this.height + 120) this.damagePlayer(30, p.x - 20);
     if (p.y > this.height + 80) { p.x = Math.max(40, p.x - 180); p.y = 280; p.vy = 0; }
 
     if (p.slash > 0) {
       const progress = 1 - p.slash / p.slashDuration;
       const active = progress > .18 && progress < .78;
-      const range = p.combo === 3 ? 104 : 82; const left = p.face > 0 ? p.x + p.w - 4 : p.x - range + 4;
+      const range = (p.combo === 3 ? (this.stats.primary === "metal" ? 132 : 104) : 82) + (this.stats.secondary === "metal" ? 10 : 0); const left = p.face > 0 ? p.x + p.w - 4 : p.x - range + 4;
       this.enemies.filter(e => active && !e.dead && e.lastHit !== p.attackId && this.overlap(left, p.y + 4, range, 62, e.x, e.y, e.w, e.h)).forEach(e => {
         e.lastHit = p.attackId;
         let damage = this.stats.attack * [1, 1, 1.12, 1.34][p.combo] * (1 + (this.stats.affixes.attack || 0) / 100);
         const crit = Math.random() < this.stats.crit;
         if (crit) damage *= 1.75;
-        this.hitEnemy(e, damage, crit);
+        this.hitEnemy(e, damage * (p.counterAttack ? 1.35 : 1), crit, false, "slash");
+        p.qi = Math.min(this.stats.qiMax, p.qi + 3 + (this.stats.secondary === "water" ? 1 : 0));
       });
     }
     this.updateEnemies(dt);
@@ -554,24 +751,25 @@ class BattleGame {
     this.particles = this.particles.filter(particle => particle.life > 0);
     this.cameraX += (clamp(p.x - this.width * .42, 0, this.worldWidth - this.width) - this.cameraX) * Math.min(1, dt * 5);
     this.updateHud();
-    if (!this.finished && this.enemies.every(enemy => enemy.dead)) this.finish(true);
+    if (!this.practice && !this.finished && this.enemies.every(enemy => enemy.dead)) this.finish(true);
   }
 
   updateEnemies(dt) {
     const p = this.player;
     for (const enemy of this.enemies) {
       if (enemy.dead) continue;
+      if (enemy.kind === "dummy") { enemy.hp = Math.min(enemy.maxHp, enemy.hp + 60 * dt); enemy.hurt = Math.max(0, enemy.hurt - dt); continue; }
       enemy.hurt = Math.max(0, enemy.hurt - dt); enemy.attackCd -= dt; enemy.slow = Math.max(0, enemy.slow - dt);
       if (enemy.burn > 0) { enemy.burn -= dt; enemy.burnTick -= dt; if (enemy.burnTick <= 0) { enemy.burnTick = .55; this.hitEnemy(enemy, 2 + (this.stats.affixes.burn || 0) * .08, false, true); } }
       const dx = p.x - enemy.x; const distance = Math.abs(dx); const direction = Math.sign(dx) || 1; const speed = (enemy.kind === "boss" ? 105 : 82) * (enemy.slow > 0 ? .55 : 1);
-      enemy.face = direction;
+      if (enemy.attackState === "idle") enemy.face = direction;
       if (this.realmKey === "fire") {
         this.updateFireEnemy(enemy, dt, distance, direction, speed);
         continue;
       }
       if (enemy.kind === "melee" || enemy.kind === "boss") {
         if (distance > 58 && distance < 520) enemy.x += direction * speed * dt;
-        if (distance < (enemy.kind === "boss" ? 82 : 58) && enemy.attackCd <= 0) { enemy.attackCd = enemy.kind === "boss" ? .85 : 1.2; this.damagePlayer(enemy.kind === "boss" ? 22 : 12, enemy.x); }
+        if (distance < (enemy.kind === "boss" ? 82 : 58) && enemy.attackCd <= 0 && this.overlap(enemy.x - 8, enemy.y, enemy.w + 16, enemy.h, p.x, p.y, p.w, p.h)) { enemy.attackCd = enemy.kind === "boss" ? .85 : 1.2; this.damagePlayer(enemy.kind === "boss" ? 22 : 12, enemy.x); }
         if (enemy.kind === "boss" && distance < 620 && enemy.attackCd < .25 && Math.random() < dt * 1.2) this.enemyShot(enemy, direction);
       } else {
         if (distance < 190) enemy.x -= direction * speed * dt;
@@ -589,12 +787,13 @@ class BattleGame {
         enemy.attackState = "strike";
         enemy.attackTimer = enemy.attackType === "dash" ? .34 : .22;
         enemy.attackHit = false;
-        if (enemy.attackType === "fireball") this.enemyShot(enemy, direction, "fireball");
-        if (enemy.attackType === "wave") this.enemyShot(enemy, direction, "wave");
+        if (enemy.attackType === "fireball") this.enemyShot(enemy, enemy.attackDirection, "fireball");
+        if (enemy.attackType === "wave") this.enemyShot(enemy, enemy.attackDirection, "wave");
       } else if (enemy.attackState === "strike") {
-        if (enemy.attackType === "dash") enemy.x += direction * (enemy.kind === "boss" ? 470 : 380) * dt;
+        if (enemy.attackType === "dash") enemy.x += enemy.attackDirection * (enemy.kind === "boss" ? 470 : 380) * dt;
         const reach = enemy.kind === "boss" ? 106 : enemy.variant === "charger" ? 84 : 66;
-        if (!enemy.attackHit && ["slash", "dash"].includes(enemy.attackType) && distance < reach) {
+        const frontX = enemy.attackDirection > 0 ? enemy.x + enemy.w - 5 : enemy.x - reach + 5;
+        if (!enemy.attackHit && ["slash", "dash"].includes(enemy.attackType) && this.overlap(frontX, enemy.y + 7, reach, enemy.h - 12, this.player.x, this.player.y, this.player.w, this.player.h)) {
           enemy.attackHit = true;
           this.damagePlayer(enemy.kind === "boss" ? 24 : enemy.variant === "charger" ? 16 : 12, enemy.x);
         }
@@ -642,6 +841,7 @@ class BattleGame {
     enemy.attackState = "windup";
     enemy.attackTimer = windup;
     enemy.attackHit = false;
+    enemy.attackDirection = enemy.face;
   }
 
   enemyShot(enemy, direction, type = "bolt") {
@@ -655,8 +855,14 @@ class BattleGame {
       shot.x += shot.vx * dt; shot.y += shot.vy * dt; shot.life -= dt;
       if (shot.owner === "player") {
         for (const enemy of this.enemies) {
-          if (!enemy.dead && this.overlap(shot.x, shot.y, shot.w, shot.h, enemy.x, enemy.y, enemy.w, enemy.h)) {
-            this.hitEnemy(enemy, shot.damage, false); shot.pierce -= 1; if (shot.pierce < 0) { shot.life = 0; break; }
+          if (!enemy.dead && !shot.hitIds.has(enemy) && this.overlap(shot.x, shot.y, shot.w, shot.h, enemy.x, enemy.y, enemy.w, enemy.h)) {
+            shot.hitIds.add(enemy);
+            this.hitEnemy(enemy, shot.damage, false, false, "qi");
+            if (this.stats.primary === "fire") {
+              this.enemies.filter(other => other !== enemy && !other.dead && Math.abs(other.x - enemy.x) < 72 && Math.abs(other.y - enemy.y) < 65).slice(0, 3).forEach(other => this.hitEnemy(other, shot.damage * .28, false, false, "burst"));
+              this.burst(enemy.x, enemy.y, "#ffb15b", 12);
+            }
+            shot.pierce -= 1; if (shot.pierce < 0) { shot.life = 0; break; }
           }
         }
       } else if (this.overlap(shot.x, shot.y, shot.w, shot.h, this.player.x, this.player.y, this.player.w, this.player.h)) { this.damagePlayer(shot.damage, shot.x); shot.life = 0; }
@@ -664,29 +870,78 @@ class BattleGame {
     this.projectiles = this.projectiles.filter(shot => shot.life > 0 && shot.x > -100 && shot.x < this.worldWidth + 100);
   }
 
-  hitEnemy(enemy, damage, crit = false, dot = false) {
+  hitEnemy(enemy, damage, crit = false, dot = false, kind = "skill") {
     if (enemy.dead) return;
-    if (!dot && this.stats.primary === "fire") enemy.burn = Math.max(enemy.burn, 2.5);
-    if (!dot && this.stats.primary === "water") enemy.slow = Math.max(enemy.slow, 1.5);
-    if (!dot && this.stats.primary === "earth") enemy.x += this.player.face * 18 * this.stats.stagger;
-    if (!dot && this.stats.primary === "wood" && Math.random() < .18) this.player.hp = Math.min(this.stats.hpMax, this.player.hp + 3);
-    if (!dot && (this.stats.affixes.seed || 0) && Math.random() < .16) damage += this.stats.affixes.seed;
+    const p = this.player;
+    if (!dot) {
+      if (this.stats.primary === "fire") {
+        enemy.burn = Math.max(enemy.burn, kind === "qi" ? 3.2 : 2.4);
+        if (kind === "slash" && p.combo === 3) {
+          damage += Math.min(16, 5 + enemy.burn * 3);
+          enemy.burn = 0;
+          this.burst(enemy.x + enemy.w / 2, enemy.y + enemy.h / 2, "#ffb15b", 12);
+          this.enemies.filter(other => other !== enemy && !other.dead && Math.abs(other.x - enemy.x) < 60 && Math.abs(other.y - enemy.y) < 65).slice(0, 2).forEach(other => this.hitEnemy(other, Math.min(9, damage * .2), false, true, "burst"));
+        }
+      }
+      if (this.stats.primary === "water") enemy.slow = Math.max(enemy.slow, enemy.kind === "boss" ? .8 : kind === "qi" ? 2.4 : kind === "slash" && p.combo === 3 ? 2 : 1.3);
+      if (this.stats.primary === "wood") {
+        enemy.seeds = Math.min(3, enemy.seeds + (kind === "qi" ? 2 : 1));
+        if (kind === "slash" && p.combo === 3 && enemy.seeds >= 2 && p.healCooldown <= 0) {
+          p.hp = Math.min(this.stats.hpMax, p.hp + Math.min(10, 4 + enemy.seeds * 2));
+          p.healCooldown = 1.4; enemy.seeds = 0;
+        }
+      }
+      if (this.stats.primary === "metal" && kind === "slash" && p.combo === 3) damage *= 1.18;
+      if (this.stats.primary === "earth") {
+        enemy.x = clamp(enemy.x + p.face * (kind === "slash" && p.combo === 3 ? 48 : 18) * this.stats.stagger, 40, this.worldWidth - 80);
+        if (kind === "slash" && p.combo === 3) enemy.slow = Math.max(enemy.slow, .55);
+      }
+      if (kind === "qi" && this.stats.depth.kan >= 2) enemy.slow = Math.max(enemy.slow, enemy.kind === "boss" ? .8 : 1.3);
+      if (this.stats.depth.zhen >= 2) enemy.attackCd = Math.max(enemy.attackCd, enemy.kind === "boss" ? .08 : .16);
+      if (crit && this.stats.depth.li >= 2 && enemy.burn > 0) { damage += Math.min(12, enemy.burn * 3); enemy.burn = 0; }
+      // 副属性只提供一项轻量增益，不重复触发主属性整套机制。
+      if (this.stats.secondary === "fire") enemy.burn = Math.max(enemy.burn, .8);
+      else if (this.stats.secondary === "water") enemy.slow = Math.max(enemy.slow, .45);
+      else if (this.stats.secondary === "wood" && kind === "slash" && p.healCooldown <= 0) { p.hp = Math.min(this.stats.hpMax, p.hp + 2); p.healCooldown = 2; }
+      else if (this.stats.secondary === "metal") damage *= 1.05;
+      else if (this.stats.secondary === "earth") enemy.x = clamp(enemy.x + p.face * 7, 40, this.worldWidth - 80);
+      if ((this.stats.affixes.seed || 0) && Math.random() < .16) damage += this.stats.affixes.seed;
+      if (kind === "slash" && p.flameBuff > 0) { enemy.burn = Math.max(enemy.burn, 2.5); p.flameBuff = 0; }
+    }
     if ((this.stats.affixes.burst || 0) && enemy.hp / enemy.maxHp < .3) damage *= 1 + this.stats.affixes.burst / 100;
     enemy.hp -= damage; enemy.hurt = .16; this.burst(enemy.x + enemy.w / 2, enemy.y + enemy.h / 2, crit ? "#fff0a5" : this.element.color, crit ? 12 : 6);
-    if (enemy.hp <= 0) { enemy.dead = true; if (this.stats.depth.dui > 0 || this.stats.affixes.heal) this.player.hp = Math.min(this.stats.hpMax, this.player.hp + 3 + this.stats.depth.dui * 2 + (this.stats.affixes.heal || 0) * .2); }
+    if (!dot) { this.hitStop = Math.max(this.hitStop, .026); this.screenShake = Math.max(this.screenShake, .11); playHitSound(); }
+    if (enemy.hp <= 0) {
+      if (enemy.kind === "dummy") { enemy.hp = enemy.maxHp; return; }
+      enemy.dead = true;
+      if (this.stats.depth.dui > 0 || this.stats.affixes.heal) p.hp = Math.min(this.stats.hpMax, p.hp + 3 + this.stats.depth.dui * 2 + (this.stats.affixes.heal || 0) * .2);
+    }
   }
 
   damagePlayer(amount, sourceX) {
     const p = this.player;
-    if (p.invuln > 0) return;
-    const attackFromFront = Math.sign(sourceX - p.x) === p.face;
+    if (p.invuln > 0 || (p.dash > .08 && p.dash <= .2)) return;
+    const attackFromFront = Math.sign(sourceX - (p.x + p.w / 2)) === p.face;
     if (p.blocking && attackFromFront) {
-      const perfect = performance.now() - p.blockStarted < 240;
-      if (perfect) { p.invuln = .45; p.blockFlash = .32; this.burst(p.x + p.w / 2, p.y + 30, "#fff0a5", 20); const enemy = this.enemies.find(e => !e.dead && Math.abs(e.x - p.x) < 110); if (enemy) this.hitEnemy(enemy, this.stats.attack * .9, true); return; }
+      if (p.parryArmed > 0) {
+        p.parryArmed = 0; p.invuln = .38; p.blockFlash = .32; p.counterWindow = .7;
+        p.qi = Math.min(this.stats.qiMax, p.qi + 8);
+        if (this.stats.primary === "metal") this.enemies.filter(e => !e.dead && Math.abs(e.x - p.x) < 100 && Math.sign(e.x - p.x) === p.face).slice(0, 2).forEach(e => this.hitEnemy(e, this.stats.attack * .65, false, false, "counter"));
+        if (this.stats.primary === "earth" || this.stats.depth.gen >= 2) { p.shield = Math.min(18, p.shield + 9); p.shieldTime = 4; }
+        if (this.stats.primary === "wood" && p.healCooldown <= 0) { p.hp = Math.min(this.stats.hpMax, p.hp + 5); p.healCooldown = 2; }
+        if (this.stats.primary === "fire") p.flameBuff = 3;
+        if (this.stats.primary === "water") this.enemies.filter(e => !e.dead && Math.abs(e.x - p.x) < 140).forEach(e => { e.slow = Math.max(e.slow, 1.5); });
+        this.screenShake = Math.max(this.screenShake, .16); playHitSound(true);
+        this.burst(p.x + p.w / 2, p.y + 30, "#fff0a5", 20); return;
+      }
       amount *= 1 - this.stats.block;
     }
     amount = Math.max(1, amount - this.stats.defense);
+    if (p.shield > 0) { const absorbed = Math.min(p.shield, amount); p.shield -= absorbed; amount -= absorbed; }
+    if (amount <= 0) return;
     p.hp -= amount; p.invuln = .65; p.vx = sourceX < p.x ? 180 : -180; this.burst(p.x + p.w / 2, p.y + 30, "#ef5c45", 10);
+    this.screenShake = Math.max(this.screenShake, .2);
+    p.hurt = .2; p.queuedSlash = 0; p.blocking = false;
     if (p.hp <= 0) this.finish(false);
   }
 
@@ -697,6 +952,9 @@ class BattleGame {
     if (this.finished) return;
     this.finished = true;
     window.removeEventListener("keydown", this.boundKeyDown); window.removeEventListener("keyup", this.boundKeyUp);
+    window.removeEventListener("blur", this.boundBlur); document.removeEventListener("visibilitychange", this.boundVisibility);
+    this.clearInput(); $("#pause-overlay").classList.add("hidden");
+    if (this.practice) { activeGame = null; showPanel("cultivation"); return; }
     const rewards = [];
     if (win) {
       saveData.progress.victories += 1; saveData.progress.clears[this.realmKey] += 1; saveData.player.spirit += 12;
@@ -727,7 +985,7 @@ class BattleGame {
     const ctx = this.ctx; const camera = this.cameraX; const [dark, light] = this.realm.bg;
     const gradient = ctx.createLinearGradient(0, 0, 0, this.height); gradient.addColorStop(0, dark); gradient.addColorStop(1, light); ctx.fillStyle = gradient; ctx.fillRect(0, 0, this.width, this.height);
     this.drawBackground(ctx, camera);
-    ctx.save(); ctx.translate(-camera, 0);
+    ctx.save(); ctx.translate(-camera + (feedback.shake && this.screenShake > 0 ? (Math.random() - .5) * 6 : 0), feedback.shake && this.screenShake > 0 ? (Math.random() - .5) * 4 : 0);
     for (const platform of this.platforms) this.drawPlatform(ctx, platform);
     this.enemies.forEach(enemy => { if (!enemy.dead) this.drawEnemy(ctx, enemy); });
     this.projectiles.forEach(shot => this.drawProjectile(ctx, shot));
@@ -772,7 +1030,7 @@ class BattleGame {
     ctx.fillStyle = "#34465a"; ctx.fillRect(6, 30, 8, 25); ctx.fillRect(29, 29, 8, 25);
     ctx.fillStyle = "#af3f35"; ctx.fillRect(7, 48, 30, 6); ctx.fillStyle = "#dfad4c"; ctx.fillRect(20, 48, 5, 6);
     ctx.fillStyle = "#172230"; ctx.fillRect(9, 54, 26, 8); ctx.fillRect(8 + step, 61, 10, 9); ctx.fillRect(25 - step, 61, 10, 9);
-    ctx.fillStyle = ELEMENTS[this.stats.primary].color; ctx.fillRect(9, 27, 3, 21); ctx.fillRect(32, 29, 3, 17);
+    ctx.fillStyle = elementColor(this.stats.primary); ctx.fillRect(9, 27, 3, 21); ctx.fillRect(32, 29, 3, 17);
     ctx.fillStyle = "#0a0f16"; ctx.fillRect(25, 17, 3, 3);
 
     if (p.blocking) {
@@ -786,18 +1044,27 @@ class BattleGame {
       const sweep = p.combo === 2 ? -2.45 : p.combo === 3 ? 3.5 : 2.35;
       const angle = start + sweep * progress;
       ctx.save(); ctx.translate(31, 34); ctx.rotate(angle); ctx.fillStyle = "#dfad4c"; ctx.fillRect(-7, -4, 14, 7); ctx.fillStyle = "#eef5f5"; ctx.fillRect(4, -2, p.combo === 3 ? 63 : 52, 5); ctx.fillStyle = "#91a8b8"; ctx.fillRect(15, 3, 40, 2); ctx.restore();
-      ctx.strokeStyle = ELEMENTS[this.stats.primary].color; ctx.globalAlpha = .25 + Math.sin(progress * Math.PI) * .7; ctx.lineWidth = p.combo === 3 ? 11 : 7; ctx.beginPath();
+      ctx.strokeStyle = elementColor(this.stats.primary); ctx.globalAlpha = .25 + Math.sin(progress * Math.PI) * .7; ctx.lineWidth = p.combo === 3 ? 11 : 7; ctx.beginPath();
       if (p.combo === 2) ctx.arc(30, 34, 58, 1.8, -.85, true); else ctx.arc(30, 34, p.combo === 3 ? 70 : 58, -1.35, 1.1); ctx.stroke(); ctx.globalAlpha = 1;
     } else if (p.qiCast > 0) {
       ctx.fillStyle = "#dfad4c"; ctx.fillRect(27, 30, 11, 6); ctx.fillStyle = "#eaf7ff"; ctx.fillRect(35, 31, 48, 4);
-      ctx.strokeStyle = ELEMENTS[this.stats.primary].color; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(42, 34, 20 + p.qiCast * 35, 0, Math.PI * 2); ctx.stroke();
+      ctx.strokeStyle = elementColor(this.stats.primary); ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(42, 34, 20 + p.qiCast * 35, 0, Math.PI * 2); ctx.stroke();
     } else {
       ctx.save(); ctx.translate(28, 30); ctx.rotate(-.58); ctx.fillStyle = "#dfad4c"; ctx.fillRect(-5, -3, 13, 6); ctx.fillStyle = "#dce8ee"; ctx.fillRect(7, -2, 43, 4); ctx.restore();
     }
     ctx.restore();
+    if (p.dash > 0) { ctx.fillStyle = elementColor(this.stats.primary); ctx.globalAlpha = .25; ctx.fillRect(x - p.face * 26, y + 10, p.w, p.h - 18); ctx.globalAlpha = 1; }
+    if (p.shield > 0) { ctx.strokeStyle = "#dfad4c"; ctx.lineWidth = 3; ctx.strokeRect(x - 5, y - 5, p.w + 10, p.h + 10); }
   }
 
   drawEnemy(ctx, enemy) {
+    if (enemy.kind === "dummy") {
+      const x = Math.round(enemy.x), y = Math.round(enemy.y);
+      ctx.fillStyle = "#6b4e35"; ctx.fillRect(x + 15, y + 10, 12, enemy.h - 10);
+      ctx.fillStyle = "#bd9060"; ctx.fillRect(x + 5, y + 8, enemy.w - 10, 35);
+      ctx.fillStyle = "#e6c390"; ctx.fillRect(x + 10, y + 13, enemy.w - 20, 7);
+      ctx.fillStyle = "#ffdb9a"; ctx.fillRect(x + 19, y + 21, 5, 5); return;
+    }
     if (this.realmKey === "fire") return this.drawFireEnemy(ctx, enemy);
     const x = Math.round(enemy.x), y = Math.round(enemy.y); ctx.save(); if (enemy.hurt > 0) ctx.globalAlpha = .55;
     ctx.fillStyle = enemy.kind === "boss" ? "#18131d" : "#17202b"; ctx.fillRect(x, y, enemy.w, enemy.h); ctx.fillStyle = this.element.color; ctx.fillRect(x + 5, y + 8, enemy.w - 10, 9); ctx.fillRect(x + enemy.w / 2 - 4, y + 24, 8, 8);
@@ -868,8 +1135,25 @@ function bindUi() {
   $$(".nav-button").forEach(button => button.addEventListener("click", () => showPanel(button.dataset.panel)));
   $$('[data-go]').forEach(button => button.addEventListener("click", () => showPanel(button.dataset.go)));
   $("#confirm-socket").addEventListener("click", confirmSocket);
-  $("#leave-run").addEventListener("click", () => { if (activeGame && !activeGame.finished) activeGame.finish(false); });
+  $("#socket-dialog").addEventListener("close", () => { if (!keepSocketPreview) pendingSocket = null; keepSocketPreview = false; });
+  $("#preview-practice").addEventListener("click", () => { keepSocketPreview = true; startRealm("fire", { practice: true, state: previewSocketState() }); });
+  $("#practice-run").addEventListener("click", () => startRealm("fire", { practice: true, state: previewSocketState() }));
+  $("#pause-run").addEventListener("click", () => activeGame?.setPause(!activeGame.pause));
+  $("#resume-run").addEventListener("click", () => activeGame?.setPause(false));
+  $("#retry-run").addEventListener("click", () => { if (activeGame) startRealm(activeGame.realmKey, { practice: activeGame.practice, state: activeGame.practice ? previewSocketState() : saveData }); });
+  $("#quit-run").addEventListener("click", () => activeGame?.quit());
+  $("#leave-run").addEventListener("click", () => activeGame?.quit());
+  $("#settings-run").addEventListener("click", () => { renderControls(); $("#settings-dialog").showModal(); });
+  $("#shake-toggle").checked = feedback.shake;
+  $("#sound-toggle").checked = feedback.sound;
+  for (const [id, key] of [["shake-toggle", "shake"], ["sound-toggle", "sound"]]) {
+    $(`#${id}`).addEventListener("change", event => { feedback[key] = event.target.checked; localStorage.setItem("daoblade-feedback", JSON.stringify(feedback)); });
+  }
+  $("#settings-dialog").addEventListener("close", () => { if (pendingRebindListener) window.removeEventListener("keydown", pendingRebindListener, true); pendingRebindListener = null; });
+  $("#close-settings").addEventListener("click", () => $("#settings-dialog").close());
+  $("#reset-controls").addEventListener("click", () => { controls = { ...DEFAULT_CONTROLS }; localStorage.setItem("daoblade-controls", JSON.stringify(controls)); renderControls(); });
   $("#return-sanctuary").addEventListener("click", event => { event.preventDefault(); $("#result-dialog").close(); activeGame = null; showPanel("sanctuary"); });
+  renderControls();
 }
 
 bindUi();

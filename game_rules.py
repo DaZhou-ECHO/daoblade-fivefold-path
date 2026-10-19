@@ -10,6 +10,11 @@ ELEMENTS = ("metal", "wood", "water", "fire", "earth")
 TRIGRAMS = ("qian", "xun", "kan", "gen", "kun", "zhen", "li", "dui")
 REALMS = ELEMENTS
 MAX_INVENTORY = 80
+AFFIX_KEYS = {
+    "attack", "armorBreak", "qiPower", "hp", "heal", "seed", "qiMax",
+    "qiRegen", "cooldown", "crit", "burn", "burst", "defense", "block",
+    "stagger",
+}
 
 
 def default_state() -> dict[str, Any]:
@@ -42,11 +47,13 @@ def element_totals(state: dict[str, Any]) -> dict[str, int]:
     return totals
 
 
-def primary_secondary(state: dict[str, Any]) -> tuple[str, str]:
-    """返回主属性与副属性；同值时按固定五行顺序处理。"""
+def primary_secondary(state: dict[str, Any]) -> tuple[str | None, str | None]:
+    """返回明确领先的主、副属性；并列时暂不指定。"""
     totals = element_totals(state)
     ordered = sorted(ELEMENTS, key=lambda key: (-totals[key], ELEMENTS.index(key)))
-    return ordered[0], ordered[1]
+    primary = ordered[0] if totals[ordered[0]] > totals[ordered[1]] else None
+    secondary = ordered[1] if primary and totals[ordered[1]] > totals[ordered[2]] else None
+    return primary, secondary
 
 
 def _validate_bead(bead: Any) -> None:
@@ -74,7 +81,9 @@ def _validate_bead(bead: Any) -> None:
             raise ValueError("灵珠词条字段不完整")
         if not isinstance(affix["label"], str) or len(affix["label"]) > 40:
             raise ValueError("灵珠词条名称无效")
-        if not isinstance(affix["value"], (int, float)):
+        if not isinstance(affix["key"], str) or affix["key"] not in AFFIX_KEYS:
+            raise ValueError("灵珠词条类型无效")
+        if type(affix["value"]) not in (int, float) or not 0 <= affix["value"] <= 100:
             raise ValueError("灵珠词条数值无效")
 
 
