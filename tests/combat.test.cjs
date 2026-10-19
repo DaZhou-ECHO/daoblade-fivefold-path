@@ -114,6 +114,12 @@ test("五种主修分别影响穿透、续航、控制、爆发与守御", () =>
   const boss = water.enemy("boss", "首领", 700, 280);
   water.hitEnemy(boss, 10, false, false, "qi");
   assert.equal(boss.slow, .8);
+  const normal = water.enemy("melee", "水试炼", 620, 100);
+  water.hitEnemy(normal, 5, false, false, "slash");
+  const firstSlow = normal.slow;
+  water.hitEnemy(normal, 5, false, false, "slash");
+  assert.ok(normal.slow > firstSlow);
+  assert.equal(normal.chill, 2);
 
   const fire = new api.BattleGame("fire", { practice: true, state: trainedState(api, "fire") });
   const first = fire.enemy("melee", "甲", 600, 100);
@@ -130,6 +136,12 @@ test("五种主修分别影响穿透、续航、控制、爆发与守御", () =>
   assert.equal(earth.projectiles.length, 0); // 格挡期间动作互斥。
   earth.player.blocking = false; earth.swordQi();
   assert.equal(Math.abs(earth.projectiles[0].vx), 430);
+  const near = earth.enemy("melee", "乙", 640, 100);
+  earth.enemies.push(near);
+  earth.player.combo = 3; earth.player.attackId = 1;
+  const oldX = near.x;
+  earth.hitEnemy(earth.enemies[0], 5, false, false, "slash");
+  assert.ok(near.x > oldX);
 });
 
 test("暂停清除按键，火关突进锁定起手方向", () => {

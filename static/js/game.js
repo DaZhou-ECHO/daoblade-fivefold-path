@@ -485,6 +485,7 @@ class BattleGame {
     this.elapsed = 0;
     this.screenShake = 0;
     this.hitStop = 0;
+    this.shockwaveAttackId = -1;
     this.keys = new Set();
     this.projectiles = [];
     this.particles = [];
@@ -525,7 +526,7 @@ class BattleGame {
     const boss = kind === "boss";
     const height = boss ? 100 : variant === "caster" ? 64 : 62;
     const width = boss ? 66 : variant === "charger" ? 48 : 42;
-    return { kind, variant, name, x, y: this.floorY - height, w: width, h: height, hp, maxHp: hp, vx: 0, face: -1, attackCd: .8 + Math.random(), attackState: "idle", attackTimer: 0, attackType: "", attackHit: false, attackDirection: -1, comboStep: 0, hurt: 0, burn: 0, burnTick: 0, slow: 0, seeds: 0, dead: false, lastHit: -1 };
+    return { kind, variant, name, x, y: this.floorY - height, w: width, h: height, hp, maxHp: hp, vx: 0, face: -1, attackCd: .8 + Math.random(), attackState: "idle", attackTimer: 0, attackType: "", attackHit: false, attackDirection: -1, comboStep: 0, hurt: 0, burn: 0, burnTick: 0, slow: 0, chill: 0, seeds: 0, dead: false, lastHit: -1 };
   }
 
   start() {
@@ -760,6 +761,7 @@ class BattleGame {
       if (enemy.dead) continue;
       if (enemy.kind === "dummy") { enemy.hp = Math.min(enemy.maxHp, enemy.hp + 60 * dt); enemy.hurt = Math.max(0, enemy.hurt - dt); continue; }
       enemy.hurt = Math.max(0, enemy.hurt - dt); enemy.attackCd -= dt; enemy.slow = Math.max(0, enemy.slow - dt);
+      if (enemy.slow === 0) enemy.chill = 0;
       if (enemy.burn > 0) { enemy.burn -= dt; enemy.burnTick -= dt; if (enemy.burnTick <= 0) { enemy.burnTick = .55; this.hitEnemy(enemy, 2 + (this.stats.affixes.burn || 0) * .08, false, true); } }
       const dx = p.x - enemy.x; const distance = Math.abs(dx); const direction = Math.sign(dx) || 1; const speed = (enemy.kind === "boss" ? 105 : 82) * (enemy.slow > 0 ? .55 : 1);
       if (enemy.attackState === "idle") enemy.face = direction;
@@ -883,7 +885,10 @@ class BattleGame {
           this.enemies.filter(other => other !== enemy && !other.dead && Math.abs(other.x - enemy.x) < 60 && Math.abs(other.y - enemy.y) < 65).slice(0, 2).forEach(other => this.hitEnemy(other, Math.min(9, damage * .2), false, true, "burst"));
         }
       }
-      if (this.stats.primary === "water") enemy.slow = Math.max(enemy.slow, enemy.kind === "boss" ? .8 : kind === "qi" ? 2.4 : kind === "slash" && p.combo === 3 ? 2 : 1.3);
+      if (this.stats.primary === "water") {
+        enemy.chill = Math.min(3, enemy.chill + (kind === "qi" ? 2 : 1));
+        enemy.slow = Math.max(enemy.slow, enemy.kind === "boss" ? .8 : kind === "slash" && p.combo === 3 ? 2.4 : .75 + enemy.chill * .45);
+      }
       if (this.stats.primary === "wood") {
         enemy.seeds = Math.min(3, enemy.seeds + (kind === "qi" ? 2 : 1));
         if (kind === "slash" && p.combo === 3 && enemy.seeds >= 2 && p.healCooldown <= 0) {
@@ -894,7 +899,17 @@ class BattleGame {
       if (this.stats.primary === "metal" && kind === "slash" && p.combo === 3) damage *= 1.18;
       if (this.stats.primary === "earth") {
         enemy.x = clamp(enemy.x + p.face * (kind === "slash" && p.combo === 3 ? 48 : 18) * this.stats.stagger, 40, this.worldWidth - 80);
-        if (kind === "slash" && p.combo === 3) enemy.slow = Math.max(enemy.slow, .55);
+        if (kind === "slash" && p.combo === 3) {
+          enemy.slow = Math.max(enemy.slow, .55);
+          if (this.shockwaveAttackId !== p.attackId) {
+            this.shockwaveAttackId = p.attackId;
+            this.enemies.filter(other => other !== enemy && !other.dead && Math.abs(other.x - enemy.x) < 90 && Math.abs(other.y - enemy.y) < 65).slice(0, 2).forEach(other => {
+              other.x = clamp(other.x + p.face * 30, 40, this.worldWidth - 80);
+              other.slow = Math.max(other.slow, .55);
+            });
+            this.burst(enemy.x, enemy.y + enemy.h - 8, "#cf9849", 14);
+          }
+        }
       }
       if (kind === "qi" && this.stats.depth.kan >= 2) enemy.slow = Math.max(enemy.slow, enemy.kind === "boss" ? .8 : 1.3);
       if (this.stats.depth.zhen >= 2) enemy.attackCd = Math.max(enemy.attackCd, enemy.kind === "boss" ? .08 : .16);
@@ -1046,6 +1061,8 @@ class BattleGame {
       ctx.save(); ctx.translate(31, 34); ctx.rotate(angle); ctx.fillStyle = "#dfad4c"; ctx.fillRect(-7, -4, 14, 7); ctx.fillStyle = "#eef5f5"; ctx.fillRect(4, -2, p.combo === 3 ? 63 : 52, 5); ctx.fillStyle = "#91a8b8"; ctx.fillRect(15, 3, 40, 2); ctx.restore();
       ctx.strokeStyle = elementColor(this.stats.primary); ctx.globalAlpha = .25 + Math.sin(progress * Math.PI) * .7; ctx.lineWidth = p.combo === 3 ? 11 : 7; ctx.beginPath();
       if (p.combo === 2) ctx.arc(30, 34, 58, 1.8, -.85, true); else ctx.arc(30, 34, p.combo === 3 ? 70 : 58, -1.35, 1.1); ctx.stroke(); ctx.globalAlpha = 1;
+      if (p.combo === 3 && this.stats.primary === "metal") { ctx.fillStyle = "rgba(231,228,214,.58)"; ctx.fillRect(72, 27, 65, 7); }
+      if (p.combo === 3 && this.stats.primary === "earth") { ctx.fillStyle = "rgba(207,152,73,.54)"; ctx.fillRect(44, 57, 90, 10); }
     } else if (p.qiCast > 0) {
       ctx.fillStyle = "#dfad4c"; ctx.fillRect(27, 30, 11, 6); ctx.fillStyle = "#eaf7ff"; ctx.fillRect(35, 31, 48, 4);
       ctx.strokeStyle = elementColor(this.stats.primary); ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(42, 34, 20 + p.qiCast * 35, 0, Math.PI * 2); ctx.stroke();
