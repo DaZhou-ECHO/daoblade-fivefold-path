@@ -1,0 +1,876 @@
+"use strict";
+
+const ELEMENTS = {
+  metal: { zh: "金", color: "#e7e4d6", realm: "矿山剑冢", symbol: "金", desc: "护甲、机关与飞刃", drops: "攻击、破甲与反射" },
+  wood: { zh: "木", color: "#52be7b", realm: "古林药谷", symbol: "木", desc: "藤蔓、毒素与灵种", drops: "生命、恢复与召唤" },
+  water: { zh: "水", color: "#4eb2e0", realm: "寒潭水府", symbol: "水", desc: "寒流、滑行与控制", drops: "剑意、冷却与连击" },
+  fire: { zh: "火", color: "#ef5c45", realm: "熔岩天宫", symbol: "火", desc: "近战围攻、蓄力突进与烈焰剑波", drops: "暴击、燃烧与引爆" },
+  earth: { zh: "土", color: "#cf9849", realm: "荒山遗迹", symbol: "土", desc: "岩壁、重击与地形", drops: "防御、格挡与霸体" },
+};
+
+const REALMS = {
+  metal: { bg: ["#111b29", "#526273"], enemies: ["铁甲傀儡", "飞刃机关"], boss: "白帝剑卫" },
+  wood: { bg: ["#071d1a", "#2f7552"], enemies: ["藤甲妖", "毒蕈灵"], boss: "青木药王" },
+  water: { bg: ["#07182a", "#246d91"], enemies: ["寒潭水鬼", "冰晶鱼妖"], boss: "玄水蛟影" },
+  fire: { bg: ["#241018", "#9b3028"], enemies: ["熔岩剑卒", "赤焰刀客", "火羽术士"], boss: "离火剑魁" },
+  earth: { bg: ["#201a14", "#765638"], enemies: ["石甲俑", "沙暴灵"], boss: "镇岳山君" },
+};
+
+const TRIGRAMS = {
+  qian: { zh: "乾", use: "攻势 / 剑气", angle: -90, effects: ["攻击 +4%", "剑气可穿透", "道法：天剑齐发"] },
+  xun: { zh: "巽", use: "身法 / 移动", angle: -45, effects: ["移动速度 +6%", "空中追加一次跳跃", "道法：御风瞬身"] },
+  kan: { zh: "坎", use: "控制 / 剑意", angle: 0, effects: ["剑意上限 +8", "剑气附加减速", "道法：玄水剑牢"] },
+  gen: { zh: "艮", use: "格挡 / 护盾", angle: 45, effects: ["格挡减伤 +6%", "完美格挡获得护盾", "道法：山岳不移"] },
+  kun: { zh: "坤", use: "守御 / 生命", angle: 90, effects: ["生命上限 +8", "受击获得短暂霸体", "道法：厚土归元"] },
+  zhen: { zh: "震", use: "破势 / 硬直", angle: 135, effects: ["击退效果 +8%", "攻击延长敌人硬直", "道法：惊雷断岳"] },
+  li: { zh: "离", use: "爆发 / 暴击", angle: 180, effects: ["暴击率 +3%", "暴击引爆元素状态", "道法：离火焚天"] },
+  dui: { zh: "兑", use: "恢复 / 续航", angle: 225, effects: ["击败敌人恢复生命", "通关额外获得灵珠经验", "道法：泽被万物"] },
+};
+
+const AFFIXES = {
+  metal: [
+    ["attack", "锋锐：攻击提高", 5], ["armorBreak", "断甲：削弱敌人护甲", 8], ["qiPower", "剑鸣：剑气伤害提高", 7],
+  ],
+  wood: [
+    ["hp", "生息：生命上限提高", 8], ["heal", "回春：击败敌人恢复生命", 4], ["seed", "灵种：劈砍偶尔追加伤害", 8],
+  ],
+  water: [
+    ["qiMax", "纳川：剑意上限提高", 10], ["qiRegen", "潮生：剑意恢复加快", 12], ["cooldown", "流水：技能冷却缩短", 6],
+  ],
+  fire: [
+    ["crit", "烈心：暴击率提高", 4], ["burn", "灼魂：燃烧伤害提高", 8], ["burst", "焚尽：低生命敌人受到额外伤害", 10],
+  ],
+  earth: [
+    ["defense", "岩骨：受到伤害降低", 5], ["block", "不动：格挡效果提高", 7], ["stagger", "镇岳：击退和硬直提高", 9],
+  ],
+};
+
+const QUALITY = {
+  1: { zh: "一阶", color: "#52be7b" },
+  2: { zh: "二阶", color: "#dfad4c" },
+  3: { zh: "三阶", color: "#aa78da" },
+};
+
+const DEFAULT_STATE = () => ({
+  version: 1,
+  player: { name: "无名剑客", level: 1, spirit: 0 },
+  inventory: [],
+  cultivation: Object.fromEntries(Object.keys(TRIGRAMS).map(key => [key, [null, null, null]])),
+  progress: { runs: 0, victories: 0, clears: Object.fromEntries(Object.keys(ELEMENTS).map(key => [key, 0])), seen_help: false },
+});
+
+let saveData = DEFAULT_STATE();
+let selectedBeadId = null;
+let pendingSocket = null;
+let activeGame = null;
+let toastTimer = 0;
+
+const $ = selector => document.querySelector(selector);
+const $$ = selector => [...document.querySelectorAll(selector)];
+const esc = value => String(value).replace(/[&<>'"]/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[char]));
+const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+const randomItem = items => items[Math.floor(Math.random() * items.length)];
+
+function showToast(message, danger = false) {
+  const toast = $("#toast");
+  toast.textContent = message;
+  toast.style.borderColor = danger ? "#ef5c45" : "#dfad4c";
+  toast.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove("show"), 2800);
+}
+
+async function loadState() {
+  try {
+    const response = await fetch("/api/state");
+    if (!response.ok) throw new Error("无法读取服务器存档");
+    saveData = (await response.json()).state;
+    localStorage.setItem("daoblade-backup", JSON.stringify(saveData));
+    $("#save-status").textContent = "SQLite 已连接";
+  } catch (error) {
+    const backup = localStorage.getItem("daoblade-backup");
+    saveData = backup ? JSON.parse(backup) : DEFAULT_STATE();
+    $("#save-status").textContent = "本地备用存档";
+    showToast("服务器存档不可用，已切换到浏览器备用存档", true);
+  }
+  normalizeState();
+  renderAll();
+}
+
+function normalizeState() {
+  const fresh = DEFAULT_STATE();
+  saveData.player = { ...fresh.player, ...(saveData.player || {}) };
+  saveData.inventory = Array.isArray(saveData.inventory) ? saveData.inventory : [];
+  saveData.cultivation = { ...fresh.cultivation, ...(saveData.cultivation || {}) };
+  saveData.progress = { ...fresh.progress, ...(saveData.progress || {}) };
+  saveData.progress.clears = { ...fresh.progress.clears, ...(saveData.progress.clears || {}) };
+}
+
+async function saveState(message = "进度已保存") {
+  localStorage.setItem("daoblade-backup", JSON.stringify(saveData));
+  try {
+    const response = await fetch("/api/state", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(saveData) });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.error || "保存失败");
+    $("#save-status").textContent = "进度已保存";
+    if (message) showToast(message);
+  } catch (error) {
+    $("#save-status").textContent = "仅保存在浏览器";
+    showToast(`SQLite 保存失败：${error.message}`, true);
+  }
+}
+
+function showPanel(name) {
+  if (activeGame && name !== "game") activeGame.pause = true;
+  $$(".panel").forEach(panel => panel.classList.toggle("active", panel.id === `panel-${name}`));
+  $$(".nav-button").forEach(button => button.classList.toggle("active", button.dataset.panel === name));
+  if (name === "inventory") renderInventory();
+  if (name === "cultivation") renderCultivation();
+  if (name === "realms") renderRealms();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function elementTotals() {
+  const totals = Object.fromEntries(Object.keys(ELEMENTS).map(key => [key, 1]));
+  Object.values(saveData.cultivation).flat().filter(Boolean).forEach(bead => { totals[bead.element] += bead.level + bead.quality; });
+  return totals;
+}
+
+function primarySecondary() {
+  const totals = elementTotals();
+  return Object.keys(ELEMENTS).sort((a, b) => totals[b] - totals[a]);
+}
+
+function socketedBeads() { return Object.values(saveData.cultivation).flat().filter(Boolean); }
+
+function getAffixTotals() {
+  const result = {};
+  socketedBeads().forEach(bead => bead.affixes.forEach(affix => { result[affix.key] = (result[affix.key] || 0) + affix.value; }));
+  return result;
+}
+
+function calculateStats() {
+  const totals = elementTotals();
+  const affixes = getAffixTotals();
+  const depth = Object.fromEntries(Object.entries(saveData.cultivation).map(([key, slots]) => [key, slots.filter(Boolean).length]));
+  const [primary, secondary] = primarySecondary();
+  const stat = {
+    primary, secondary, totals, depth,
+    hpMax: Math.round(94 + totals.wood * 3 + depth.kun * 8 + (affixes.hp || 0)),
+    qiMax: Math.round(70 + totals.water * 3 + depth.kan * 8 + (affixes.qiMax || 0)),
+    attack: 12 + totals.metal * .85 + depth.qian * 2 + (affixes.attack || 0) * .45,
+    defense: totals.earth * .45 + depth.kun * 1.4 + (affixes.defense || 0) * .4,
+    speed: 205 + depth.xun * 15,
+    crit: clamp(.04 + totals.fire * .009 + depth.li * .03 + (affixes.crit || 0) / 100, .04, .55),
+    qiRegen: 7 + totals.water * .3 + (affixes.qiRegen || 0) * .2,
+    block: clamp(.62 + depth.gen * .06 + (affixes.block || 0) / 100, .62, .92),
+    stagger: 1 + totals.earth * .015 + depth.zhen * .09 + (affixes.stagger || 0) / 100,
+    cooldown: clamp(1 - (affixes.cooldown || 0) / 100, .65, 1),
+    affixes,
+  };
+  stat.dao = Object.keys(depth).find(key => depth[key] === 3) || null;
+  return stat;
+}
+
+function renderHeader() {
+  const stats = calculateStats();
+  const rankedTotals = Object.values(stats.totals).sort((a, b) => b - a);
+  const hasCultivation = socketedBeads().length > 0;
+  const hasPrimary = hasCultivation && rankedTotals[0] > rankedTotals[1];
+  const hasSecondary = hasCultivation && rankedTotals[1] > rankedTotals[2];
+  $("#spirit-value").textContent = saveData.player.spirit;
+  $("#primary-label").textContent = hasPrimary ? ELEMENTS[stats.primary].zh : "未定";
+  $("#primary-label").style.color = hasPrimary ? ELEMENTS[stats.primary].color : "#9aabbd";
+  $("#secondary-label").textContent = hasSecondary ? ELEMENTS[stats.secondary].zh : "未定";
+  $("#secondary-label").style.color = hasSecondary ? ELEMENTS[stats.secondary].color : "#9aabbd";
+  $("#inventory-count").textContent = saveData.inventory.length;
+  $("#runs-value").textContent = saveData.progress.runs;
+  $("#victories-value").textContent = saveData.progress.victories;
+  $("#socketed-value").textContent = `${socketedBeads().length} / 24`;
+  const cleared = Object.values(saveData.progress.clears).filter(value => value > 0).length;
+  $("#realm-clear-value").textContent = `${cleared} / 5`;
+}
+
+function renderRealms() {
+  $("#realm-grid").innerHTML = Object.entries(ELEMENTS).map(([key, element]) => {
+    const realm = REALMS[key];
+    const clears = saveData.progress.clears[key];
+    return `<article class="realm-card" style="--realm-color:${element.color}">
+      <span class="realm-symbol">${element.symbol}</span><h3>${element.realm}</h3><small>通关 ${clears} 次</small>
+      <p>${element.desc}</p><ul>${realm.enemies.map(name => `<li>${name}</li>`).join("")}<li>首领：${realm.boss}</li></ul>
+      <p>主要掉落：${element.drops}</p><button class="pixel-button" data-start-realm="${key}">进入试炼</button>
+    </article>`;
+  }).join("");
+  $$('[data-start-realm]').forEach(button => button.addEventListener("click", () => startRealm(button.dataset.startRealm)));
+}
+
+function qualityForDrop() {
+  const roll = Math.random();
+  return roll < .65 ? 1 : roll < .9 ? 2 : 3;
+}
+
+function nextId() { return `bead-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`; }
+
+function makeBead(elementKey, forcedQuality = null) {
+  const quality = forcedQuality || qualityForDrop();
+  const shuffled = [...AFFIXES[elementKey]].sort(() => Math.random() - .5).slice(0, quality);
+  const nouns = { metal: ["断锋", "鸣铁", "白藏"], wood: ["青芽", "长生", "灵藤"], water: ["玄潮", "寒渊", "流光"], fire: ["赤心", "焚羽", "离焰"], earth: ["镇岳", "厚土", "岩魂"] };
+  return {
+    id: nextId(), element: elementKey, quality, level: quality, xp: 0,
+    name: `${randomItem(nouns[elementKey])}·${QUALITY[quality].zh}珠`,
+    affixes: shuffled.map(([key, label, base]) => ({ key, label, value: base + Math.floor(Math.random() * 4) + quality })),
+  };
+}
+
+function beadStyle(bead) { return `--element-color:${ELEMENTS[bead.element].color};--quality-color:${QUALITY[bead.quality].color}`; }
+
+function renderInventory() {
+  const list = $("#bead-list");
+  if (!saveData.inventory.length) {
+    list.innerHTML = '<div class="empty-message">珠匣尚空。前往五行秘境击败首领，即可获得第一批灵珠。</div>';
+    $("#bead-detail").className = "bead-detail empty";
+    $("#bead-detail").textContent = "选择一颗灵珠查看词条";
+    return;
+  }
+  list.innerHTML = saveData.inventory.map(bead => `<button class="bead-card ${bead.id === selectedBeadId ? "selected" : ""}" data-bead-id="${esc(bead.id)}" style="${beadStyle(bead)}">
+    <span class="bead-icon">${ELEMENTS[bead.element].zh}</span><h3>${esc(bead.name)}</h3><small>${QUALITY[bead.quality].zh} · 等级 ${bead.level} · ${bead.affixes.length} 词条</small>
+  </button>`).join("");
+  $$('[data-bead-id]').forEach(button => button.addEventListener("click", () => selectBead(button.dataset.beadId)));
+  if (selectedBeadId) {
+    const bead = saveData.inventory.find(item => item.id === selectedBeadId);
+    if (bead) renderBeadDetail(bead); else selectedBeadId = null;
+  }
+}
+
+function selectBead(id) {
+  selectedBeadId = id;
+  renderInventory();
+  const bead = saveData.inventory.find(item => item.id === id);
+  if (bead) renderBeadDetail(bead);
+}
+
+function renderBeadDetail(bead) {
+  const detail = $("#bead-detail");
+  detail.className = "bead-detail";
+  detail.style.cssText = beadStyle(bead);
+  const nextXp = bead.level * 30;
+  detail.innerHTML = `<span class="bead-icon">${ELEMENTS[bead.element].zh}</span><h3>${esc(bead.name)}</h3>
+    <p>${QUALITY[bead.quality].zh}灵珠 · 初始等级 ${bead.quality}</p><p>当前修为：${bead.xp} / ${nextXp}</p>
+    <ul class="affix-list">${bead.affixes.map(a => `<li>${esc(a.label)} +${a.value}%</li>`).join("")}</ul>
+    <p class="warning">镶嵌后无法取下。低阶灵珠可通过闯关升级并补充词条。</p>
+    <button class="pixel-button primary wide" id="go-socket">前往八卦图选择道路</button>`;
+  $("#go-socket").addEventListener("click", () => showPanel("cultivation"));
+}
+
+function renderCultivation() {
+  const board = $("#bagua-board");
+  board.querySelectorAll(".path-line,.path-label,.cultivation-node").forEach(node => node.remove());
+  const selected = saveData.inventory.find(item => item.id === selectedBeadId) || null;
+  const boardSize = Math.min(board.clientWidth || 700, 700);
+  const radiusSteps = [105, 178, 250];
+  Object.entries(TRIGRAMS).forEach(([key, trigram]) => {
+    const line = document.createElement("div");
+    line.className = "path-line";
+    line.style.transform = `rotate(${trigram.angle}deg)`;
+    board.appendChild(line);
+    const radians = trigram.angle * Math.PI / 180;
+    const label = document.createElement("div");
+    label.className = "path-label";
+    label.style.left = `calc(50% + ${Math.cos(radians) * 285}px)`;
+    label.style.top = `calc(50% + ${Math.sin(radians) * 285}px)`;
+    label.textContent = `${trigram.zh} · ${trigram.use}`;
+    board.appendChild(label);
+    const slots = saveData.cultivation[key];
+    const nextIndex = slots.findIndex(bead => bead === null);
+    radiusSteps.forEach((radius, index) => {
+      const bead = slots[index];
+      const node = document.createElement("button");
+      node.className = `cultivation-node ${bead ? "filled" : ""} ${selected && index === nextIndex ? "available" : ""}`;
+      node.style.left = `calc(50% + ${Math.cos(radians) * radius}px)`;
+      node.style.top = `calc(50% + ${Math.sin(radians) * radius}px)`;
+      node.title = bead ? `${bead.name}：${trigram.effects[index]}` : `${trigram.zh}卦${index + 1}层：${trigram.effects[index]}`;
+      node.textContent = bead ? ELEMENTS[bead.element].zh : String(index + 1);
+      if (bead) node.style.setProperty("--element-color", ELEMENTS[bead.element].color);
+      node.disabled = !bead && !(selected && index === nextIndex);
+      node.addEventListener("click", () => bead ? showToast(`${bead.name} · ${trigram.effects[index]}`) : openSocketDialog(key, index));
+      board.appendChild(node);
+    });
+  });
+  $("#path-legend").innerHTML = Object.values(TRIGRAMS).map(t => `<span><b>${t.zh}</b> ${t.use}</span>`).join("");
+  const totals = elementTotals();
+  const max = Math.max(...Object.values(totals), 10);
+  $("#element-bars").innerHTML = Object.entries(ELEMENTS).map(([key, element]) => `<div class="element-row" style="--element-color:${element.color}"><b>${element.zh}</b><span class="element-track"><i style="width:${Math.max(5, totals[key] / max * 100)}%"></i></span><em>${totals[key]}</em></div>`).join("");
+  $("#selected-bead-summary").innerHTML = selected ? `<b style="color:${QUALITY[selected.quality].color}">${esc(selected.name)}</b><br>${ELEMENTS[selected.element].zh}行 · 等级 ${selected.level}<br><small>点击任意闪烁节点选择道路</small>` : "请先在珠匣选择灵珠";
+}
+
+function openSocketDialog(trigramKey, layer) {
+  const bead = saveData.inventory.find(item => item.id === selectedBeadId);
+  if (!bead) return showToast("请先在珠匣选择一颗灵珠", true);
+  pendingSocket = { trigramKey, layer, beadId: bead.id };
+  const trigram = TRIGRAMS[trigramKey];
+  $("#socket-title").textContent = `${trigram.zh}卦 · ${["入门", "化境", "道法"][layer]}层`;
+  $("#socket-preview").innerHTML = `<p><b style="color:${ELEMENTS[bead.element].color}">${esc(bead.name)}</b></p><p>${esc(trigram.effects[layer])}</p><p>组合方向：${ELEMENTS[bead.element].zh}行力量用于${trigram.use}</p>`;
+  $("#socket-dialog").showModal();
+}
+
+async function confirmSocket(event) {
+  event.preventDefault();
+  if (!pendingSocket) return;
+  const { trigramKey, layer, beadId } = pendingSocket;
+  const index = saveData.inventory.findIndex(item => item.id === beadId);
+  if (index < 0 || saveData.cultivation[trigramKey][layer]) return;
+  const [bead] = saveData.inventory.splice(index, 1);
+  saveData.cultivation[trigramKey][layer] = bead;
+  saveData.player.spirit += bead.level + bead.quality;
+  selectedBeadId = null;
+  pendingSocket = null;
+  $("#socket-dialog").close();
+  renderAll();
+  await saveState(`${bead.name} 已永久镶入${TRIGRAMS[trigramKey].zh}卦`);
+}
+
+function renderAll() { renderHeader(); renderRealms(); renderInventory(); renderCultivation(); }
+
+function grantBeadExperience(amount) {
+  const evolved = [];
+  socketedBeads().forEach(bead => {
+    bead.xp += amount;
+    while (bead.level < 99 && bead.xp >= bead.level * 30) {
+      bead.xp -= bead.level * 30;
+      bead.level += 1;
+      saveData.player.spirit += 1;
+      const targetAffixes = bead.level >= 6 ? 3 : bead.level >= 3 ? 2 : 1;
+      if (bead.affixes.length < targetAffixes) {
+        const options = AFFIXES[bead.element].filter(([key]) => !bead.affixes.some(item => item.key === key));
+        if (options.length) {
+          const [key, label, base] = randomItem(options);
+          bead.affixes.push({ key, label, value: base + bead.quality + Math.floor(Math.random() * 4) });
+        }
+      }
+      evolved.push(bead.name);
+    }
+  });
+  return evolved;
+}
+
+function startRealm(key) {
+  showPanel("game");
+  if (activeGame) activeGame.destroy();
+  activeGame = new BattleGame(key);
+  activeGame.start();
+}
+
+class BattleGame {
+  constructor(realmKey) {
+    this.realmKey = realmKey;
+    this.realm = REALMS[realmKey];
+    this.element = ELEMENTS[realmKey];
+    this.canvas = $("#game-canvas");
+    this.ctx = this.canvas.getContext("2d");
+    this.ctx.imageSmoothingEnabled = false;
+    this.width = this.canvas.width;
+    this.height = this.canvas.height;
+    this.worldWidth = 3200;
+    this.floorY = 474;
+    this.cameraX = 0;
+    this.pause = false;
+    this.finished = false;
+    this.lastTime = performance.now();
+    this.keys = new Set();
+    this.projectiles = [];
+    this.particles = [];
+    this.stats = calculateStats();
+    this.player = this.makePlayer();
+    this.platforms = [{ x: 0, y: this.floorY, w: this.worldWidth, h: 80 }, { x: 520, y: 390, w: 240, h: 25 }, { x: 1080, y: 355, w: 210, h: 25 }, { x: 1730, y: 400, w: 260, h: 25 }, { x: 2380, y: 360, w: 210, h: 25 }];
+    this.enemies = this.makeEnemies();
+    this.boundKeyDown = event => this.keyDown(event);
+    this.boundKeyUp = event => this.keyUp(event);
+  }
+
+  makePlayer() {
+    return { x: 120, y: 380, w: 38, h: 70, vx: 0, vy: 0, face: 1, onGround: false, hp: this.stats.hpMax, qi: this.stats.qiMax, invuln: 0, slash: 0, slashDuration: .28, slashCooldown: 0, qiCast: 0, qiCooldown: 0, daoCooldown: 0, attackId: 0, combo: 0, lastSlashAt: 0, blocking: false, blockStarted: 0, blockFlash: 0, jumpCount: 0, animTime: 0 };
+  }
+
+  makeEnemies() {
+    if (this.realmKey === "fire") {
+      return [
+        this.enemy("melee", this.realm.enemies[0], 610, 64, "swordsman"),
+        this.enemy("charger", this.realm.enemies[1], 1010, 72, "charger"),
+        this.enemy("melee", this.realm.enemies[0], 1460, 70, "swordsman"),
+        this.enemy("ranged", this.realm.enemies[2], 1900, 58, "caster"),
+        this.enemy("charger", this.realm.enemies[1], 2350, 82, "charger"),
+        this.enemy("boss", this.realm.boss, 2860, 280, "boss"),
+      ];
+    }
+    const normal = [
+      this.enemy("melee", this.realm.enemies[0], 700, 60), this.enemy("ranged", this.realm.enemies[1], 1140, 52),
+      this.enemy("melee", this.realm.enemies[0], 1550, 68), this.enemy("ranged", this.realm.enemies[1], 2030, 58),
+      this.enemy("melee", this.realm.enemies[0], 2380, 76), this.enemy("boss", this.realm.boss, 2860, 240),
+    ];
+    return normal;
+  }
+
+  enemy(kind, name, x, hp, variant = kind) {
+    const boss = kind === "boss";
+    const height = boss ? 100 : variant === "caster" ? 64 : 62;
+    const width = boss ? 66 : variant === "charger" ? 48 : 42;
+    return { kind, variant, name, x, y: this.floorY - height, w: width, h: height, hp, maxHp: hp, vx: 0, face: -1, attackCd: .8 + Math.random(), attackState: "idle", attackTimer: 0, attackType: "", attackHit: false, comboStep: 0, hurt: 0, burn: 0, burnTick: 0, slow: 0, dead: false, lastHit: -1 };
+  }
+
+  start() {
+    $("#realm-name").textContent = `${this.element.zh} · ${this.element.realm}`;
+    $("#objective-text").textContent = `击败 ${this.realm.enemies.join("、")}与${this.realm.boss}`;
+    saveData.progress.runs += 1;
+    window.addEventListener("keydown", this.boundKeyDown);
+    window.addEventListener("keyup", this.boundKeyUp);
+    this.bindTouch();
+    this.updateHud();
+    requestAnimationFrame(time => this.loop(time));
+  }
+
+  destroy() {
+    this.finished = true;
+    window.removeEventListener("keydown", this.boundKeyDown);
+    window.removeEventListener("keyup", this.boundKeyUp);
+  }
+
+  keyDown(event) {
+    if (["KeyA", "KeyD", "KeyW", "Space", "KeyJ", "KeyK", "KeyL", "KeyQ"].includes(event.code)) event.preventDefault();
+    if (event.repeat) return;
+    this.keys.add(event.code);
+    if (event.code === "KeyW" || event.code === "Space") this.jump();
+    if (event.code === "KeyJ") this.slash();
+    if (event.code === "KeyK") { this.player.blocking = true; this.player.blockStarted = performance.now(); }
+    if (event.code === "KeyL") this.swordQi();
+    if (event.code === "KeyQ") this.daoSkill();
+  }
+
+  keyUp(event) { this.keys.delete(event.code); if (event.code === "KeyK") this.player.blocking = false; }
+
+  bindTouch() {
+    $$('[data-touch]').forEach(button => {
+      button.onpointerdown = event => {
+        event.preventDefault();
+        const action = button.dataset.touch;
+        if (action === "left" || action === "right") this.keys.add(action === "left" ? "KeyA" : "KeyD");
+        if (action === "jump") this.jump(); if (action === "slash") this.slash(); if (action === "qi") this.swordQi(); if (action === "dao") this.daoSkill();
+        if (action === "block") { this.player.blocking = true; this.player.blockStarted = performance.now(); }
+      };
+      button.onpointerup = button.onpointercancel = () => { this.keys.delete("KeyA"); this.keys.delete("KeyD"); if (button.dataset.touch === "block") this.player.blocking = false; };
+    });
+  }
+
+  jump() {
+    const maxJumps = this.stats.depth.xun >= 2 ? 2 : 1;
+    if (this.player.onGround || this.player.jumpCount < maxJumps) { this.player.vy = -500; this.player.onGround = false; this.player.jumpCount += 1; this.burst(this.player.x + 16, this.player.y + 70, "#dbe8ed", 7); }
+  }
+
+  slash() {
+    const p = this.player;
+    if (p.slashCooldown > 0) return;
+    const now = performance.now();
+    p.combo = now - p.lastSlashAt < 560 ? p.combo % 3 + 1 : 1;
+    p.lastSlashAt = now;
+    p.slashDuration = p.combo === 3 ? .36 : .28;
+    p.slash = p.slashDuration;
+    p.slashCooldown = (p.combo === 3 ? .46 : .34) * this.stats.cooldown;
+    p.attackId += 1;
+    p.vx += p.face * (p.combo === 3 ? 95 : 48);
+    this.burst(p.x + p.w / 2 + p.face * 28, p.y + 34, "#dcecff", 5);
+  }
+
+  swordQi() {
+    const p = this.player;
+    if (p.qi < 20 || p.qiCooldown > 0) return;
+    p.qi -= 20; p.qiCooldown = .65 * this.stats.cooldown;
+    const damage = this.stats.attack * (.72 + this.stats.depth.qian * .12) * (1 + (this.stats.affixes.qiPower || 0) / 100);
+    p.qiCast = .28;
+    p.vx -= p.face * 35;
+    this.projectiles.push({ type: "swordQi", owner: "player", x: p.x + (p.face > 0 ? p.w : -38), y: p.y + 24, vx: p.face * 640, vy: 0, w: 48, h: 20, damage, life: 1.8, maxLife: 1.8, pierce: this.stats.depth.qian >= 2 ? 2 : 0, color: ELEMENTS[this.stats.primary].color });
+    this.burst(p.x + p.w / 2 + p.face * 32, p.y + 33, "#dff6ff", 12);
+  }
+
+  daoSkill() {
+    if (!this.stats.dao) return showToast("将任一八卦路线修至第三层后才能施展道法", true);
+    if (this.player.daoCooldown > 0 || this.player.qi < 35) return;
+    this.player.qi -= 35; this.player.daoCooldown = 8;
+    const dao = this.stats.dao;
+    if (dao === "qian" || dao === "li" || dao === "zhen") {
+      this.enemies.filter(e => !e.dead && Math.abs(e.x - this.player.x) < 480).forEach(e => this.hitEnemy(e, this.stats.attack * 2.2, true));
+      this.burst(this.player.x, this.player.y, ELEMENTS[this.stats.primary].color, 34);
+    } else if (dao === "xun") { this.player.x += this.player.face * 300; this.player.invuln = 1.5; }
+    else if (dao === "kan") { this.enemies.forEach(e => { e.slow = 5; }); }
+    else if (dao === "gen" || dao === "kun") { this.player.invuln = 4; }
+    else if (dao === "dui") { this.player.hp = Math.min(this.stats.hpMax, this.player.hp + this.stats.hpMax * .45); }
+    showToast(`施展道法：${TRIGRAMS[dao].effects[2]}`);
+  }
+
+  loop(time) {
+    if (this.finished) return;
+    const dt = Math.min((time - this.lastTime) / 1000, .034);
+    this.lastTime = time;
+    if (!this.pause) this.update(dt);
+    this.draw();
+    requestAnimationFrame(next => this.loop(next));
+  }
+
+  update(dt) {
+    const p = this.player;
+    p.animTime += dt;
+    p.invuln = Math.max(0, p.invuln - dt); p.slash = Math.max(0, p.slash - dt); p.slashCooldown = Math.max(0, p.slashCooldown - dt); p.qiCast = Math.max(0, p.qiCast - dt); p.qiCooldown = Math.max(0, p.qiCooldown - dt); p.daoCooldown = Math.max(0, p.daoCooldown - dt); p.blockFlash = Math.max(0, p.blockFlash - dt);
+    p.qi = Math.min(this.stats.qiMax, p.qi + this.stats.qiRegen * dt);
+    const move = (this.keys.has("KeyD") ? 1 : 0) - (this.keys.has("KeyA") ? 1 : 0);
+    if (move) p.face = move;
+    p.vx += (move * this.stats.speed - p.vx) * Math.min(1, dt * 11);
+    if (!move) p.vx *= Math.pow(.001, dt);
+    p.vy += 1250 * dt;
+    p.x = clamp(p.x + p.vx * dt, 0, this.worldWidth - p.w);
+    p.y += p.vy * dt;
+    p.onGround = false;
+    for (const platform of this.platforms) {
+      const oldBottom = p.y + p.h - p.vy * dt;
+      if (p.vy >= 0 && p.x + p.w > platform.x && p.x < platform.x + platform.w && p.y + p.h >= platform.y && oldBottom <= platform.y + 8) {
+        p.y = platform.y - p.h; p.vy = 0; p.onGround = true; p.jumpCount = 0;
+      }
+    }
+    if (p.y > this.height + 120) this.damagePlayer(30, p.x - 20);
+    if (p.y > this.height + 80) { p.x = Math.max(40, p.x - 180); p.y = 280; p.vy = 0; }
+
+    if (p.slash > 0) {
+      const progress = 1 - p.slash / p.slashDuration;
+      const active = progress > .18 && progress < .78;
+      const range = p.combo === 3 ? 104 : 82; const left = p.face > 0 ? p.x + p.w - 4 : p.x - range + 4;
+      this.enemies.filter(e => active && !e.dead && e.lastHit !== p.attackId && this.overlap(left, p.y + 4, range, 62, e.x, e.y, e.w, e.h)).forEach(e => {
+        e.lastHit = p.attackId;
+        let damage = this.stats.attack * [1, 1, 1.12, 1.34][p.combo] * (1 + (this.stats.affixes.attack || 0) / 100);
+        const crit = Math.random() < this.stats.crit;
+        if (crit) damage *= 1.75;
+        this.hitEnemy(e, damage, crit);
+      });
+    }
+    this.updateEnemies(dt);
+    this.updateProjectiles(dt);
+    this.particles.forEach(particle => { particle.x += particle.vx * dt; particle.y += particle.vy * dt; particle.life -= dt; });
+    this.particles = this.particles.filter(particle => particle.life > 0);
+    this.cameraX += (clamp(p.x - this.width * .42, 0, this.worldWidth - this.width) - this.cameraX) * Math.min(1, dt * 5);
+    this.updateHud();
+    if (!this.finished && this.enemies.every(enemy => enemy.dead)) this.finish(true);
+  }
+
+  updateEnemies(dt) {
+    const p = this.player;
+    for (const enemy of this.enemies) {
+      if (enemy.dead) continue;
+      enemy.hurt = Math.max(0, enemy.hurt - dt); enemy.attackCd -= dt; enemy.slow = Math.max(0, enemy.slow - dt);
+      if (enemy.burn > 0) { enemy.burn -= dt; enemy.burnTick -= dt; if (enemy.burnTick <= 0) { enemy.burnTick = .55; this.hitEnemy(enemy, 2 + (this.stats.affixes.burn || 0) * .08, false, true); } }
+      const dx = p.x - enemy.x; const distance = Math.abs(dx); const direction = Math.sign(dx) || 1; const speed = (enemy.kind === "boss" ? 105 : 82) * (enemy.slow > 0 ? .55 : 1);
+      enemy.face = direction;
+      if (this.realmKey === "fire") {
+        this.updateFireEnemy(enemy, dt, distance, direction, speed);
+        continue;
+      }
+      if (enemy.kind === "melee" || enemy.kind === "boss") {
+        if (distance > 58 && distance < 520) enemy.x += direction * speed * dt;
+        if (distance < (enemy.kind === "boss" ? 82 : 58) && enemy.attackCd <= 0) { enemy.attackCd = enemy.kind === "boss" ? .85 : 1.2; this.damagePlayer(enemy.kind === "boss" ? 22 : 12, enemy.x); }
+        if (enemy.kind === "boss" && distance < 620 && enemy.attackCd < .25 && Math.random() < dt * 1.2) this.enemyShot(enemy, direction);
+      } else {
+        if (distance < 190) enemy.x -= direction * speed * dt;
+        else if (distance > 360 && distance < 650) enemy.x += direction * speed * dt;
+        if (distance < 680 && enemy.attackCd <= 0) { enemy.attackCd = 1.65; this.enemyShot(enemy, direction); }
+      }
+      enemy.x = clamp(enemy.x, 40, this.worldWidth - 80);
+    }
+  }
+
+  updateFireEnemy(enemy, dt, distance, direction, speed) {
+    if (enemy.attackState !== "idle") {
+      enemy.attackTimer -= dt;
+      if (enemy.attackState === "windup" && enemy.attackTimer <= 0) {
+        enemy.attackState = "strike";
+        enemy.attackTimer = enemy.attackType === "dash" ? .34 : .22;
+        enemy.attackHit = false;
+        if (enemy.attackType === "fireball") this.enemyShot(enemy, direction, "fireball");
+        if (enemy.attackType === "wave") this.enemyShot(enemy, direction, "wave");
+      } else if (enemy.attackState === "strike") {
+        if (enemy.attackType === "dash") enemy.x += direction * (enemy.kind === "boss" ? 470 : 380) * dt;
+        const reach = enemy.kind === "boss" ? 106 : enemy.variant === "charger" ? 84 : 66;
+        if (!enemy.attackHit && ["slash", "dash"].includes(enemy.attackType) && distance < reach) {
+          enemy.attackHit = true;
+          this.damagePlayer(enemy.kind === "boss" ? 24 : enemy.variant === "charger" ? 16 : 12, enemy.x);
+        }
+        if (enemy.attackTimer <= 0) {
+          enemy.attackState = "recover";
+          enemy.attackTimer = enemy.kind === "boss" ? .32 : .26;
+        }
+      } else if (enemy.attackState === "recover" && enemy.attackTimer <= 0) {
+        enemy.attackState = "idle";
+        enemy.attackCd = enemy.kind === "boss" ? .65 : 1 + Math.random() * .35;
+      }
+      enemy.x = clamp(enemy.x, 40, this.worldWidth - 80);
+      return;
+    }
+
+    // 近战敌人会包围玩家，但同一时间只允许一名敌人正式出招。
+    // 这样仍有压迫感，也能让蓄力提示和格挡时机保持清晰。
+    const attackBusy = this.enemies.some(other => other !== enemy && !other.dead && ["windup", "strike"].includes(other.attackState) && Math.abs(other.x - this.player.x) < 260);
+    const nearby = this.enemies.find(other => other !== enemy && !other.dead && Math.abs(other.x - enemy.x) < (enemy.w + other.w) * .55);
+    if (nearby) enemy.x += (enemy.x >= nearby.x ? 1 : -1) * speed * .42 * dt;
+
+    if (enemy.kind === "ranged") {
+      if (distance < 230) enemy.x -= direction * speed * dt;
+      else if (distance > 430 && distance < 720) enemy.x += direction * speed * .65 * dt;
+      if (!attackBusy && distance < 720 && enemy.attackCd <= 0) this.beginEnemyAttack(enemy, "fireball", .58);
+    } else if (enemy.kind === "boss") {
+      if (distance > 115 && distance < 650) enemy.x += direction * speed * dt;
+      if (!attackBusy && enemy.attackCd <= 0 && distance < 650) {
+        enemy.comboStep += 1;
+        if (distance < 135) this.beginEnemyAttack(enemy, enemy.comboStep % 3 === 0 ? "dash" : "slash", .38);
+        else this.beginEnemyAttack(enemy, enemy.comboStep % 2 ? "wave" : "dash", .52);
+      }
+    } else {
+      const preferred = enemy.variant === "charger" ? 150 : 62;
+      if (distance > preferred && distance < 560) enemy.x += direction * speed * (enemy.variant === "charger" ? 1.18 : 1) * dt;
+      if (!attackBusy && enemy.attackCd <= 0 && distance < (enemy.variant === "charger" ? 245 : 76)) {
+        this.beginEnemyAttack(enemy, enemy.variant === "charger" ? "dash" : "slash", enemy.variant === "charger" ? .46 : .3);
+      }
+    }
+    enemy.x = clamp(enemy.x, 40, this.worldWidth - 80);
+  }
+
+  beginEnemyAttack(enemy, type, windup) {
+    enemy.attackType = type;
+    enemy.attackState = "windup";
+    enemy.attackTimer = windup;
+    enemy.attackHit = false;
+  }
+
+  enemyShot(enemy, direction, type = "bolt") {
+    const wave = type === "wave";
+    this.projectiles.push({ type, owner: "enemy", x: enemy.x + enemy.w / 2, y: wave ? this.floorY - 28 : enemy.y + enemy.h * .35, vx: direction * (wave ? 360 : type === "fireball" ? 285 : 260), vy: type === "fireball" ? -45 : 0, gravity: type === "fireball" ? 95 : 0, w: wave ? 46 : 20, h: wave ? 28 : 18, damage: enemy.kind === "boss" ? 18 : 10, life: wave ? 2.2 : 3, maxLife: wave ? 2.2 : 3, color: this.element.color });
+  }
+
+  updateProjectiles(dt) {
+    for (const shot of this.projectiles) {
+      shot.vy += (shot.gravity || 0) * dt;
+      shot.x += shot.vx * dt; shot.y += shot.vy * dt; shot.life -= dt;
+      if (shot.owner === "player") {
+        for (const enemy of this.enemies) {
+          if (!enemy.dead && this.overlap(shot.x, shot.y, shot.w, shot.h, enemy.x, enemy.y, enemy.w, enemy.h)) {
+            this.hitEnemy(enemy, shot.damage, false); shot.pierce -= 1; if (shot.pierce < 0) { shot.life = 0; break; }
+          }
+        }
+      } else if (this.overlap(shot.x, shot.y, shot.w, shot.h, this.player.x, this.player.y, this.player.w, this.player.h)) { this.damagePlayer(shot.damage, shot.x); shot.life = 0; }
+    }
+    this.projectiles = this.projectiles.filter(shot => shot.life > 0 && shot.x > -100 && shot.x < this.worldWidth + 100);
+  }
+
+  hitEnemy(enemy, damage, crit = false, dot = false) {
+    if (enemy.dead) return;
+    if (!dot && this.stats.primary === "fire") enemy.burn = Math.max(enemy.burn, 2.5);
+    if (!dot && this.stats.primary === "water") enemy.slow = Math.max(enemy.slow, 1.5);
+    if (!dot && this.stats.primary === "earth") enemy.x += this.player.face * 18 * this.stats.stagger;
+    if (!dot && this.stats.primary === "wood" && Math.random() < .18) this.player.hp = Math.min(this.stats.hpMax, this.player.hp + 3);
+    if (!dot && (this.stats.affixes.seed || 0) && Math.random() < .16) damage += this.stats.affixes.seed;
+    if ((this.stats.affixes.burst || 0) && enemy.hp / enemy.maxHp < .3) damage *= 1 + this.stats.affixes.burst / 100;
+    enemy.hp -= damage; enemy.hurt = .16; this.burst(enemy.x + enemy.w / 2, enemy.y + enemy.h / 2, crit ? "#fff0a5" : this.element.color, crit ? 12 : 6);
+    if (enemy.hp <= 0) { enemy.dead = true; if (this.stats.depth.dui > 0 || this.stats.affixes.heal) this.player.hp = Math.min(this.stats.hpMax, this.player.hp + 3 + this.stats.depth.dui * 2 + (this.stats.affixes.heal || 0) * .2); }
+  }
+
+  damagePlayer(amount, sourceX) {
+    const p = this.player;
+    if (p.invuln > 0) return;
+    const attackFromFront = Math.sign(sourceX - p.x) === p.face;
+    if (p.blocking && attackFromFront) {
+      const perfect = performance.now() - p.blockStarted < 240;
+      if (perfect) { p.invuln = .45; p.blockFlash = .32; this.burst(p.x + p.w / 2, p.y + 30, "#fff0a5", 20); const enemy = this.enemies.find(e => !e.dead && Math.abs(e.x - p.x) < 110); if (enemy) this.hitEnemy(enemy, this.stats.attack * .9, true); return; }
+      amount *= 1 - this.stats.block;
+    }
+    amount = Math.max(1, amount - this.stats.defense);
+    p.hp -= amount; p.invuln = .65; p.vx = sourceX < p.x ? 180 : -180; this.burst(p.x + p.w / 2, p.y + 30, "#ef5c45", 10);
+    if (p.hp <= 0) this.finish(false);
+  }
+
+  burst(x, y, color, count) { for (let i = 0; i < count; i++) this.particles.push({ x, y, vx: (Math.random() - .5) * 180, vy: (Math.random() - .5) * 160, life: .25 + Math.random() * .35, color }); }
+  overlap(ax, ay, aw, ah, bx, by, bw, bh) { return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by; }
+
+  async finish(win) {
+    if (this.finished) return;
+    this.finished = true;
+    window.removeEventListener("keydown", this.boundKeyDown); window.removeEventListener("keyup", this.boundKeyUp);
+    const rewards = [];
+    if (win) {
+      saveData.progress.victories += 1; saveData.progress.clears[this.realmKey] += 1; saveData.player.spirit += 12;
+      const count = 2 + (Math.random() < .35 ? 1 : 0);
+      for (let i = 0; i < count && saveData.inventory.length < 80; i++) {
+        const element = Math.random() < .72 ? this.realmKey : randomItem(Object.keys(ELEMENTS));
+        const bead = makeBead(element); rewards.push(bead); saveData.inventory.push(bead);
+      }
+      const evolved = grantBeadExperience(18 + this.stats.depth.dui * 4);
+      $("#result-title").textContent = `${this.element.realm} · 试炼成功`;
+      $("#result-message").textContent = evolved.length ? `已镶灵珠获得修为。${evolved.join("、")}完成进化。` : "已镶灵珠获得修为，本命剑进一步成长。";
+    } else {
+      grantBeadExperience(5);
+      $("#result-title").textContent = "道心未折";
+      $("#result-message").textContent = "本次未能击败守境者，已镶灵珠仍获得少量修为。调整路线后可以再次挑战。";
+    }
+    $("#reward-list").innerHTML = rewards.length ? rewards.map(bead => `<div class="reward-item" style="${beadStyle(bead)}"><b>${esc(bead.name)}</b><small>${QUALITY[bead.quality].zh} · ${bead.affixes.length}词条</small></div>`).join("") : '<div class="empty-message">本次没有获得新灵珠</div>';
+    renderAll(); await saveState(""); $("#result-dialog").showModal();
+  }
+
+  updateHud() {
+    $("#hud-hp").textContent = `${Math.ceil(Math.max(0, this.player.hp))} / ${this.stats.hpMax}`;
+    $("#hud-qi").textContent = `${Math.floor(this.player.qi)} / ${this.stats.qiMax}`;
+    $("#hud-enemies").textContent = this.enemies.filter(enemy => !enemy.dead).length;
+  }
+
+  draw() {
+    const ctx = this.ctx; const camera = this.cameraX; const [dark, light] = this.realm.bg;
+    const gradient = ctx.createLinearGradient(0, 0, 0, this.height); gradient.addColorStop(0, dark); gradient.addColorStop(1, light); ctx.fillStyle = gradient; ctx.fillRect(0, 0, this.width, this.height);
+    this.drawBackground(ctx, camera);
+    ctx.save(); ctx.translate(-camera, 0);
+    for (const platform of this.platforms) this.drawPlatform(ctx, platform);
+    this.enemies.forEach(enemy => { if (!enemy.dead) this.drawEnemy(ctx, enemy); });
+    this.projectiles.forEach(shot => this.drawProjectile(ctx, shot));
+    this.particles.forEach(particle => { ctx.globalAlpha = clamp(particle.life * 2, 0, 1); ctx.fillStyle = particle.color; ctx.fillRect(Math.round(particle.x), Math.round(particle.y), 4, 4); }); ctx.globalAlpha = 1;
+    this.drawPlayer(ctx, this.player);
+    ctx.restore();
+    this.drawMinimap(ctx);
+  }
+
+  drawBackground(ctx, camera) {
+    ctx.fillStyle = "rgba(5,10,18,.36)";
+    for (let i = -1; i < 8; i++) { const x = i * 310 - (camera * .18 % 310); ctx.beginPath(); ctx.moveTo(x, 420); ctx.lineTo(x + 130, 190 - (i % 2) * 55); ctx.lineTo(x + 285, 420); ctx.fill(); }
+    ctx.fillStyle = "rgba(230,235,220,.07)";
+    for (let i = 0; i < 22; i++) { const x = (i * 173 - camera * .35) % 1200; ctx.fillRect(x, 120 + (i * 61 % 250), 45, 4); }
+    ctx.fillStyle = this.element.color; ctx.globalAlpha = .12;
+    for (let i = 0; i < 10; i++) ctx.fillRect((i * 257 - camera * .55) % 1300, 280 + (i % 3) * 35, 9, 150);
+    ctx.globalAlpha = 1;
+  }
+
+  drawPlatform(ctx, platform) {
+    ctx.fillStyle = this.realmKey === "wood" ? "#183c2d" : this.realmKey === "water" ? "#183e55" : this.realmKey === "fire" ? "#3b1c1a" : this.realmKey === "earth" ? "#4a3926" : "#323d4b";
+    ctx.fillRect(platform.x, platform.y, platform.w, platform.h); ctx.fillStyle = this.element.color; ctx.globalAlpha = .35; ctx.fillRect(platform.x, platform.y, platform.w, 6); ctx.globalAlpha = 1;
+    for (let x = platform.x + 12; x < platform.x + platform.w; x += 32) { ctx.fillStyle = "rgba(0,0,0,.22)"; ctx.fillRect(x, platform.y + 18, 14, 6); }
+  }
+
+  drawPlayer(ctx, p) {
+    const hitFlicker = p.invuln > 0 && Math.floor(p.invuln * 20) % 2;
+    const x = Math.round(p.x), y = Math.round(p.y);
+    const running = p.onGround && Math.abs(p.vx) > 35;
+    const bob = running ? Math.round(Math.sin(p.animTime * 15) * 2) : 0;
+    const step = running ? Math.sin(p.animTime * 15) * 4 : 0;
+    ctx.fillStyle = "rgba(0,0,0,.35)";
+    ctx.fillRect(x - 5, y + p.h - 3, p.w + 14, 6);
+    ctx.save();
+    if (hitFlicker) ctx.globalAlpha = .38;
+    if (p.face < 0) { ctx.translate(x + p.w, y + bob); ctx.scale(-1, 1); } else ctx.translate(x, y + bob);
+
+    // 发带与束发让剪影更接近国风剑客。
+    ctx.fillStyle = "#101722"; ctx.fillRect(11, 0, 19, 7); ctx.fillRect(16, -6, 9, 7); ctx.fillRect(7, 5, 25, 8);
+    ctx.fillStyle = "#b73e35"; ctx.fillRect(5 - Math.round(Math.abs(p.vx) / 90), 7, 13, 3); ctx.fillRect(1 - Math.round(Math.abs(p.vx) / 65), 11, 17, 3);
+    ctx.fillStyle = "#e7c6a5"; ctx.fillRect(12, 12, 17, 16); ctx.fillStyle = "#202a38"; ctx.fillRect(10, 25, 23, 28);
+    ctx.fillStyle = "#34465a"; ctx.fillRect(6, 30, 8, 25); ctx.fillRect(29, 29, 8, 25);
+    ctx.fillStyle = "#af3f35"; ctx.fillRect(7, 48, 30, 6); ctx.fillStyle = "#dfad4c"; ctx.fillRect(20, 48, 5, 6);
+    ctx.fillStyle = "#172230"; ctx.fillRect(9, 54, 26, 8); ctx.fillRect(8 + step, 61, 10, 9); ctx.fillRect(25 - step, 61, 10, 9);
+    ctx.fillStyle = ELEMENTS[this.stats.primary].color; ctx.fillRect(9, 27, 3, 21); ctx.fillRect(32, 29, 3, 17);
+    ctx.fillStyle = "#0a0f16"; ctx.fillRect(25, 17, 3, 3);
+
+    if (p.blocking) {
+      ctx.save(); ctx.translate(30, 34); ctx.rotate(-.78); ctx.fillStyle = "#dce8ee"; ctx.fillRect(-3, -28, 6, 59); ctx.fillStyle = "#dfad4c"; ctx.fillRect(-8, 17, 16, 5); ctx.restore();
+      ctx.strokeStyle = p.blockFlash > 0 ? "#fff0a5" : "rgba(126,196,229,.72)"; ctx.lineWidth = p.blockFlash > 0 ? 6 : 3;
+      ctx.beginPath(); ctx.moveTo(50, 11); ctx.lineTo(61, 23); ctx.lineTo(61, 46); ctx.lineTo(50, 58); ctx.lineTo(39, 46); ctx.lineTo(39, 23); ctx.closePath(); ctx.stroke();
+      ctx.fillStyle = "rgba(78,178,224,.12)"; ctx.fill();
+    } else if (p.slash > 0) {
+      const progress = 1 - p.slash / p.slashDuration;
+      const start = p.combo === 2 ? 1.65 : p.combo === 3 ? -.15 : -1.25;
+      const sweep = p.combo === 2 ? -2.45 : p.combo === 3 ? 3.5 : 2.35;
+      const angle = start + sweep * progress;
+      ctx.save(); ctx.translate(31, 34); ctx.rotate(angle); ctx.fillStyle = "#dfad4c"; ctx.fillRect(-7, -4, 14, 7); ctx.fillStyle = "#eef5f5"; ctx.fillRect(4, -2, p.combo === 3 ? 63 : 52, 5); ctx.fillStyle = "#91a8b8"; ctx.fillRect(15, 3, 40, 2); ctx.restore();
+      ctx.strokeStyle = ELEMENTS[this.stats.primary].color; ctx.globalAlpha = .25 + Math.sin(progress * Math.PI) * .7; ctx.lineWidth = p.combo === 3 ? 11 : 7; ctx.beginPath();
+      if (p.combo === 2) ctx.arc(30, 34, 58, 1.8, -.85, true); else ctx.arc(30, 34, p.combo === 3 ? 70 : 58, -1.35, 1.1); ctx.stroke(); ctx.globalAlpha = 1;
+    } else if (p.qiCast > 0) {
+      ctx.fillStyle = "#dfad4c"; ctx.fillRect(27, 30, 11, 6); ctx.fillStyle = "#eaf7ff"; ctx.fillRect(35, 31, 48, 4);
+      ctx.strokeStyle = ELEMENTS[this.stats.primary].color; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(42, 34, 20 + p.qiCast * 35, 0, Math.PI * 2); ctx.stroke();
+    } else {
+      ctx.save(); ctx.translate(28, 30); ctx.rotate(-.58); ctx.fillStyle = "#dfad4c"; ctx.fillRect(-5, -3, 13, 6); ctx.fillStyle = "#dce8ee"; ctx.fillRect(7, -2, 43, 4); ctx.restore();
+    }
+    ctx.restore();
+  }
+
+  drawEnemy(ctx, enemy) {
+    if (this.realmKey === "fire") return this.drawFireEnemy(ctx, enemy);
+    const x = Math.round(enemy.x), y = Math.round(enemy.y); ctx.save(); if (enemy.hurt > 0) ctx.globalAlpha = .55;
+    ctx.fillStyle = enemy.kind === "boss" ? "#18131d" : "#17202b"; ctx.fillRect(x, y, enemy.w, enemy.h); ctx.fillStyle = this.element.color; ctx.fillRect(x + 5, y + 8, enemy.w - 10, 9); ctx.fillRect(x + enemy.w / 2 - 4, y + 24, 8, 8);
+    if (enemy.kind === "ranged") { ctx.fillRect(x - 12, y + 22, 14, 5); ctx.fillRect(x + enemy.w - 2, y + 22, 14, 5); }
+    if (enemy.kind === "boss") { ctx.fillStyle = "#dfad4c"; ctx.fillRect(x - 7, y + 12, 7, 46); ctx.fillRect(x + enemy.w, y + 12, 7, 46); }
+    ctx.fillStyle = "#08101a"; ctx.fillRect(x, y - 12, enemy.w, 6); ctx.fillStyle = this.element.color; ctx.fillRect(x, y - 12, enemy.w * clamp(enemy.hp / enemy.maxHp, 0, 1), 6); ctx.restore();
+  }
+
+  drawFireEnemy(ctx, enemy) {
+    const x = Math.round(enemy.x), y = Math.round(enemy.y);
+    const striking = enemy.attackState === "strike";
+    ctx.save();
+    if (enemy.face < 0) { ctx.translate(x + enemy.w, y); ctx.scale(-1, 1); } else ctx.translate(x, y);
+    if (enemy.hurt > 0) ctx.globalAlpha = .55;
+    if (enemy.attackState === "windup") {
+      ctx.fillStyle = "rgba(239,92,69,.18)"; ctx.fillRect(-12, -10, enemy.w + 24, enemy.h + 18);
+      ctx.strokeStyle = "#ffb15b"; ctx.lineWidth = 3; ctx.strokeRect(-8, -6, enemy.w + 16, enemy.h + 10);
+    }
+
+    if (enemy.variant === "caster") {
+      ctx.fillStyle = "#24151d"; ctx.fillRect(8, 23, 28, 35); ctx.fillStyle = "#6d2430"; ctx.fillRect(4, 32, 36, 10);
+      ctx.fillStyle = "#f0b36b"; ctx.fillRect(12, 9, 20, 17); ctx.fillStyle = "#4b1823"; ctx.fillRect(8, 5, 28, 8);
+      ctx.fillStyle = "#ff6b45"; ctx.fillRect(17, 14, 4, 4); ctx.fillRect(26, 14, 4, 4);
+      const orbX = striking ? 55 : 45; ctx.fillStyle = "#ffcf67"; ctx.fillRect(orbX, 25, 10, 10); ctx.fillStyle = "#ef5c45"; ctx.fillRect(orbX + 2, 21, 6, 18);
+      ctx.fillStyle = "rgba(239,92,69,.6)"; ctx.fillRect(10, 58, 24, 4);
+    } else {
+      const boss = enemy.variant === "boss";
+      const body = boss ? 52 : enemy.variant === "charger" ? 38 : 34;
+      ctx.fillStyle = boss ? "#160f16" : "#21151a"; ctx.fillRect(6, 21, body, enemy.h - 25);
+      ctx.fillStyle = boss ? "#b4332d" : enemy.variant === "charger" ? "#8e2e28" : "#5f2428"; ctx.fillRect(3, 27, body + 6, 17); ctx.fillRect(8, 49, body - 4, 9);
+      ctx.fillStyle = "#d58a52"; ctx.fillRect(12, 7, body - 12, 17); ctx.fillStyle = "#24131a"; ctx.fillRect(7, 2, body - 2, 9);
+      ctx.fillStyle = "#ef5c45"; ctx.fillRect(10, 0, 7, 8); ctx.fillRect(body - 1, 0, 7, 8); ctx.fillStyle = "#ffd16b"; ctx.fillRect(body - 2, 13, 4, 4);
+      ctx.fillStyle = "#151018"; ctx.fillRect(8, enemy.h - 13, 12, 13); ctx.fillRect(body - 8, enemy.h - 13, 12, 13);
+      ctx.save(); ctx.translate(body, boss ? 45 : 37); ctx.rotate(striking ? .12 : enemy.attackState === "windup" ? -1.05 : -.45);
+      ctx.fillStyle = "#e8ddd0"; ctx.fillRect(0, -3, boss ? 74 : 52, boss ? 8 : 6); ctx.fillStyle = "#ff6b45"; ctx.fillRect(boss ? 48 : 34, -2, boss ? 24 : 17, boss ? 5 : 3); ctx.fillStyle = "#d19b47"; ctx.fillRect(-7, -6, 12, 12); ctx.restore();
+      if (enemy.variant === "charger") { ctx.fillStyle = "#d44b35"; ctx.fillRect(-6, 31, 13, 6); ctx.fillRect(-12, 37, 19, 5); }
+      if (boss) { ctx.fillStyle = "#dfad4c"; ctx.fillRect(-5, 26, 8, 48); ctx.fillRect(body + 6, 26, 8, 48); ctx.fillStyle = "#8f2f2b"; ctx.fillRect(13, 58, 36, 25); }
+    }
+    ctx.restore();
+    ctx.fillStyle = "#08101a"; ctx.fillRect(x, y - 13, enemy.w, 6); ctx.fillStyle = enemy.variant === "boss" ? "#dfad4c" : "#ef5c45"; ctx.fillRect(x, y - 13, enemy.w * clamp(enemy.hp / enemy.maxHp, 0, 1), 6);
+  }
+
+  drawProjectile(ctx, shot) {
+    const x = Math.round(shot.x), y = Math.round(shot.y); const facing = shot.vx >= 0 ? 1 : -1;
+    ctx.save(); ctx.translate(x, y); if (facing < 0) ctx.scale(-1, 1);
+    if (shot.type === "swordQi") {
+      ctx.globalAlpha = .24; ctx.fillStyle = shot.color; ctx.fillRect(-30, 4, 62, 12); ctx.globalAlpha = 1;
+      ctx.fillStyle = "#f4fbff"; ctx.fillRect(2, 7, 43, 5); ctx.fillStyle = shot.color; ctx.fillRect(-10, 4, 47, 3); ctx.fillRect(-20, 15, 50, 3);
+      ctx.fillStyle = "rgba(255,255,255,.75)"; ctx.fillRect(-42, 9, 28, 2);
+    } else if (shot.type === "fireball") {
+      ctx.fillStyle = "rgba(239,92,69,.35)"; ctx.fillRect(-18, 0, 34, 18); ctx.fillStyle = "#ef5c45"; ctx.fillRect(-7, 3, 23, 13); ctx.fillStyle = "#ffcf67"; ctx.fillRect(5, 6, 11, 7); ctx.fillStyle = "#7b2725"; ctx.fillRect(-20, 6, 10, 6);
+    } else if (shot.type === "wave") {
+      ctx.fillStyle = "#8f2523"; ctx.fillRect(-4, 12, 47, 13); ctx.fillStyle = "#ef5c45"; ctx.fillRect(4, 5, 34, 13); ctx.fillStyle = "#ffb15b"; ctx.fillRect(15, 0, 20, 12);
+    } else {
+      ctx.fillStyle = shot.color; ctx.fillRect(0, 0, shot.w, shot.h); ctx.fillStyle = "#fff"; ctx.fillRect(shot.w - 5, 3, 5, 5);
+    }
+    ctx.restore();
+  }
+
+  drawMinimap(ctx) {
+    const x = 720, y = 18, w = 210; ctx.fillStyle = "rgba(4,9,16,.72)"; ctx.fillRect(x - 8, y - 8, w + 16, 30); ctx.fillStyle = "#405269"; ctx.fillRect(x, y + 5, w, 4);
+    ctx.fillStyle = "#f1eadb"; ctx.fillRect(x + this.player.x / this.worldWidth * w - 3, y, 6, 14);
+    this.enemies.filter(e => !e.dead).forEach(e => { ctx.fillStyle = e.kind === "boss" ? "#dfad4c" : this.element.color; ctx.fillRect(x + e.x / this.worldWidth * w - 2, y + 3, e.kind === "boss" ? 7 : 4, e.kind === "boss" ? 8 : 5); });
+  }
+}
+
+function bindUi() {
+  $$(".nav-button").forEach(button => button.addEventListener("click", () => showPanel(button.dataset.panel)));
+  $$('[data-go]').forEach(button => button.addEventListener("click", () => showPanel(button.dataset.go)));
+  $("#confirm-socket").addEventListener("click", confirmSocket);
+  $("#leave-run").addEventListener("click", () => { if (activeGame && !activeGame.finished) activeGame.finish(false); });
+  $("#return-sanctuary").addEventListener("click", event => { event.preventDefault(); $("#result-dialog").close(); activeGame = null; showPanel("sanctuary"); });
+}
+
+bindUi();
+loadState();
