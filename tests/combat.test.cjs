@@ -4,13 +4,14 @@ const path = require("node:path");
 const test = require("node:test");
 const vm = require("node:vm");
 
-function gameContext() {
+function gameContext(touchButtons = []) {
   const canvas = { width: 960, height: 540, getContext: () => ({ imageSmoothingEnabled: false }) };
   const element = () => ({ textContent: "", innerHTML: "", style: {}, classList: { add() {}, remove() {}, toggle() {} } });
-  const document = { querySelector: selector => selector === "#game-canvas" ? canvas : element(), querySelectorAll: () => [], addEventListener() {}, removeEventListener() {} };
+  const document = { querySelector: selector => selector === "#game-canvas" ? canvas : element(), querySelectorAll: selector => selector === '[data-touch]' ? touchButtons : [], addEventListener() {}, removeEventListener() {} };
+  const listeners = new Map();
   const storage = new Map();
   const context = vm.createContext({
-    document, window: { addEventListener() {}, removeEventListener() {}, scrollTo() {} },
+    document, window: { addEventListener(name, fn) { listeners.set(name,fn); }, removeEventListener(name, fn) { if(listeners.get(name)===fn) listeners.delete(name); }, scrollTo() {} },
     localStorage: { getItem: key => storage.get(key) || null, setItem: (key, value) => storage.set(key, value) },
     performance: { now: () => 0 }, requestAnimationFrame() {},
     setTimeout, clearTimeout, console,
@@ -18,8 +19,71 @@ function gameContext() {
   require("./helpers/load-rules.cjs")(context);
   const source = fs.readFileSync(path.join(__dirname, "..", "static", "js", "game.js"), "utf8").replace(/\nbindUi\(\);\s*initializeSession\(\);\s*$/, "");
   vm.runInContext(`${source}\nthis.api = { BattleGame, defaultState: DEFAULT_STATE, primarySecondary, previewSocketState, setState: value => { saveData = value; }, setSocket: value => { pendingSocket = value; } };`, context);
-  return context.api;
+  return { ...context.api, dispatchWindow: (name, event) => listeners.get(name)?.(event), listeners };
 }
+
+function touchButton(action, captureFails = false) {
+  const captured = new Set();
+  return { dataset: { touch: action }, captured,
+    setPointerCapture(id) { if(captureFails) throw new Error("capture unavailable"); captured.add(id); },
+    hasPointerCapture(id) { return captured.has(id); },
+    releasePointerCapture(id) { captured.delete(id); this.onlostpointercapture?.({pointerId:id}); },
+  };
+}
+const pointer = id => ({pointerId:id, button:0, preventDefault() {}});
+
+test("005 滑出按钮后窗口松手清方向，指针捕获失败时也不遗留", () => {
+  for (const captureFails of [false,true]) {
+    const button = touchButton("right",captureFails), api=gameContext([button]);
+    const game = new api.BattleGame("fire",{practice:true}); game.start();
+    button.onpointerdown(pointer(1));
+    assert.equal(game.keys.has("right"),true);
+    api.dispatchWindow("pointerup",pointer(1));
+    assert.equal(game.keys.has("right"),false);
+    assert.equal(button.captured.size,0);
+    game.destroy();
+  }
+});
+
+test("005 同动作的多指和键盘独立释放，不误清仍按住的方向和格挡", () => {
+  for(const [action,code] of [["right","KeyD"],["block","KeyK"]]) {
+    const button=touchButton(action), api=gameContext([button]);
+    const game=new api.BattleGame("fire",{practice:true}); game.bindTouch();
+    game.keyDown({code,preventDefault(){}});
+    button.onpointerdown(pointer(1)); button.onpointerdown(pointer(2));
+    button.onpointerup(pointer(1));
+    assert.equal(game.keys.has(action),true);
+    game.keyUp({code});
+    assert.equal(game.keys.has(action),true);
+    if(action==="block") assert.equal(game.player.blocking,true);
+    button.onpointercancel(pointer(2));
+    assert.equal(game.keys.has(action),false);
+    if(action==="block") assert.equal(game.player.blocking,false);
+    // 反向顺序：触屏先松开，键盘仍按住时也不能清掉同一动作。
+    game.keyDown({code,preventDefault(){}});
+    button.onpointerdown(pointer(7));
+    button.onpointerup(pointer(7));
+    assert.equal(game.keys.has(action),true);
+    if(action==="block") assert.equal(game.player.blocking,true);
+    game.keyUp({code});
+    assert.equal(game.keys.has(action),false);
+  }
+});
+
+test("005 捕获丢失、暂停、销毁清理指针和输入，旧按钮不会唤醒已销毁局", () => {
+  const button=touchButton("left"), api=gameContext([button]);
+  const game=new api.BattleGame("fire",{practice:true}); game.start();
+  button.onpointerdown(pointer(3));
+  button.releasePointerCapture(3);
+  assert.equal(game.keys.size,0);
+  button.onpointerdown(pointer(4)); game.setPause(true);
+  assert.equal(button.captured.size,0); assert.equal(game.keys.size,0);
+  game.setPause(false); button.onpointerdown(pointer(5)); game.destroy();
+  assert.equal(button.captured.size,0); assert.equal(game.keys.size,0);
+  button.onpointerdown(pointer(6));
+  assert.equal(game.keys.size,0); assert.equal(button.captured.size,0);
+  assert.equal(api.listeners.has("pointerup"),false);
+});
 
 function trainedState(api, element) {
   const state = api.defaultState();

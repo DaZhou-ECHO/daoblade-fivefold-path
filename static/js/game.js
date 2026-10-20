@@ -516,6 +516,8 @@ class BattleGame {
     this.hitStop = 0;
     this.shockwaveAttackId = -1;
     this.keys = new Set();
+    this.keyboardKeys = new Set();
+    this.touchPointers = new Map();
     this.projectiles = [];
     this.particles = [];
     this.skillEffects = [];
@@ -534,6 +536,7 @@ class BattleGame {
     this.boundKeyUp = event => this.keyUp(event);
     this.boundBlur = () => this.setPause(true);
     this.boundVisibility = () => { if (document.hidden) this.setPause(true); };
+    this.boundPointerEnd = event => this.endTouchPointer(event.pointerId);
   }
 
   makePlayer() {
@@ -575,6 +578,8 @@ class BattleGame {
     window.addEventListener("keydown", this.boundKeyDown);
     window.addEventListener("keyup", this.boundKeyUp);
     window.addEventListener("blur", this.boundBlur);
+    window.addEventListener("pointerup", this.boundPointerEnd);
+    window.addEventListener("pointercancel", this.boundPointerEnd);
     document.addEventListener("visibilitychange", this.boundVisibility);
     this.bindTouch();
     this.updateHud();
@@ -588,12 +593,34 @@ class BattleGame {
     window.removeEventListener("keydown", this.boundKeyDown);
     window.removeEventListener("keyup", this.boundKeyUp);
     window.removeEventListener("blur", this.boundBlur);
+    window.removeEventListener("pointerup", this.boundPointerEnd);
+    window.removeEventListener("pointercancel", this.boundPointerEnd);
     document.removeEventListener("visibilitychange", this.boundVisibility);
     this.clearInput();
     $("#pause-overlay").classList.add("hidden");
   }
 
-  clearInput() { this.keys.clear(); this.player.blocking = false; this.player.parryArmed = 0; this.player.queuedSlash = 0; this.player.jumpBuffer = 0; }
+  clearInput() {
+    const pointers = [...this.touchPointers];
+    this.touchPointers.clear(); this.keyboardKeys.clear(); this.keys.clear();
+    for (const [id, { button }] of pointers) this.releaseTouchCapture(button, id);
+    this.player.blocking = false; this.player.parryArmed = 0; this.player.queuedSlash = 0; this.player.jumpBuffer = 0;
+  }
+
+  releaseTouchCapture(button, id) {
+    try { if (button.hasPointerCapture?.(id)) button.releasePointerCapture(id); }
+    catch (_) { /* 浏览器可能已自动释放；输入来源已先清理。 */ }
+  }
+
+  endTouchPointer(id) {
+    const pointer = this.touchPointers.get(id);
+    if (!pointer) return;
+    this.touchPointers.delete(id);
+    const { action, button } = pointer;
+    if (!this.keyboardKeys.has(action) && ![...this.touchPointers.values()].some(item => item.action === action)) this.keys.delete(action);
+    if (action === "block" && !this.keys.has("block")) this.player.blocking = false;
+    this.releaseTouchCapture(button, id);
+  }
 
   quit() { const target = this.practice ? "cultivation" : "realms"; this.destroy(); activeGame = null; showPanel(target); }
 
@@ -611,14 +638,18 @@ class BattleGame {
     if (event.repeat) return;
     if (action === "pause") return this.setPause(!this.pause);
     if (this.finished || this.pause || !action) return;
+    this.keyboardKeys.add(action);
     this.keys.add(action);
     this.performAction(action);
   }
 
   keyUp(event) {
     const action = actionForCode(event.code);
-    if (action) this.keys.delete(action);
-    if (action === "block") this.player.blocking = false;
+    if (action) {
+      this.keyboardKeys.delete(action);
+      if (![...this.touchPointers.values()].some(pointer => pointer.action === action)) this.keys.delete(action);
+    }
+    if (action === "block" && !this.keys.has("block")) this.player.blocking = false;
   }
 
   performAction(action) {
@@ -637,11 +668,15 @@ class BattleGame {
       button.onpointerdown = event => {
         event.preventDefault();
         const action = button.dataset.touch;
-        if (this.finished || this.pause) return;
-        if (action === "left" || action === "right") this.keys.add(action);
+        if (this.finished || this.disposed || this.pause || (event.button !== undefined && event.button !== 0)) return;
+        this.endTouchPointer(event.pointerId);
+        this.touchPointers.set(event.pointerId, { action, button });
+        try { button.setPointerCapture?.(event.pointerId); }
+        catch (_) { /* 显式捕获不可用时由窗口pointerup/cancel兜底。 */ }
+        this.keys.add(action);
         this.performAction(action);
       };
-      button.onpointerup = button.onpointercancel = () => { this.keys.delete(button.dataset.touch); if (button.dataset.touch === "block") this.player.blocking = false; };
+      button.onpointerup = button.onpointercancel = button.onlostpointercapture = event => this.endTouchPointer(event.pointerId);
     });
   }
 
@@ -1128,6 +1163,7 @@ class BattleGame {
     if (this.finished) return;
     this.finished = true;
     window.removeEventListener("keydown", this.boundKeyDown); window.removeEventListener("keyup", this.boundKeyUp);
+    window.removeEventListener("pointerup", this.boundPointerEnd); window.removeEventListener("pointercancel", this.boundPointerEnd);
     window.removeEventListener("blur", this.boundBlur); document.removeEventListener("visibilitychange", this.boundVisibility);
     this.clearInput(); $("#pause-overlay").classList.add("hidden");
     const visual = win ? Promise.resolve(true) : this.defeatVisual();
