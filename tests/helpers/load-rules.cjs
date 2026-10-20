@@ -10,4 +10,5 @@ module.exports = function loadRules(context) {
   vm.runInContext(fs.readFileSync(path.join(__dirname, "../../static/js/action-state.js"), "utf8"), context);
   vm.runInContext(fs.readFileSync(path.join(__dirname, "../../static/js/battle-events.js"), "utf8"), context);
   vm.runInContext(fs.readFileSync(path.join(__dirname, "../../static/js/battle-audio.js"), "utf8"), context);
+  vm.runInContext(fs.readFileSync(path.join(__dirname, "../../static/js/combat-feedback.js"), "utf8"), context);
 };

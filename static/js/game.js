@@ -58,9 +58,9 @@ function loadControls() {
 function loadFeedback() {
   try {
     const saved = JSON.parse(localStorage.getItem("daoblade-feedback") || "null");
-    if (saved && typeof saved.shake === "boolean" && typeof saved.sound === "boolean") return saved;
+    if (saved && typeof saved.shake === "boolean" && typeof saved.sound === "boolean") return { ...saved, combatText: saved.combatText !== false };
   } catch (_) { /* 损坏的本地设置使用默认效果。 */ }
-  return { shake: true, sound: false };
+  return { shake: true, sound: false, combatText: true };
 }
 
 function playBattleSound(event) {
@@ -512,6 +512,8 @@ class BattleGame {
     this.keyboardKeys = new Set();
     this.touchPointers = new Map();
     this.events = globalThis.DaoBladeBattleEvents?.createChannel() || null;
+    this.feedbackLayer = globalThis.DaoBladeCombatFeedback?.createLayer({ enabled: () => feedback.combatText }) || null;
+    this.events?.subscribe(event => this.feedbackLayer?.push(event));
     this.events?.subscribe(event => this.handleBattleEvent(event));
     this.nextEnemyId = 1;
     this.projectiles = [];
@@ -584,6 +586,7 @@ class BattleGame {
 
   destroy() {
     this.endBattleEvents("abandoned");
+    this.feedbackLayer?.clear();
     this.disposed = true;
     this.finished = true;
     if (this.defeat) { this.defeat.resolve(false); this.defeat = null; }
@@ -836,6 +839,7 @@ class BattleGame {
   advanceDefeat(dt) {
     if (!this.defeat) return;
     this.defeat.elapsed = Math.min(this.defeat.duration, this.defeat.elapsed + Math.max(0, dt));
+    this.feedbackLayer?.update(dt);
     this.player.deathTime = this.defeat.elapsed;
     const fall = Math.min(1, this.defeat.elapsed / .45);
     this.player.deathDrop = this.defeat.initialOffset + this.defeat.drop * fall * fall;
@@ -859,6 +863,7 @@ class BattleGame {
     if (this.finished) return;
     const p = this.player;
     this.elapsed += dt;
+    this.feedbackLayer?.update(dt);
     p.animTime += dt;
     p.invuln = Math.max(0, p.invuln - dt); p.slash = Math.max(0, p.slash - dt); p.slashCooldown = Math.max(0, p.slashCooldown - dt); p.qiCast = Math.max(0, p.qiCast - dt); p.qiCooldown = Math.max(0, p.qiCooldown - dt); p.skillCooldowns = p.skillCooldowns.map(value => Math.max(0, value - dt)); p.blockFlash = Math.max(0, p.blockFlash - dt);
     p.parryArmed = Math.max(0, p.parryArmed - dt); p.parryLock = Math.max(0, p.parryLock - dt);
@@ -1250,6 +1255,7 @@ class BattleGame {
     });
     this.particles.forEach(particle => { ctx.globalAlpha = clamp(particle.life * 2, 0, 1); ctx.fillStyle = particle.color; ctx.fillRect(Math.round(particle.x), Math.round(particle.y), 4, 4); }); ctx.globalAlpha = 1;
     this.drawPlayer(ctx, this.player);
+    this.feedbackLayer?.draw(ctx);
     ctx.restore();
     this.drawMinimap(ctx);
   }
@@ -1497,10 +1503,12 @@ function bindUi() {
   $("#settings-run").addEventListener("click", () => { renderControls(); $("#settings-dialog").showModal(); });
   $("#shake-toggle").checked = feedback.shake;
   $("#sound-toggle").checked = feedback.sound;
-  for (const [id, key] of [["shake-toggle", "shake"], ["sound-toggle", "sound"]]) {
+  $("#combat-text-toggle").checked = feedback.combatText;
+  for (const [id, key] of [["shake-toggle", "shake"], ["sound-toggle", "sound"], ["combat-text-toggle", "combatText"]]) {
     $(`#${id}`).addEventListener("change", event => {
       feedback[key] = event.target.checked;
       if (key === "sound" && !feedback.sound) battleAudio?.stop();
+      if (key === "combatText" && !feedback.combatText) activeGame?.feedbackLayer?.clear();
       localStorage.setItem("daoblade-feedback", JSON.stringify(feedback));
     });
   }

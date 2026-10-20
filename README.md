@@ -71,6 +71,7 @@ node --test tests/rules.test.cjs
 node --test tests/action-state.test.cjs
 node --test tests/battle-events.test.cjs
 node --test tests/battle-audio.test.cjs
+node --test tests/combat-feedback.test.cjs
 ```
 
 在受限环境中如果 pytest 无法创建系统临时目录，可为它指定一个**可写的临时目录**，例如 `--basetemp D:\acode\codex\pytest-daoblade-v03`。这不是游戏运行要求。
@@ -85,6 +86,7 @@ static/js/rules.js         前端纯计算、进度视图与不可变战斗快�
 static/js/action-state.js  从战斗实体生成冻结动作视图，供角色渲染消费
 static/js/battle-events.js 每局只读战斗事实事件、有限历史与反馈订阅
 static/js/battle-audio.js  事件驱动短合成音、并发预算及静音清理
+static/js/combat-feedback.js 真实命中/防守文字，数量寿命预算与关闭支持
 database.py                SQLite 初始化、迁移、按账号存档和版本检查
 game_rules.py              灵珠、八卦、出战配置与不可逆选择校验
 templates/index.html       主界面和对话框

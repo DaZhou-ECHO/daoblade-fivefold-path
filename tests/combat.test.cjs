@@ -4,12 +4,13 @@ const path = require("node:path");
 const test = require("node:test");
 const vm = require("node:vm");
 
-function gameContext(touchButtons = []) {
+function gameContext(touchButtons = [], savedFeedback = null) {
   const canvas = { width: 960, height: 540, getContext: () => ({ imageSmoothingEnabled: false }) };
   const element = () => ({ textContent: "", innerHTML: "", style: {}, classList: { add() {}, remove() {}, toggle() {} } });
   const document = { querySelector: selector => selector === "#game-canvas" ? canvas : element(), querySelectorAll: selector => selector === '[data-touch]' ? touchButtons : [], addEventListener() {}, removeEventListener() {} };
   const listeners = new Map();
   const storage = new Map();
+  if (savedFeedback) storage.set("daoblade-feedback",JSON.stringify(savedFeedback));
   const context = vm.createContext({
     document, window: { addEventListener(name, fn) { listeners.set(name,fn); }, removeEventListener(name, fn) { if(listeners.get(name)===fn) listeners.delete(name); }, scrollTo() {} },
     localStorage: { getItem: key => storage.get(key) || null, setItem: (key, value) => storage.set(key, value) },
@@ -18,7 +19,7 @@ function gameContext(touchButtons = []) {
   });
   require("./helpers/load-rules.cjs")(context);
   const source = fs.readFileSync(path.join(__dirname, "..", "static", "js", "game.js"), "utf8").replace(/\nbindUi\(\);\s*initializeSession\(\);\s*$/, "");
-  vm.runInContext(`${source}\nthis.api = { BattleGame, defaultState: DEFAULT_STATE, primarySecondary, previewSocketState, setState: value => { saveData = value; }, setSocket: value => { pendingSocket = value; }, setAudioPlayer: value => { battleAudio = value; } };`, context);
+  vm.runInContext(`${source}\nthis.api = { BattleGame, defaultState: DEFAULT_STATE, primarySecondary, previewSocketState, setState: value => { saveData = value; }, setSocket: value => { pendingSocket = value; }, setAudioPlayer: value => { battleAudio = value; }, getFeedback: () => feedback };`, context);
   return { ...context.api, dispatchWindow: (name, event) => listeners.get(name)?.(event), listeners };
 }
 
@@ -90,6 +91,38 @@ function trainedState(api, element) {
   state.cultivation.qian[0] = { id: `test-${element}`, name: "试炼珠", element, level: 3, quality: 1, xp: 0, affixes: [] };
   return state;
 }
+
+test("008 旧设置默认开启视觉提示，显式关闭可保留且不改声音默认值",()=>{
+  const old=gameContext([],{shake:false,sound:false});
+  assert.equal(old.getFeedback().combatText,true);assert.equal(old.getFeedback().sound,false);
+  const off=gameContext([],{shake:true,sound:false,combatText:false});
+  const game=new off.BattleGame("fire",{practice:true});game.hitEnemy(game.enemies[0],10);
+  assert.equal(game.feedbackLayer.items.length,0);
+});
+
+test("008 实际命中生成视觉，暂停冻结、倒地阶段消退、销毁清空",async()=>{
+  const api=gameContext(),game=new api.BattleGame("fire",{practice:true});
+  game.hitEnemy(game.enemies[0],10);assert.equal(game.feedbackLayer.items[0].text,"10");
+  const before=game.feedbackLayer.items[0].life;
+  game.draw=()=>{};game.setPause(true);game.loop(100);
+  assert.equal(game.feedbackLayer.items[0].life,before);
+  game.setPause(false);const finish=game.finish(false);game.advanceDefeat(.3);
+  assert.ok(game.feedbackLayer.items[0].life<before);
+  game.destroy();await finish;
+  assert.equal(game.feedbackLayer.items.length,0);
+});
+
+test("008 视觉反馈故障独立隔离，仍能播放事件声音且不改变伤害",()=>{
+  const api=gameContext(),played=[];
+  api.setAudioPlayer({play:event=>played.push(event.type),stop(){}});
+  const game=new api.BattleGame("fire",{practice:true});
+  game.feedbackLayer={push(){throw new Error("visual feedback failed");}};
+  const before=game.enemies[0].hp;
+  game.slash();game.hitEnemy(game.enemies[0],10);
+  assert.equal(game.enemies[0].hp,before-10);
+  assert.deepEqual(played,["slash_started","enemy_hit"]);
+  assert.equal(game.events.failure_count,2);
+});
 
 test("007 实际事件音效消费者在暂停和结束时停止，销毁后的输入不补播", () => {
   const api=gameContext(),played=[];let stops=0;
