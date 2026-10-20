@@ -3,22 +3,8 @@
 const RULES = globalThis.DaoBladeRules.createRuntime(globalThis.DaoBladeRuleset);
 const { elements: ELEMENTS, trigrams: TRIGRAMS, affixes: AFFIXES, qualities: QUALITY } = RULES.config;
 
-const REALMS = {
-  metal: { bg: ["#111b29", "#526273"], enemies: ["铁甲傀儡", "飞刃机关"], boss: "白帝剑卫" },
-  wood: { bg: ["#071d1a", "#2f7552"], enemies: ["藤甲妖", "毒蕈灵"], boss: "青木药王" },
-  water: { bg: ["#07182a", "#246d91"], enemies: ["寒潭水鬼", "冰晶鱼妖"], boss: "玄水蛟影" },
-  fire: { bg: ["#241018", "#9b3028"], enemies: ["熔岩剑卒", "赤焰刀客", "火羽术士"], boss: "离火剑魁" },
-  earth: { bg: ["#201a14", "#765638"], enemies: ["石甲俑", "沙暴灵"], boss: "镇岳山君" },
-};
-
-// 主路保持贯通；高台构成可选支路，祭坛提供额外结算奖励。
-const REALM_LAYOUTS = {
-  metal: { ledges: [[410, 414, 195], [645, 354, 165], [1210, 405, 230], [1800, 392, 205], [2460, 414, 180]], altars: [[715, 354], [1860, 392]], hazards: [[925, 92], [2150, 96]] },
-  wood: { ledges: [[510, 408, 220], [760, 347, 160], [1410, 402, 190], [1760, 347, 160], [2470, 407, 210]], altars: [[820, 347], [1820, 347]], hazards: [[1100, 85], [2240, 88]] },
-  water: { ledges: [[500, 412, 185], [735, 356, 180], [1340, 405, 180], [1680, 351, 175], [2380, 408, 220]], altars: [[790, 356], [1740, 351]], hazards: [[1010, 105], [2070, 105]] },
-  fire: { ledges: [[470, 406, 220], [755, 349, 170], [1310, 411, 230], [1700, 354, 185], [2400, 405, 210]], altars: [[810, 349], [1750, 354]], hazards: [[1180, 90], [2170, 90]] },
-  earth: { ledges: [[470, 421, 215], [735, 361, 160], [1190, 412, 245], [1800, 404, 220], [2350, 356, 170]], altars: [[790, 361], [2410, 356]], hazards: [[1010, 80], [2130, 100]] },
-};
+const LEVELS = globalThis.DaoBladeLevels;
+const REALMS = LEVELS.realms;
 
 const DEFAULT_STATE = () => RULES.defaultState();
 
@@ -490,6 +476,7 @@ class BattleGame {
   constructor(realmKey, options = {}) {
     this.realmKey = realmKey;
     this.practice = Boolean(options.practice);
+    this.level = LEVELS.getDefinition(realmKey);
     this.realm = REALMS[realmKey];
     this.element = ELEMENTS[realmKey];
     this.canvas = $("#game-canvas");
@@ -497,8 +484,8 @@ class BattleGame {
     this.ctx.imageSmoothingEnabled = false;
     this.width = this.canvas.width;
     this.height = this.canvas.height;
-    this.worldWidth = 3200;
-    this.floorY = 474;
+    this.worldWidth = this.level.world.width;
+    this.floorY = this.level.world.floor_y;
     this.cameraX = 0;
     this.pause = false;
     this.finished = false;
@@ -525,10 +512,12 @@ class BattleGame {
     this.characterArt = globalThis.DaoBladeCharacterArt?.renderer || null;
     if (this.characterArt) void this.characterArt.load();
     this.player = this.makePlayer();
-    const layout = REALM_LAYOUTS[realmKey];
-    this.platforms = [{ x: 0, y: this.floorY, w: this.worldWidth, h: 80 }, ...layout.ledges.map(([x, y, w]) => ({ x, y, w, h: 22 }))];
-    this.altars = this.practice ? [] : layout.altars.map(([x, y]) => ({ x, y: y - 28, taken: false }));
-    this.hazards = this.practice ? [] : layout.hazards.map(([x, w]) => ({ x, w }));
+    this.platforms = this.level.platforms.map(platform => ({ ...platform }));
+    this.altars = this.practice ? [] : this.level.altars.map(altar => {
+      const anchor = this.level.anchors[altar.anchor_id];
+      return { id: altar.id, x: anchor.x, y: anchor.y - 28, taken: false };
+    });
+    this.hazards = this.practice ? [] : this.level.hazards.map(hazard => ({ ...hazard }));
     this.hazardTimer = 0;
     this.enemies = this.practice ? [this.enemy("dummy", "试剑木桩", 620, 99999, "dummy")] : this.makeEnemies();
     this.boundKeyDown = event => this.keyDown(event);
@@ -539,27 +528,19 @@ class BattleGame {
   }
 
   makePlayer() {
-    return { x: 120, y: this.floorY - 70, w: 38, h: 70, vx: 0, vy: 0, face: 1, onGround: true, hp: this.stats.hpMax, qi: this.stats.qiMax, invuln: 0, slash: 0, slashDuration: .28, slashCooldown: 0, qiCast: 0, qiCooldown: 0, skillCooldowns: [0, 0], attackId: 0, combo: 0, lastSlashAt: -10, blocking: false, blockStarted: -10, parryArmed: 0, parryLock: 0, counterWindow: 0, counterAttack: false, blockFlash: 0, dash: 0, dashCooldown: 0, dashDirection: 1, jumpCount: 0, jumpBuffer: 0, coyote: .1, queuedSlash: 0, hurt: 0, shield: 0, shieldTime: 0, flameBuff: 0, healCooldown: 0, animTime: 0 };
+    const spawn = this.level.anchors.spawn;
+    return { x: spawn.x, y: spawn.y - 70, w: 38, h: 70, vx: 0, vy: 0, face: 1, onGround: true, hp: this.stats.hpMax, qi: this.stats.qiMax, invuln: 0, slash: 0, slashDuration: .28, slashCooldown: 0, qiCast: 0, qiCooldown: 0, skillCooldowns: [0, 0], attackId: 0, combo: 0, lastSlashAt: -10, blocking: false, blockStarted: -10, parryArmed: 0, parryLock: 0, counterWindow: 0, counterAttack: false, blockFlash: 0, dash: 0, dashCooldown: 0, dashDirection: 1, jumpCount: 0, jumpBuffer: 0, coyote: .1, queuedSlash: 0, hurt: 0, shield: 0, shieldTime: 0, flameBuff: 0, healCooldown: 0, animTime: 0 };
   }
 
   makeEnemies() {
-    if (this.realmKey === "fire") {
-      return [
-        this.enemy("melee", this.realm.enemies[0], 610, 64, "swordsman"),
-        this.enemy("charger", this.realm.enemies[1], 1010, 72, "charger"),
-        this.enemy("melee", this.realm.enemies[0], 1460, 70, "swordsman"),
-        this.enemy("ranged", this.realm.enemies[2], 1900, 58, "caster"),
-        this.enemy("charger", this.realm.enemies[1], 2350, 82, "charger"),
-        this.enemy("boss", this.realm.boss, 2860, 280, "boss"),
-      ];
-    }
-    const special = { metal: "guard", wood: "stalker", water: "skirmisher", earth: "crusher" }[this.realmKey];
-    const normal = [
-      this.enemy("melee", this.realm.enemies[0], 670, 60, special), this.enemy("melee", this.realm.enemies[0], 1070, 58),
-      this.enemy("ranged", this.realm.enemies[1], 1500, 52, this.realmKey === "water" ? "binder" : "caster"), this.enemy("melee", this.realm.enemies[0], 1930, 70, special),
-      this.enemy("melee", this.realm.enemies[0], 2390, 76), this.enemy("boss", this.realm.boss, 2860, 240, "boss"),
-    ];
-    return normal;
+    return this.level.encounters.map(spec => {
+      const anchor = this.level.anchors[spec.anchor_id];
+      const name = spec.kind === "boss" ? this.realm.boss : this.realm.enemies[spec.name_index];
+      const enemy = this.enemy(spec.kind, name, anchor.x, spec.hp, spec.variant);
+      enemy.y = anchor.y - enemy.h;
+      enemy.spawn_anchor = spec.anchor_id;
+      return enemy;
+    });
   }
 
   enemy(kind, name, x, hp, variant = kind) {

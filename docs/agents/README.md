@@ -2,6 +2,7 @@
 
 | 任务ID | 任务目标 | 状态 | 当前接续Agent | 分支/基线 | 最新交接链接 | 依赖或阻塞 |
 |---|---|---|---|---|---|---|
+| 012-d01-level-definitions | 旧五境定义与稳定位置引用 | 已完成 | agent-20261021-0031-c8e4 | work/012-d01-level-definitions-local / a0ee0b1 | [交接](012-d01-level-definitions/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 依赖本地011；五境基线相等，Python48/Node89通过；仅本地 |
 | 011-d01-local-checks | 本地入口与可重复自检 | 已完成 | agent-20261021-0031-c8e4 | work/011-d01-local-checks-local / df73305 | [交接](011-d01-local-checks/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 依赖本地010；统一检查Python48/Node85通过；仅本地 |
 | 010-d10-unsynced-battle | 已知失同步时保护正式开战 | 已完成 | agent-20261021-0031-c8e4 | work/010-d10-unsynced-battle-local / 7c25a87 | [交接](010-d10-unsynced-battle/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 依赖本地009；入口先复现后修复，Node85通过；仅本地 |
 | 009-d05-enemy-death-boundary | 燃烧致死同帧停止攻击 | 已完成 | agent-20261021-0031-c8e4 | work/009-d05-enemy-death-boundary-local / 0afa767 | [交接](009-d05-enemy-death-boundary/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 依赖本地008；先复现后修复，Node84通过；仅本地 |

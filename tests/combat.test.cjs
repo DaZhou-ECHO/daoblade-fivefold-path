@@ -92,6 +92,33 @@ function trainedState(api, element) {
   return state;
 }
 
+test("012 五境实际构造与已提交a0ee0b1的物理/敌人布局基线一致",()=>{
+  const baseline=require("./fixtures/level-layout-baseline.json"),api=gameContext();
+  const pick=(value,keys)=>Object.fromEntries(keys.map(key=>[key,value[key]]));
+  assert.equal(baseline.source_commit,"a0ee0b1");
+  for(const expected of baseline.cases){
+    const game=new api.BattleGame(expected.realm);
+    const actual={realm:game.realmKey,worldWidth:game.worldWidth,floorY:game.floorY,
+      player:pick(game.player,["x","y","w","h"]),
+      platforms:Array.from(game.platforms,p=>pick(p,["x","y","w","h"])),
+      altars:Array.from(game.altars,a=>pick(a,["x","y","taken"])),
+      hazards:Array.from(game.hazards,h=>pick(h,["x","w"])),
+      enemies:Array.from(game.enemies,e=>pick(e,["kind","variant","name","x","y","w","h","hp","maxHp"]))};
+    assert.deepEqual(JSON.parse(JSON.stringify(actual)),expected,expected.realm);
+  }
+});
+
+test("012 当局地图/敌人与冻结定义隔离，重试和另一局不继承旧局修改",()=>{
+  const api=gameContext(),first=new api.BattleGame("fire");
+  const x=first.platforms[1].x,hp=first.enemies[0].hp;
+  first.platforms[1].x+=100;first.altars[0].taken=true;first.enemies[0].hp=1;
+  const next=new api.BattleGame("fire");
+  assert.equal(next.platforms[1].x,x);assert.equal(next.altars[0].taken,false);assert.equal(next.enemies[0].hp,hp);
+  assert.equal(first.level,next.level);
+  assert.equal(next.enemies.find(e=>e.kind==="boss").spawn_anchor,"boss");
+  assert.equal(next.enemies[0].id,next.level.encounters[0].id);
+});
+
 test("010 失同步拒绝正式开战且保留原局与计数，练功允许，恢复后正式入场",()=>{
   const api=gameContext();let destroyed=0,saves=0;
   const original={destroy(){destroyed++;}};
