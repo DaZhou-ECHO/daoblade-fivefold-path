@@ -1206,6 +1206,10 @@ class BattleGame {
   }
 
   updateHud() {
+    if (!this.practice) {
+      const objective = globalThis.DaoBladeLevelProgress?.objective(this.realmKey, this.player.x, this.enemies);
+      if (objective) $("#objective-text").textContent = objective;
+    }
     $("#hud-hp").textContent = `${Math.ceil(Math.max(0, this.player.hp))} / ${this.stats.hpMax}`;
     $("#hud-qi").textContent = `${Math.floor(this.player.qi)} / ${this.stats.qiMax}`;
     $("#hud-enemies").textContent = this.enemies.filter(enemy => !enemy.dead).length;
