@@ -1,0 +1,2 @@
+# Optional asset preparation and PNG validation; not required to play the game.
+Pillow==12.3.0

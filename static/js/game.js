@@ -602,6 +602,8 @@ class BattleGame {
     this.particles = [];
     this.skillEffects = [];
     this.stats = calculateStats(options.state || saveData);
+    this.characterArt = globalThis.DaoBladeCharacterArt?.renderer || null;
+    if (this.characterArt) void this.characterArt.load();
     this.player = this.makePlayer();
     const layout = REALM_LAYOUTS[realmKey];
     this.platforms = [{ x: 0, y: this.floorY, w: this.worldWidth, h: 80 }, ...layout.ledges.map(([x, y, w]) => ({ x, y, w, h: 22 }))];
@@ -1267,6 +1269,18 @@ class BattleGame {
   }
 
   drawPlayer(ctx, p) {
+    if (this.characterArt?.draw(ctx, p, elementColor(this.stats.primary))) {
+      const x = Math.round(p.x), y = Math.round(p.y);
+      if (p.shield > 0) {
+        ctx.strokeStyle = "#dfad4c"; ctx.lineWidth = 3;
+        ctx.strokeRect(x - 5, y - 5, p.w + 10, p.h + 10);
+      }
+      return;
+    }
+    this.drawPlayerCanvas(ctx, p);
+  }
+
+  drawPlayerCanvas(ctx, p) {
     const hitFlicker = p.invuln > 0 && Math.floor(p.invuln * 20) % 2;
     const x = Math.round(p.x), y = Math.round(p.y);
     const running = p.onGround && Math.abs(p.vx) > 35;
