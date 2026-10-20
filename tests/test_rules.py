@@ -34,6 +34,43 @@ def test_socketed_beads_determine_primary_and_secondary():
     assert primary_secondary(state)[:2] == ("fire", "metal")
 
 
+def test_tied_five_elements_do_not_gain_hidden_primary_or_secondary():
+    assert primary_secondary(default_state()) == (None, None)
+    state = default_state()
+    state["cultivation"]["li"][0] = bead("fire", "fire", 1, 2)
+    state["cultivation"]["qian"][0] = bead("metal", "metal", 1, 2)
+    assert primary_secondary(state) == (None, None)
+
+
+def test_tied_second_place_has_no_secondary_bonus():
+    state = default_state()
+    state["cultivation"]["li"][0] = bead("fire", "fire", 3, 5)
+    state["cultivation"]["qian"][0] = bead("metal", "metal", 1, 1)
+    state["cultivation"]["kun"][0] = bead("earth", "earth", 1, 1)
+    assert primary_secondary(state) == ("fire", None)
+
+
+def test_old_save_keeps_bead_fields_and_bagua_route():
+    previous = default_state()
+    old_bead = bead("old-id", "wood", 1, 7)
+    old_bead["xp"] = 21
+    previous["cultivation"]["gen"][0] = old_bead
+    loaded = validate_state(deepcopy(previous), previous)
+    assert loaded["cultivation"]["gen"][0] == old_bead
+    assert loaded["version"] == 1
+
+
+@pytest.mark.parametrize("key,value", [("attack", -1), ("attack", 10000), ("attack", True), (["attack"], 5), ("unknown", 5)])
+def test_invalid_affix_cannot_create_unbounded_or_malformed_stats(key, value):
+    state = default_state()
+    item = bead()
+    item["affixes"][0]["key"] = key
+    item["affixes"][0]["value"] = value
+    state["inventory"].append(item)
+    with pytest.raises(ValueError):
+        validate_state(state)
+
+
 def test_trigram_must_grow_from_center_outward():
     state = default_state()
     state["cultivation"]["qian"][1] = bead()

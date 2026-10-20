@@ -1,0 +1,46 @@
+name: DaoBlade checks
+
+on:
+  push:
+    branches: [main, develop, 'work/**', 'automation/**']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Checks (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    env:
+      DAOBLADE_DATABASE: work/ci.sqlite3
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: '22'
+      - name: Install test dependencies
+        run: python -m pip install -r requirements.txt -r requirements-art.txt
+      - name: Python regression
+        run: python -m pytest -q -p no:cacheprovider --basetemp work/ci-pytest
+      - name: JavaScript syntax
+        run: |
+          node --check static/js/rules.js
+          node --check static/js/game.js
+          node --check static/js/character-art.js
+          node --check static/js/character-preview.js
+      - name: Rules, combat, character and defeat regression
+        run: node --test tests/rules.test.cjs tests/combat.test.cjs tests/character-art.test.cjs tests/defeat.test.cjs
+      - name: Sprite validation
+        run: python tools/check_character_art.py

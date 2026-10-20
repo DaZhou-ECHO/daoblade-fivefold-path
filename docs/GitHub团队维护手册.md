@@ -2,6 +2,8 @@
 
 适用仓库：<https://github.com/DaZhou-ECHO/daoblade-fivefold-path>
 
+2026-10-20补充：初版分方向任务采用补零轮次命名，见[顺序编号与候选维护](GitHub顺序编号与候选维护.md)与[实施索引](implementation/00-实施索引.md)。当前完整候选包含尚未进入develop的依赖，不能直接套用旧版“从develop开始”的示例；先以本轮交接确认基线。以下2026-10-19仓库检查仅为历史快照。
+
 ## 1. 管理目标
 
 本项目采用“一名成员一天轮流开发，晚上由主管理员验收”的工作方式。版本管理需要同时满足以下目标：
@@ -240,13 +242,14 @@ git log --oneline -5
 git push -u origin work/zhang/20261020-fire-boss
 ```
 
-如果分支已经因为 rebase 上传过，再使用：
+已推送的共享候选不应再通过rebase改写。若与基线分叉，保留两侧提交并与负责人协调；自动任务暂停推送，不以强制推送解决。
 
 ```powershell
-git push --force-with-lease
+git fetch origin
+git status
 ```
 
-只能对自己的短期分支使用 `--force-with-lease`。禁止对 `main` 和 `develop` 强制推送。
+以上只检查状态，不覆盖远端。当前顺序编号工作流只使用普通推送；旧示例中的rebase只适用于尚未推送且已确认没有协作者的本地分支，不作为自动任务默认步骤。
 
 上传后，在 GitHub 创建：
 
@@ -499,7 +502,7 @@ git switch -c hotfix/player-save-error
 
 修复后创建 `hotfix/* → main` 的 PR，发布新的修订版本，例如 `v0.2.1`。随后把同样的修复合并回 `develop`。
 
-## 16. 当前仓库检查结果
+## 16. 历史仓库检查结果（2026-10-19快照）
 
 检查日期：2026-10-19。
 

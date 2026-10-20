@@ -1,0 +1,141 @@
+{
+  "schemaVersion": 1,
+  "id": "swordsman-v1",
+  "stage": 2,
+  "frameSize": [
+    64,
+    96
+  ],
+  "foot": [
+    32,
+    90
+  ],
+  "animations": {
+    "idle": {
+      "src": "/static/sprites/player/base/idle.png",
+      "fps": 6,
+      "frameCount": 4,
+      "frames": [
+        {
+          "hand": [
+            48,
+            53
+          ],
+          "weaponAngle": 1.15
+        },
+        {
+          "hand": [
+            46,
+            53
+          ],
+          "weaponAngle": 1.15
+        },
+        {
+          "hand": [
+            46,
+            53
+          ],
+          "weaponAngle": 1.15
+        },
+        {
+          "hand": [
+            45,
+            53
+          ],
+          "weaponAngle": 1.15
+        }
+      ]
+    },
+    "run": {
+      "src": "/static/sprites/player/actions/run.png",
+      "fps": 12,
+      "frameCount": 8,
+      "frames": [
+        {
+          "hand": [
+            53,
+            57
+          ],
+          "weaponAngle": 1.38
+        },
+        {
+          "hand": [
+            52,
+            54
+          ],
+          "weaponAngle": 1.38
+        },
+        {
+          "hand": [
+            50,
+            53
+          ],
+          "weaponAngle": 1.38
+        },
+        {
+          "hand": [
+            54,
+            55
+          ],
+          "weaponAngle": 1.38
+        },
+        {
+          "hand": [
+            52,
+            55
+          ],
+          "weaponAngle": 1.38
+        },
+        {
+          "hand": [
+            49,
+            53
+          ],
+          "weaponAngle": 1.38
+        },
+        {
+          "hand": [
+            50,
+            53
+          ],
+          "weaponAngle": 1.38
+        },
+        {
+          "hand": [
+            54,
+            54
+          ],
+          "weaponAngle": 1.38
+        }
+      ]
+    }
+  },
+  "weapon": {
+    "src": "/static/sprites/weapons/base/jian.png",
+    "size": [
+      20,
+      64
+    ],
+    "grip": [
+      10,
+      53
+    ]
+  },
+  "proceduralStates": [
+    "jump",
+    "fall",
+    "slash",
+    "block",
+    "qi",
+    "dash",
+    "hurt",
+    "death"
+  ],
+  "fallbackStates": [],
+  "futureLayers": [
+    "primary",
+    "secondary",
+    "trigram",
+    "depth"
+  ]
+}

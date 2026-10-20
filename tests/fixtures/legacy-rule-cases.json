@@ -1,0 +1,683 @@
+{
+  "baseline": "0edf7136246d59c79853dd89dc8a72f5ffbd067c",
+  "ruleset_id": "legacy-v1",
+  "valid_cases": [
+    {
+      "id": "default",
+      "state": {
+        "version": 1,
+        "player": {
+          "name": "无名剑客",
+          "level": 1,
+          "spirit": 0
+        },
+        "inventory": [],
+        "cultivation": {
+          "qian": [
+            null,
+            null,
+            null
+          ],
+          "xun": [
+            null,
+            null,
+            null
+          ],
+          "kan": [
+            null,
+            null,
+            null
+          ],
+          "gen": [
+            null,
+            null,
+            null
+          ],
+          "kun": [
+            null,
+            null,
+            null
+          ],
+          "zhen": [
+            null,
+            null,
+            null
+          ],
+          "li": [
+            null,
+            null,
+            null
+          ],
+          "dui": [
+            null,
+            null,
+            null
+          ]
+        },
+        "loadout": {
+          "active": [
+            null,
+            null
+          ],
+          "passive": [
+            null,
+            null
+          ]
+        },
+        "progress": {
+          "runs": 0,
+          "victories": 0,
+          "clears": {
+            "metal": 0,
+            "wood": 0,
+            "water": 0,
+            "fire": 0,
+            "earth": 0
+          },
+          "seen_help": false
+        }
+      },
+      "expected": {
+        "totals": {
+          "metal": 1,
+          "wood": 1,
+          "water": 1,
+          "fire": 1,
+          "earth": 1
+        },
+        "primary_secondary": [
+          null,
+          null
+        ],
+        "stats": {
+          "primary": null,
+          "secondary": null,
+          "totals": {
+            "metal": 1,
+            "wood": 1,
+            "water": 1,
+            "fire": 1,
+            "earth": 1
+          },
+          "depth": {
+            "qian": 0,
+            "xun": 0,
+            "kan": 0,
+            "gen": 0,
+            "kun": 0,
+            "zhen": 0,
+            "li": 0,
+            "dui": 0
+          },
+          "mastery": {
+            "qian": 0,
+            "xun": 0,
+            "kan": 0,
+            "gen": 0,
+            "kun": 0,
+            "zhen": 0,
+            "li": 0,
+            "dui": 0
+          },
+          "loadout": {
+            "active": [
+              null,
+              null
+            ],
+            "passive": [
+              null,
+              null
+            ]
+          },
+          "hpMax": 97,
+          "qiMax": 73,
+          "attack": 12.85,
+          "defense": 0.45,
+          "speed": 205,
+          "crit": 0.049,
+          "qiRegen": 7.3,
+          "block": 0.62,
+          "stagger": 1.015,
+          "cooldown": 1,
+          "affixes": {},
+          "dao": null
+        }
+      }
+    },
+    {
+      "id": "equipped",
+      "state": {
+        "version": 1,
+        "player": {
+          "name": "无名剑客",
+          "level": 1,
+          "spirit": 0
+        },
+        "inventory": [],
+        "cultivation": {
+          "qian": [
+            {
+              "id": "q1",
+              "name": "契约测试珠",
+              "element": "metal",
+              "quality": 1,
+              "level": 3,
+              "xp": 0,
+              "affixes": []
+            },
+            {
+              "id": "q2",
+              "name": "契约测试珠",
+              "element": "metal",
+              "quality": 1,
+              "level": 3,
+              "xp": 0,
+              "affixes": []
+            },
+            null
+          ],
+          "xun": [
+            null,
+            null,
+            null
+          ],
+          "kan": [
+            null,
+            null,
+            null
+          ],
+          "gen": [
+            null,
+            null,
+            null
+          ],
+          "kun": [
+            null,
+            null,
+            null
+          ],
+          "zhen": [
+            null,
+            null,
+            null
+          ],
+          "li": [
+            {
+              "id": "l1",
+              "name": "契约测试珠",
+              "element": "fire",
+              "quality": 1,
+              "level": 5,
+              "xp": 0,
+              "affixes": []
+            },
+            null,
+            null
+          ],
+          "dui": [
+            null,
+            null,
+            null
+          ]
+        },
+        "loadout": {
+          "active": [
+            "qian",
+            null
+          ],
+          "passive": [
+            "qian",
+            null
+          ]
+        },
+        "progress": {
+          "runs": 0,
+          "victories": 0,
+          "clears": {
+            "metal": 0,
+            "wood": 0,
+            "water": 0,
+            "fire": 0,
+            "earth": 0
+          },
+          "seen_help": false
+        }
+      },
+      "expected": {
+        "totals": {
+          "metal": 7,
+          "wood": 1,
+          "water": 1,
+          "fire": 6,
+          "earth": 1
+        },
+        "primary_secondary": [
+          "metal",
+          "fire"
+        ],
+        "stats": {
+          "primary": "metal",
+          "secondary": "fire",
+          "totals": {
+            "metal": 7,
+            "wood": 1,
+            "water": 1,
+            "fire": 6,
+            "earth": 1
+          },
+          "depth": {
+            "qian": 2,
+            "xun": 0,
+            "kan": 0,
+            "gen": 0,
+            "kun": 0,
+            "zhen": 0,
+            "li": 1,
+            "dui": 0
+          },
+          "mastery": {
+            "qian": 2,
+            "xun": 0,
+            "kan": 0,
+            "gen": 0,
+            "kun": 0,
+            "zhen": 0,
+            "li": 0,
+            "dui": 0
+          },
+          "loadout": {
+            "active": [
+              "qian",
+              null
+            ],
+            "passive": [
+              "qian",
+              null
+            ]
+          },
+          "hpMax": 97,
+          "qiMax": 73,
+          "attack": 21.95,
+          "defense": 0.45,
+          "speed": 205,
+          "crit": 0.094,
+          "qiRegen": 7.3,
+          "block": 0.62,
+          "stagger": 1.015,
+          "cooldown": 1,
+          "affixes": {},
+          "dao": "qian"
+        }
+      }
+    },
+    {
+      "id": "tied-primary",
+      "state": {
+        "version": 1,
+        "player": {
+          "name": "无名剑客",
+          "level": 1,
+          "spirit": 0
+        },
+        "inventory": [],
+        "cultivation": {
+          "qian": [
+            {
+              "id": "t1",
+              "name": "契约测试珠",
+              "element": "metal",
+              "quality": 1,
+              "level": 3,
+              "xp": 0,
+              "affixes": []
+            },
+            null,
+            null
+          ],
+          "xun": [
+            null,
+            null,
+            null
+          ],
+          "kan": [
+            null,
+            null,
+            null
+          ],
+          "gen": [
+            null,
+            null,
+            null
+          ],
+          "kun": [
+            null,
+            null,
+            null
+          ],
+          "zhen": [
+            null,
+            null,
+            null
+          ],
+          "li": [
+            {
+              "id": "t2",
+              "name": "契约测试珠",
+              "element": "fire",
+              "quality": 1,
+              "level": 3,
+              "xp": 0,
+              "affixes": []
+            },
+            null,
+            null
+          ],
+          "dui": [
+            null,
+            null,
+            null
+          ]
+        },
+        "loadout": {
+          "active": [
+            null,
+            null
+          ],
+          "passive": [
+            null,
+            null
+          ]
+        },
+        "progress": {
+          "runs": 0,
+          "victories": 0,
+          "clears": {
+            "metal": 0,
+            "wood": 0,
+            "water": 0,
+            "fire": 0,
+            "earth": 0
+          },
+          "seen_help": false
+        }
+      },
+      "expected": {
+        "totals": {
+          "metal": 4,
+          "wood": 1,
+          "water": 1,
+          "fire": 4,
+          "earth": 1
+        },
+        "primary_secondary": [
+          null,
+          null
+        ],
+        "stats": {
+          "primary": null,
+          "secondary": null,
+          "totals": {
+            "metal": 4,
+            "wood": 1,
+            "water": 1,
+            "fire": 4,
+            "earth": 1
+          },
+          "depth": {
+            "qian": 1,
+            "xun": 0,
+            "kan": 0,
+            "gen": 0,
+            "kun": 0,
+            "zhen": 0,
+            "li": 1,
+            "dui": 0
+          },
+          "mastery": {
+            "qian": 0,
+            "xun": 0,
+            "kan": 0,
+            "gen": 0,
+            "kun": 0,
+            "zhen": 0,
+            "li": 0,
+            "dui": 0
+          },
+          "loadout": {
+            "active": [
+              null,
+              null
+            ],
+            "passive": [
+              null,
+              null
+            ]
+          },
+          "hpMax": 97,
+          "qiMax": 73,
+          "attack": 15.4,
+          "defense": 0.45,
+          "speed": 205,
+          "crit": 0.076,
+          "qiRegen": 7.3,
+          "block": 0.62,
+          "stagger": 1.015,
+          "cooldown": 1,
+          "affixes": {},
+          "dao": null
+        }
+      }
+    },
+    {
+      "id": "old-no-loadout",
+      "state": {
+        "version": 1,
+        "player": {
+          "name": "无名剑客",
+          "level": 1,
+          "spirit": 0
+        },
+        "inventory": [],
+        "cultivation": {
+          "qian": [
+            null,
+            null,
+            null
+          ],
+          "xun": [
+            null,
+            null,
+            null
+          ],
+          "kan": [
+            null,
+            null,
+            null
+          ],
+          "gen": [
+            null,
+            null,
+            null
+          ],
+          "kun": [
+            null,
+            null,
+            null
+          ],
+          "zhen": [
+            null,
+            null,
+            null
+          ],
+          "li": [
+            null,
+            null,
+            null
+          ],
+          "dui": [
+            null,
+            null,
+            null
+          ]
+        },
+        "progress": {
+          "runs": 0,
+          "victories": 0,
+          "clears": {
+            "metal": 0,
+            "wood": 0,
+            "water": 0,
+            "fire": 0,
+            "earth": 0
+          },
+          "seen_help": false
+        }
+      },
+      "expected": {
+        "totals": {
+          "metal": 1,
+          "wood": 1,
+          "water": 1,
+          "fire": 1,
+          "earth": 1
+        },
+        "primary_secondary": [
+          null,
+          null
+        ],
+        "stats": {
+          "primary": null,
+          "secondary": null,
+          "totals": {
+            "metal": 1,
+            "wood": 1,
+            "water": 1,
+            "fire": 1,
+            "earth": 1
+          },
+          "depth": {
+            "qian": 0,
+            "xun": 0,
+            "kan": 0,
+            "gen": 0,
+            "kun": 0,
+            "zhen": 0,
+            "li": 0,
+            "dui": 0
+          },
+          "mastery": {
+            "qian": 0,
+            "xun": 0,
+            "kan": 0,
+            "gen": 0,
+            "kun": 0,
+            "zhen": 0,
+            "li": 0,
+            "dui": 0
+          },
+          "loadout": {
+            "active": [
+              null,
+              null
+            ],
+            "passive": [
+              null,
+              null
+            ]
+          },
+          "hpMax": 97,
+          "qiMax": 73,
+          "attack": 12.85,
+          "defense": 0.45,
+          "speed": 205,
+          "crit": 0.049,
+          "qiRegen": 7.3,
+          "block": 0.62,
+          "stagger": 1.015,
+          "cooldown": 1,
+          "affixes": {},
+          "dao": null
+        }
+      }
+    }
+  ],
+  "invalid_cases": [
+    {
+      "id": "unlearned-active",
+      "state": {
+        "version": 1,
+        "player": {
+          "name": "无名剑客",
+          "level": 1,
+          "spirit": 0
+        },
+        "inventory": [],
+        "cultivation": {
+          "qian": [
+            null,
+            null,
+            null
+          ],
+          "xun": [
+            null,
+            null,
+            null
+          ],
+          "kan": [
+            null,
+            null,
+            null
+          ],
+          "gen": [
+            null,
+            null,
+            null
+          ],
+          "kun": [
+            null,
+            null,
+            null
+          ],
+          "zhen": [
+            null,
+            null,
+            null
+          ],
+          "li": [
+            null,
+            null,
+            null
+          ],
+          "dui": [
+            null,
+            null,
+            null
+          ]
+        },
+        "loadout": {
+          "active": [
+            "qian",
+            null
+          ],
+          "passive": [
+            null,
+            null
+          ]
+        },
+        "progress": {
+          "runs": 0,
+          "victories": 0,
+          "clears": {
+            "metal": 0,
+            "wood": 0,
+            "water": 0,
+            "fire": 0,
+            "earth": 0
+          },
+          "seen_help": false
+        }
+      },
+      "error": "尚未学会所装备的技能或心法"
+    }
+  ]
+}
