@@ -518,6 +518,9 @@ class BattleGame {
     this.keys = new Set();
     this.keyboardKeys = new Set();
     this.touchPointers = new Map();
+    this.events = globalThis.DaoBladeBattleEvents?.createChannel() || null;
+    this.events?.subscribe(event => this.handleBattleEvent(event));
+    this.nextEnemyId = 1;
     this.projectiles = [];
     this.particles = [];
     this.skillEffects = [];
@@ -567,7 +570,7 @@ class BattleGame {
     const boss = kind === "boss";
     const height = boss ? 100 : variant === "caster" ? 64 : 62;
     const width = boss ? 66 : variant === "charger" ? 48 : 42;
-    return { kind, variant, name, x, y: this.floorY - height, w: width, h: height, hp, maxHp: hp, vx: 0, face: -1, attackCd: .8 + Math.random(), attackState: "idle", attackTimer: 0, attackType: "", attackHit: false, attackDirection: -1, comboStep: 0, hurt: 0, burn: 0, burnTick: 0, slow: 0, chill: 0, seeds: 0, dead: false, lastHit: -1 };
+    return { id: `enemy-${this.nextEnemyId++}`, kind, variant, name, x, y: this.floorY - height, w: width, h: height, hp, maxHp: hp, vx: 0, face: -1, attackCd: .8 + Math.random(), attackState: "idle", attackTimer: 0, attackType: "", attackHit: false, attackDirection: -1, comboStep: 0, hurt: 0, burn: 0, burnTick: 0, slow: 0, chill: 0, seeds: 0, dead: false, lastHit: -1 };
   }
 
   start() {
@@ -587,6 +590,7 @@ class BattleGame {
   }
 
   destroy() {
+    this.endBattleEvents("abandoned");
     this.disposed = true;
     this.finished = true;
     if (this.defeat) { this.defeat.resolve(false); this.defeat = null; }
@@ -598,6 +602,24 @@ class BattleGame {
     document.removeEventListener("visibilitychange", this.boundVisibility);
     this.clearInput();
     $("#pause-overlay").classList.add("hidden");
+  }
+
+  emitBattleEvent(type, data = {}) {
+    const p = this.player;
+    return this.events?.emit({ type, time: this.elapsed, source_id: "player", element: this.stats.primary,
+      position: [p.x + p.w / 2, p.y + p.h / 2], ...data });
+  }
+
+  handleBattleEvent(event) {
+    if (event.type === "enemy_hit" && !event.periodic) playHitSound();
+    else if (event.type === "player_parried") playHitSound(true);
+  }
+
+  endBattleEvents(outcome) {
+    if (!this.events || this.events.closed || this.eventsEnding) return;
+    this.eventsEnding = true;
+    try { this.emitBattleEvent("battle_ended", { action_id: "battle", phase: "complete", outcome }); }
+    finally { this.events.close(); this.eventsEnding = false; }
   }
 
   clearInput() {
@@ -712,6 +734,7 @@ class BattleGame {
     p.slashCooldown = (p.combo === 3 ? .47 : .32) * this.stats.cooldown;
     p.queuedSlash = 0;
     p.attackId += 1;
+    this.emitBattleEvent("slash_started", { action_id: "slash", attack_id: p.attackId, combo: p.combo, phase: "windup" });
     p.vx += p.face * (p.combo === 3 ? 105 : 48);
     this.burst(p.x + p.w / 2 + p.face * 28, p.y + 34, elementColor(this.stats.primary), p.counterAttack ? 14 : 5);
   }
@@ -947,7 +970,7 @@ class BattleGame {
           else {
             const reach = enemy.kind === "boss" ? 100 : enemy.variant === "crusher" ? 80 : 65;
             const attackX = enemy.attackDirection > 0 ? enemy.x + enemy.w - 5 : enemy.x - reach + 5;
-            if (this.overlap(attackX, enemy.y + 6, reach, enemy.h - 10, p.x, p.y, p.w, p.h)) this.damagePlayer(enemy.kind === "boss" ? 23 : enemy.variant === "crusher" ? 17 : 12, enemy.x);
+            if (this.overlap(attackX, enemy.y + 6, reach, enemy.h - 10, p.x, p.y, p.w, p.h)) this.damagePlayer(enemy.kind === "boss" ? 23 : enemy.variant === "crusher" ? 17 : 12, enemy.x, enemy.id, enemy.attackType);
           }
         } else if (enemy.attackState === "recover" && enemy.attackTimer <= 0) enemy.attackState = "idle";
       } else if (enemy.kind === "ranged") {
@@ -980,7 +1003,7 @@ class BattleGame {
         const frontX = enemy.attackDirection > 0 ? enemy.x + enemy.w - 5 : enemy.x - reach + 5;
         if (!enemy.attackHit && ["slash", "dash"].includes(enemy.attackType) && this.overlap(frontX, enemy.y + 7, reach, enemy.h - 12, this.player.x, this.player.y, this.player.w, this.player.h)) {
           enemy.attackHit = true;
-          this.damagePlayer(enemy.kind === "boss" ? 24 : enemy.variant === "charger" ? 16 : 12, enemy.x);
+          this.damagePlayer(enemy.kind === "boss" ? 24 : enemy.variant === "charger" ? 16 : 12, enemy.x, enemy.id, enemy.attackType);
         }
         if (enemy.attackTimer <= 0) {
           enemy.attackState = "recover";
@@ -1031,7 +1054,7 @@ class BattleGame {
 
   enemyShot(enemy, direction, type = "bolt") {
     const wave = type === "wave";
-    this.projectiles.push({ type, owner: "enemy", x: enemy.x + enemy.w / 2, y: wave ? this.floorY - 28 : enemy.y + enemy.h * .35, vx: direction * (wave ? 360 : type === "fireball" ? 285 : 260), vy: type === "fireball" ? -45 : 0, gravity: type === "fireball" ? 95 : 0, w: wave ? 46 : 20, h: wave ? 28 : 18, damage: enemy.kind === "boss" ? 18 : 10, life: wave ? 2.2 : 3, maxLife: wave ? 2.2 : 3, color: this.element.color });
+    this.projectiles.push({ type, owner: "enemy", source_id: enemy.id, x: enemy.x + enemy.w / 2, y: wave ? this.floorY - 28 : enemy.y + enemy.h * .35, vx: direction * (wave ? 360 : type === "fireball" ? 285 : 260), vy: type === "fireball" ? -45 : 0, gravity: type === "fireball" ? 95 : 0, w: wave ? 46 : 20, h: wave ? 28 : 18, damage: enemy.kind === "boss" ? 18 : 10, life: wave ? 2.2 : 3, maxLife: wave ? 2.2 : 3, color: this.element.color });
   }
 
   updateProjectiles(dt) {
@@ -1051,7 +1074,7 @@ class BattleGame {
             shot.pierce -= 1; if (shot.pierce < 0) { shot.life = 0; break; }
           }
         }
-      } else if (this.overlap(shot.x, shot.y, shot.w, shot.h, this.player.x, this.player.y, this.player.w, this.player.h)) { this.damagePlayer(shot.damage, shot.x); if (this.realmKey === "water") this.player.slowTime = 1.2; shot.life = 0; }
+      } else if (this.overlap(shot.x, shot.y, shot.w, shot.h, this.player.x, this.player.y, this.player.w, this.player.h)) { this.damagePlayer(shot.damage, shot.x, shot.source_id || "enemy-projectile", shot.type); if (this.realmKey === "water") this.player.slowTime = 1.2; shot.life = 0; }
     }
     this.projectiles = this.projectiles.filter(shot => shot.life > 0 && shot.x > -100 && shot.x < this.worldWidth + 100);
   }
@@ -1110,7 +1133,9 @@ class BattleGame {
     if (!dot && enemy.variant === "guard") damage *= .82;
     if ((this.stats.affixes.burst || 0) && enemy.hp / enemy.maxHp < .3) damage *= 1 + this.stats.affixes.burst / 100;
     enemy.hp -= damage; enemy.hurt = .16; this.burst(enemy.x + enemy.w / 2, enemy.y + enemy.h / 2, crit ? "#fff0a5" : this.element.color, crit ? 12 : 6);
-    if (!dot) { this.hitStop = Math.max(this.hitStop, .026); this.screenShake = Math.max(this.screenShake, .11); playHitSound(); }
+    this.emitBattleEvent("enemy_hit", { target_id: enemy.id, action_id: kind, attack_id: kind === "slash" ? p.attackId : 0,
+      phase: "impact", position: [enemy.x + enemy.w / 2, enemy.y + enemy.h / 2], amount: damage, critical: crit, periodic: dot, combo: kind === "slash" ? p.combo : 0 });
+    if (!dot) { this.hitStop = Math.max(this.hitStop, .026); this.screenShake = Math.max(this.screenShake, .11); }
     if (enemy.hp <= 0) {
       if (enemy.kind === "dummy") { enemy.hp = enemy.maxHp; return; }
       enemy.dead = true;
@@ -1118,7 +1143,7 @@ class BattleGame {
     }
   }
 
-  damagePlayer(amount, sourceX) {
+  damagePlayer(amount, sourceX, sourceId = "environment", actionId = "hazard") {
     const p = this.player;
     if (this.finished || p.invuln > 0 || (p.dash > .08 && p.dash <= .2)) return;
     const attackFromFront = Math.sign(sourceX - (p.x + p.w / 2)) === p.face;
@@ -1135,9 +1160,11 @@ class BattleGame {
         if (this.stats.primary === "wood" && p.healCooldown <= 0) { p.hp = Math.min(this.stats.hpMax, p.hp + 5); p.healCooldown = 2; }
         if (this.stats.primary === "fire") p.flameBuff = 3;
         if (this.stats.primary === "water") this.enemies.filter(e => !e.dead && Math.abs(e.x - p.x) < 140).forEach(e => { e.slow = Math.max(e.slow, 1.5); });
-        this.screenShake = Math.max(this.screenShake, .16); playHitSound(true);
+        this.screenShake = Math.max(this.screenShake, .16);
+        this.emitBattleEvent("player_parried", { source_id: sourceId, target_id: "player", action_id: actionId, element: this.realmKey, phase: "defense", amount });
         this.burst(p.x + p.w / 2, p.y + 30, "#fff0a5", 20); return;
       }
+      this.emitBattleEvent("player_blocked", { source_id: sourceId, target_id: "player", action_id: actionId, element: this.realmKey, phase: "defense", amount });
       amount *= 1 - this.stats.block;
     }
     amount = Math.max(1, amount - this.stats.defense);
@@ -1153,6 +1180,7 @@ class BattleGame {
     p.hp -= amount; p.invuln = .65; p.vx = sourceX < p.x ? 180 : -180; this.burst(p.x + p.w / 2, p.y + 30, "#ef5c45", 10);
     this.screenShake = Math.max(this.screenShake, .2);
     p.hurt = .2; p.queuedSlash = 0; p.jumpBuffer = 0; p.slash = 0; p.dash = 0; p.qiCast = 0; p.blocking = false; p.skillGuard = 0; p.skillParry = false;
+    this.emitBattleEvent("player_hurt", { source_id: sourceId, target_id: "player", action_id: actionId, element: this.realmKey, phase: "impact", amount });
     if (p.hp <= 0) this.finish(false);
   }
 
@@ -1162,6 +1190,7 @@ class BattleGame {
   async finish(win) {
     if (this.finished) return;
     this.finished = true;
+    this.endBattleEvents(win ? "victory" : "defeat");
     window.removeEventListener("keydown", this.boundKeyDown); window.removeEventListener("keyup", this.boundKeyUp);
     window.removeEventListener("pointerup", this.boundPointerEnd); window.removeEventListener("pointercancel", this.boundPointerEnd);
     window.removeEventListener("blur", this.boundBlur); document.removeEventListener("visibilitychange", this.boundVisibility);

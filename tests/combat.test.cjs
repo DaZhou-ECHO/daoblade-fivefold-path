@@ -91,6 +91,53 @@ function trainedState(api, element) {
   return state;
 }
 
+test("006 挥空只有起手，命中按真实判定发一次事件，持续伤害独立标记", () => {
+  const api=gameContext(), game=new api.BattleGame("fire",{practice:true}), seen=[];
+  game.events.subscribe(event=>seen.push(event));
+  game.slash();
+  assert.deepEqual(seen.map(e=>e.type),["slash_started"]);
+  const enemy=game.enemies[0]; enemy.x=game.player.x+50;
+  game.update(.1); game.update(.01);
+  assert.equal(seen.filter(e=>e.type==="enemy_hit").length,1);
+  const hit=seen.find(e=>e.type==="enemy_hit");
+  assert.equal(hit.target_id,enemy.id); assert.equal(hit.attack_id,game.player.attackId);
+  game.hitEnemy(enemy,2,false,true,"burn");
+  assert.equal(seen.at(-1).periodic,true);
+  assert.equal(seen.at(-1).amount,2);
+});
+
+test("006 普通格挡、完美格挡和真实受伤分类，不把无敌闪避当命中", () => {
+  const api=gameContext(), game=new api.BattleGame("fire",{practice:true}), seen=[];
+  game.events.subscribe(event=>seen.push(event));
+  game.beginBlock(); game.damagePlayer(12,game.player.x+100,"enemy-test","slash");
+  assert.deepEqual(seen.map(e=>e.type),["player_parried"]);
+  assert.equal(seen[0].source_id,"enemy-test"); assert.equal(seen[0].element,"fire");
+  game.player.invuln=0; game.player.parryArmed=0;
+  game.damagePlayer(12,game.player.x+100,"enemy-test","slash");
+  assert.deepEqual(seen.slice(-2).map(e=>e.type),["player_blocked","player_hurt"]);
+  const count=seen.length;
+  game.player.invuln=0; game.player.dash=.15;
+  game.damagePlayer(12,game.player.x+100);
+  assert.equal(seen.length,count);
+});
+
+test("006 监听故障不改伤害，暂停不发攻击，销毁/结算只结束一次且新局隔离", async () => {
+  const api=gameContext(), game=new api.BattleGame("fire",{practice:true});
+  game.events.subscribe(()=>{throw new Error("坏反馈");});
+  game.setPause(true); game.performAction("slash"); assert.equal(game.events.recent.length,0);
+  game.setPause(false);
+  const before=game.enemies[0].hp; game.hitEnemy(game.enemies[0],10);
+  assert.equal(game.enemies[0].hp,before-10); assert.equal(game.events.failure_count,1);
+  game.events.subscribe(e=>{if(e.type==="battle_ended")game.destroy();});
+  await game.finish(true); game.destroy();
+  assert.equal(game.events.recent.filter(e=>e.type==="battle_ended").length,1);
+  assert.equal(game.events.closed,true);
+  const count=game.events.recent.length; game.hitEnemy(game.enemies[0],10);
+  assert.equal(game.events.recent.length,count);
+  const next=new api.BattleGame("fire",{practice:true});
+  assert.notEqual(next.events.id,game.events.id); assert.equal(next.events.recent.length,0);
+});
+
 test("未镶珠时主副五行都未定，战斗仍可创建", () => {
   const api = gameContext();
   assert.deepEqual(Array.from(api.primarySecondary()), [null, null]);
