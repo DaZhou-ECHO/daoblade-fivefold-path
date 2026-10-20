@@ -2,6 +2,7 @@
 
 | 任务ID | 任务目标 | 状态 | 当前接续Agent | 分支/基线 | 最新交接链接 | 依赖或阻塞 |
 |---|---|---|---|---|---|---|
+| 014-d06-fire-checkpoint | 火境剑碑会话内续关 | 已完成 | agent-20261021-0031-c8e4 | work/014-d06-fire-checkpoint-local / ba82f57 | [交接](014-d06-fire-checkpoint/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 依赖013；Python48/Node96及真实战败续关通过；刷新恢复后续；仅本地 |
 | 013-d06-fire-guidance | 火境分段目标引导 | 已完成 | agent-20261021-0031-c8e4 | work/013-d06-fire-guidance-local / 0954346 | [交接](013-d06-fire-guidance/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 依赖012；Python48/Node91与浏览器通过；仅本地；检查点另续 |
 | 012-d01-level-definitions | 旧五境定义与稳定位置引用 | 已完成 | agent-20261021-0031-c8e4 | work/012-d01-level-definitions-local / a0ee0b1 | [交接](012-d01-level-definitions/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 依赖本地011；五境基线相等，Python48/Node89通过；仅本地 |
 | 011-d01-local-checks | 本地入口与可重复自检 | 已完成 | agent-20261021-0031-c8e4 | work/011-d01-local-checks-local / df73305 | [交接](011-d01-local-checks/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 依赖本地010；统一检查Python48/Node85通过；仅本地 |

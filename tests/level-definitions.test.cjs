@@ -17,7 +17,12 @@ test("五境定义冻结且位置引用完整，平台/危险区在原世界范�
       assert.ok(platform.y<=level.world.floor_y&&platform.h>0);
     }
     for(const hazard of level.hazards)assert.ok(hazard.x>=0&&hazard.x+hazard.w<=level.world.width);
-    assert.equal(level.checkpoints,undefined,"不能把配置提取冒充检查点已实现");
+    if(id === "fire") {
+      assert.equal(level.checkpoint.id,"swordstone");
+      assert.deepEqual(level.checkpoint.cleared_ids,["enemy-1","enemy-2","enemy-3"]);
+      assert.equal(level.anchors[level.checkpoint.anchor_id].x,1640);
+      assert.equal(Object.isFrozen(level.checkpoint.cleared_ids),true);
+    } else assert.equal(level.checkpoint,undefined);
     assert.equal(level.exit,undefined);
   }
 });

@@ -56,6 +56,8 @@
       encounters,
     };
   }
+  definitions.fire.anchors.swordstone = { x: 1640, y: 474 };
+  definitions.fire.checkpoint = { id: "swordstone", anchor_id: "swordstone", cleared_ids: ["enemy-1", "enemy-2", "enemy-3"] };
   freeze(definitions);
   const api = freeze({
     realms: REALMS, realm_ids: Object.keys(REALMS),

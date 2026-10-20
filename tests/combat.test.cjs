@@ -483,3 +483,31 @@ test("五境布局各异且支路祭坛位置可达，非火关敌人有攻击�
   metal.updateEnemies(.016);
   assert.equal(foe.attackState, "windup");
 });
+
+test("014 剑碑仅前段清场且在附近地面激活一次", () => {
+  const api=gameContext(), game=new api.BattleGame("fire");
+  game.player.x=1640;game.player.hp=1;game.updateCheckpoint();assert.equal(game.trial.activated,false);
+  game.enemies.slice(0,3).forEach(e=>e.dead=true);
+  game.player.onGround=false;game.updateCheckpoint();assert.equal(game.trial.activated,false);
+  game.player.onGround=true;game.player.x=2000;game.updateCheckpoint();assert.equal(game.trial.activated,false);
+  game.player.x=1640;game.updateCheckpoint();assert.equal(game.trial.activated,true);assert.equal(game.player.hp,game.stats.hpMax);
+  game.player.hp=2;game.updateCheckpoint();assert.equal(game.player.hp,2);
+});
+
+test("014 续关保持构筑和祭坛，前三敌不复活，后段敌人重置；完整重开独立", () => {
+  const api=gameContext(), original=new api.BattleGame("fire");
+  original.trial.activated=true;original.trial.claimedAltars.add("altar-2");
+  original.enemies[4].hp=1;
+  const changed=api.defaultState();changed.player.spirit=999;api.setState(changed);
+  const resumed=new api.BattleGame("fire",{trial:original.trial});
+  assert.equal(resumed.snapshot,original.snapshot);assert.equal(resumed.player.x,1640);
+  assert.ok(resumed.enemies.slice(0,3).every(e=>e.dead&&e.hp===0));
+  assert.equal(resumed.enemies[4].hp,resumed.enemies[4].maxHp);
+  assert.equal(resumed.altars[1].taken,true);assert.equal(resumed.altars[0].taken,false);
+  api.mockSave(()=>Promise.resolve());resumed.start();assert.equal(api.getProgress().runs,0);
+  const fresh=new api.BattleGame("fire");fresh.start();assert.equal(api.getProgress().runs,1);
+  assert.equal(fresh.trial.activated,false);assert.equal(fresh.altars[1].taken,false);
+  assert.notEqual(fresh.snapshot,original.snapshot);
+  assert.equal(new api.BattleGame("fire",{practice:true}).trial,null);
+  assert.equal(new api.BattleGame("wood").trial,null);
+});

@@ -39,7 +39,7 @@ function harness({ practice = false, deferredSave = false } = {}) {
     showPanel = name => recordPanel(name);
     saveState = () => recordSave(saveData);
     this.api = { BattleGame, state: () => saveData, active: () => activeGame,
-      setActive: game => { activeGame = game; }, bindUi, showRealPanel: actualShowPanel };
+      setActive: game => { activeGame = game; }, setSyncBlocked: value => { saveBlocked = value; }, bindUi, showRealPanel: actualShowPanel };
   `, context);
   const game = new context.api.BattleGame("fire", { practice });
   context.api.setActive(game);
@@ -190,4 +190,43 @@ test("U01 结算页重新挑战启动干净的新局，返回洞府正常清理"
   assert.equal(next.disposed, true);
   assert.equal(calls.panels.at(-1), "sanctuary");
   assert.equal(calls.close, 2);
+});
+
+test("014 仅检查点失败可续，胜利或已销毁不可续且同试炼不重复结算", async () => {
+  const h=harness(); h.game.trial.activated=true;
+  const failed=h.game.finish(false);h.complete();await failed;
+  assert.equal(h.game.canContinueCheckpoint(),true);
+  assert.equal(h.nodes.get("#continue-checkpoint").hidden,false);
+  const resumed=new h.api.BattleGame("fire",{trial:h.game.trial});
+  await resumed.finish(true);
+  assert.equal(resumed.canContinueCheckpoint(),false);
+  assert.equal(h.game.canContinueCheckpoint(),false);
+  assert.equal(h.api.state().progress.victories,1);
+  await resumed.finish(true);
+  const stale=new h.api.BattleGame("fire");stale.trial=resumed.trial;
+  await stale.finish(true);
+  assert.equal(h.api.state().progress.victories,1);
+  h.game.destroy();assert.equal(h.game.canContinueCheckpoint(),false);
+});
+
+test("014 结果按钮续关只消费一次入口且不新增闯关次数", async () => {
+  const h=harness();h.api.bindUi();h.game.trial.activated=true;
+  h.game.trial.claimedAltars.add("altar-1");
+  const failed=h.game.finish(false);h.complete();await failed;
+  h.nodes.get("#continue-checkpoint").handlers.click();
+  const next=h.api.active();
+  assert.notEqual(next,h.game);assert.equal(h.game.disposed,true);
+  assert.equal(next.player.x,1640);assert.equal(next.snapshot,h.game.snapshot);
+  assert.equal(next.altars[0].taken,true);assert.equal(h.api.state().progress.runs,0);
+  h.nodes.get("#continue-checkpoint").handlers.click();
+  assert.equal(h.api.active(),next);assert.equal(h.calls.close,1);
+});
+
+test("014 保存失同步时续关入口保留结果和原试炼，不假装开战", async () => {
+  const h=harness();h.api.bindUi();h.game.trial.activated=true;
+  const failed=h.game.finish(false);h.complete();await failed;
+  h.api.setSyncBlocked(true);h.nodes.get("#continue-checkpoint").handlers.click();
+  assert.equal(h.api.active(),h.game);assert.equal(h.game.disposed,false);assert.equal(h.calls.close,0);
+  h.api.setSyncBlocked(false);h.nodes.get("#continue-checkpoint").handlers.click();
+  assert.notEqual(h.api.active(),h.game);assert.equal(h.calls.close,1);
 });

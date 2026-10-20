@@ -472,6 +472,14 @@ function startRealm(key, options = {}) {
   activeGame.start();
 }
 
+function continueCheckpoint() {
+  if (saveBlocked) return showToast("存档未同步，暂不能继续正式试炼", true);
+  const game = activeGame;
+  if (!game?.canContinueCheckpoint()) return;
+  $("#result-dialog").close();
+  startRealm(game.realmKey, { trial: game.trial });
+}
+
 class BattleGame {
   constructor(realmKey, options = {}) {
     this.realmKey = realmKey;
@@ -507,7 +515,11 @@ class BattleGame {
     this.projectiles = [];
     this.particles = [];
     this.skillEffects = [];
-    this.snapshot = RULES.createCombatSnapshot(options.state || saveData);
+    this.resuming = Boolean(!this.practice && this.level.checkpoint && options.trial?.activated && !options.trial.settled);
+    this.snapshot = this.resuming ? options.trial.snapshot : RULES.createCombatSnapshot(options.state || saveData);
+    this.trial = !this.practice && this.level.checkpoint ? (this.resuming ? options.trial : {
+      snapshot: this.snapshot, activated: false, claimedAltars: new Set(), settled: false,
+    }) : null;
     this.stats = this.snapshot.stats;
     this.characterArt = globalThis.DaoBladeCharacterArt?.renderer || null;
     if (this.characterArt) void this.characterArt.load();
@@ -515,11 +527,17 @@ class BattleGame {
     this.platforms = this.level.platforms.map(platform => ({ ...platform }));
     this.altars = this.practice ? [] : this.level.altars.map(altar => {
       const anchor = this.level.anchors[altar.anchor_id];
-      return { id: altar.id, x: anchor.x, y: anchor.y - 28, taken: false };
+      return { id: altar.id, x: anchor.x, y: anchor.y - 28, taken: this.trial?.claimedAltars.has(altar.id) || false };
     });
     this.hazards = this.practice ? [] : this.level.hazards.map(hazard => ({ ...hazard }));
     this.hazardTimer = 0;
     this.enemies = this.practice ? [this.enemy("dummy", "试剑木桩", 620, 99999, "dummy")] : this.makeEnemies();
+    if (this.resuming) {
+      const anchor = this.level.anchors[this.level.checkpoint.anchor_id];
+      this.player.x = anchor.x; this.player.y = anchor.y - this.player.h;
+      for (const enemy of this.enemies) if (this.level.checkpoint.cleared_ids.includes(enemy.id)) { enemy.dead = true; enemy.hp = 0; }
+      this.cameraX = clamp(this.player.x - this.width * .42, 0, this.worldWidth - this.width);
+    }
     this.boundKeyDown = event => this.keyDown(event);
     this.boundKeyUp = event => this.keyUp(event);
     this.boundBlur = () => this.setPause(true);
@@ -553,7 +571,7 @@ class BattleGame {
   start() {
     $("#realm-name").textContent = this.practice ? "练功场 · 临时试招" : `${this.element.zh} · ${this.element.realm}`;
     $("#objective-text").textContent = this.practice ? "木桩会恢复，不结算战利品" : `击败 ${this.realm.enemies.join("、")}与${this.realm.boss}`;
-    if (!this.practice) { saveData.progress.runs += 1; void saveState(""); }
+    if (!this.practice && !this.resuming) { saveData.progress.runs += 1; void saveState(""); }
     $("#pause-overlay").classList.add("hidden");
     window.addEventListener("keydown", this.boundKeyDown);
     window.addEventListener("keyup", this.boundKeyUp);
@@ -890,6 +908,7 @@ class BattleGame {
     this.altars.forEach(altar => {
       if (!altar.taken && this.overlap(p.x, p.y, p.w, p.h, altar.x, altar.y, 28, 28)) {
         altar.taken = true;
+        this.trial?.claimedAltars.add(altar.id);
         p.hp = Math.min(this.stats.hpMax, p.hp + 12);
         p.qi = Math.min(this.stats.qiMax, p.qi + 18);
         this.burst(altar.x + 14, altar.y + 14, "#dfad4c", 16);
@@ -922,6 +941,7 @@ class BattleGame {
     this.skillEffects.forEach(effect => { effect.life -= dt; });
     this.skillEffects = this.skillEffects.filter(effect => effect.life > 0);
     this.cameraX += (clamp(p.x - this.width * .42, 0, this.worldWidth - this.width) - this.cameraX) * Math.min(1, dt * 5);
+    this.updateCheckpoint();
     this.updateHud();
     if (!this.practice && !this.finished && this.enemies.every(enemy => enemy.dead)) this.finish(true);
   }
@@ -1169,8 +1189,25 @@ class BattleGame {
   burst(x, y, color, count) { for (let i = 0; i < count; i++) this.particles.push({ x, y, vx: (Math.random() - .5) * 180, vy: (Math.random() - .5) * 160, life: .25 + Math.random() * .35, color }); }
   overlap(ax, ay, aw, ah, bx, by, bw, bh) { return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by; }
 
+  updateCheckpoint() {
+    if (!this.trial || this.trial.activated || this.finished) return;
+    const checkpoint = this.level.checkpoint, anchor = this.level.anchors[checkpoint.anchor_id];
+    if (!checkpoint.cleared_ids.every(id => this.enemies.some(enemy => enemy.id === id && enemy.dead))) return;
+    const p = this.player;
+    if (!p.onGround || Math.abs(p.x - anchor.x) > 70 || Math.abs(p.y + p.h - anchor.y) > 2) return;
+    this.trial.activated = true;
+    p.hp = this.stats.hpMax; p.qi = this.stats.qiMax;
+    showToast("剑碑已激活：恢复气血与剑意。战败可续关；当前刷新会结束试炼");
+  }
+
+  canContinueCheckpoint() {
+    return Boolean(this.finished && this.lastOutcome === "defeat" && !this.disposed && this.trial?.activated && !this.trial.settled);
+  }
+
   async finish(win) {
-    if (this.finished) return;
+    if (this.finished || this.trial?.settled) return;
+    this.lastOutcome = win ? "victory" : "defeat";
+    if (win && this.trial) this.trial.settled = true;
     this.finished = true;
     this.endBattleEvents(win ? "victory" : "defeat");
     window.removeEventListener("keydown", this.boundKeyDown); window.removeEventListener("keyup", this.boundKeyUp);
@@ -1182,6 +1219,7 @@ class BattleGame {
       if (await visual && !this.disposed) { activeGame = null; showPanel("cultivation"); }
       return;
     }
+    $("#continue-checkpoint").hidden = !this.canContinueCheckpoint();
     const rewards = [];
     if (win) {
       saveData.progress.victories += 1; saveData.progress.clears[this.realmKey] += 1; saveData.player.spirit += 12;
@@ -1196,7 +1234,9 @@ class BattleGame {
     } else {
       grantBeadExperience(5);
       $("#result-title").textContent = "道心未折";
-      $("#result-message").textContent = "本次未能击败守境者，已镶灵珠仍获得少量修为。调整路线后可以再次挑战。";
+      $("#result-message").textContent = this.canContinueCheckpoint()
+        ? "剑碑仍在：续关保留原构筑与已领祭坛，后段敌人重置。当前刷新会结束试炼。也可重新挑战整关。"
+        : "本次未能击败守境者，已镶灵珠仍获得少量修为。调整路线后可以再次挑战。";
     }
     $("#reward-list").innerHTML = rewards.length ? rewards.map(bead => `<div class="reward-item" style="${beadStyle(bead)}"><b>${esc(bead.name)}</b><small>${QUALITY[bead.quality].zh} · ${bead.affixes.length}词条</small></div>`).join("") : '<div class="empty-message">本次没有获得新灵珠</div>';
     // 原有奖励和保存仍只执行一次；延迟的仅是结果窗口。
@@ -1208,7 +1248,9 @@ class BattleGame {
   updateHud() {
     if (!this.practice) {
       const objective = globalThis.DaoBladeLevelProgress?.objective(this.realmKey, this.player.x, this.enemies);
-      if (objective) $("#objective-text").textContent = objective;
+      if (objective) $("#objective-text").textContent = objective + (this.trial
+        ? this.trial.activated ? " · 剑碑已激活（仅本次会话）" : " · 前段清场后前往剑碑恢复"
+        : "");
     }
     $("#hud-hp").textContent = `${Math.ceil(Math.max(0, this.player.hp))} / ${this.stats.hpMax}`;
     $("#hud-qi").textContent = `${Math.floor(this.player.qi)} / ${this.stats.qiMax}`;
@@ -1232,6 +1274,15 @@ class BattleGame {
       ctx.fillStyle = "#dfad4c"; ctx.fillRect(altar.x + 10, altar.y + 2, 8, 15);
       ctx.fillStyle = "#fff0b5"; ctx.fillRect(altar.x + 13, altar.y - 3, 2, 8);
     });
+    if (this.trial) {
+      const anchor = this.level.anchors[this.level.checkpoint.anchor_id];
+      ctx.fillStyle = this.trial.activated ? "#f4d576" : "#858991";
+      ctx.fillRect(anchor.x + 8, anchor.y - 62, 20, 62);
+      ctx.fillRect(anchor.x, anchor.y - 12, 36, 12);
+      ctx.font = "14px sans-serif"; ctx.textAlign = "center";
+      ctx.fillText(this.trial.activated ? "剑碑 · 已激活" : "剑碑 · 清除前段守卫", anchor.x + 18, anchor.y - 74);
+      ctx.textAlign = "left";
+    }
     this.enemies.forEach(enemy => { if (!enemy.dead) this.drawEnemy(ctx, enemy); });
     this.projectiles.forEach(shot => this.drawProjectile(ctx, shot));
     this.skillEffects.forEach(effect => {
@@ -1506,6 +1557,7 @@ function bindUi() {
     event.preventDefault(); $("#result-dialog").close();
     activeGame?.destroy(); activeGame = null; showPanel("sanctuary");
   });
+  $("#continue-checkpoint").addEventListener("click", continueCheckpoint);
   $("#retry-result").addEventListener("click", event => {
     event.preventDefault(); $("#result-dialog").close();
     if (activeGame) startRealm(activeGame.realmKey);
