@@ -2,7 +2,9 @@
 
 **DaoBlade: Fivefold Path** 是一个可在浏览器运行的像素风横版修仙动作游戏。玩家使用相同的移动、跳跃、三段劈砍、格挡、剑气与短闪避；通关五行秘境获得灵珠，再把灵珠永久镶入本命剑的八卦修行图。五行决定招式属性，八卦决定修行方向。
 
-当前底层工作候选为 `work/001-d01-shared-rules`，接续 v0.3.0玩法与角色接续成果，**不是正式发布版本**。本轮实现、契约、测试与交接见[实施索引](docs/implementation/00-实施索引.md)；此前记录见[v0.3.0设计](docs/v0.3.0设计与实施说明.md)、[v0.3.0测试](docs/v0.3.0测试与交接.md)。未来修改按[初版分方向策划](docs/planning/first-playable/00-初版总纲与阅读入口.md)逐步实施。
+本地开发接续从[AGENTS.md](AGENTS.md)、[Agent任务索引](docs/agents/README.md)和[本地启动与统一自检](LOCAL_DEVELOPMENT.md)开始。2026-10-21起的003及后续轮次目前仅保存在本地，尚未上传；当前分支和完成情况以Git现场及任务交接为准。这不是正式发布说明。
+
+既有001实现见[历史实施索引](docs/implementation/00-实施索引.md)；此前记录见[v0.3.0设计](docs/v0.3.0设计与实施说明.md)、[v0.3.0测试](docs/v0.3.0测试与交接.md)。未来修改按[初版分方向策划](docs/planning/first-playable/00-初版总纲与阅读入口.md)逐步实施。
 
 ## 已实现玩法
 
@@ -17,10 +19,9 @@
 
 需要 Python 3.11 或更新版本。游戏运行不需要 Node.js；Node.js 仅用于可选的前端自动测试。
 
-在 VS Code 终端选择 PowerShell，执行：
+在项目根目录打开 VS Code 终端并选择 PowerShell，执行：
 
 ```powershell
-cd D:\acode\xju_code\daoblade-fivefold-path
 py -3.11 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
