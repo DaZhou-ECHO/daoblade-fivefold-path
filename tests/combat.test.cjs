@@ -15,7 +15,7 @@ function gameContext() {
     performance: { now: () => 0 }, requestAnimationFrame() {},
     setTimeout, clearTimeout, console,
   });
-  const source = fs.readFileSync(path.join(__dirname, "..", "static", "js", "game.js"), "utf8").replace(/\nbindUi\(\);\s*loadState\(\);\s*$/, "");
+  const source = fs.readFileSync(path.join(__dirname, "..", "static", "js", "game.js"), "utf8").replace(/\nbindUi\(\);\s*initializeSession\(\);\s*$/, "");
   vm.runInContext(`${source}\nthis.api = { BattleGame, defaultState: DEFAULT_STATE, primarySecondary, previewSocketState, setState: value => { saveData = value; }, setSocket: value => { pendingSocket = value; } };`, context);
   return context.api;
 }
@@ -159,4 +159,80 @@ test("暂停清除按键，火关突进锁定起手方向", () => {
   const before = enemy.x;
   game.updateFireEnemy(enemy, .05, 80, 1, 100);
   assert.ok(enemy.x < before);
+});
+
+test("八条卦路均可装备并施展，第三层加强同一技能", () => {
+  const api = gameContext();
+  for (const key of ["qian", "xun", "kan", "gen", "kun", "zhen", "li", "dui"]) {
+    const state = api.defaultState();
+    state.cultivation[key][0] = { id: `${key}-1`, name: "珠", element: "metal", quality: 1, level: 3, xp: 0, affixes: [] };
+    state.cultivation[key][1] = { id: `${key}-2`, name: "珠", element: "metal", quality: 1, level: 3, xp: 0, affixes: [] };
+    state.loadout.active[0] = key;
+    const first = new api.BattleGame("fire", { practice: true, state });
+    const qi = first.player.qi;
+    first.daoSkill(0);
+    assert.equal(first.player.qi, qi - (key === "dui" ? 18 : 30), `${key} 应按自身效果结算剑意`);
+    assert.ok(first.player.skillCooldowns[0] > 0);
+    assert.ok(first.skillEffects.length > 0);
+    state.cultivation[key][2] = { id: `${key}-3`, name: "珠", element: "metal", quality: 1, level: 3, xp: 0, affixes: [] };
+    const upgraded = new api.BattleGame("fire", { practice: true, state });
+    upgraded.daoSkill(0);
+    if (key === "kun") assert.ok(upgraded.player.shield > first.player.shield);
+    if (key === "qian") assert.ok(upgraded.skillEffects[0].radius > first.skillEffects[0].radius);
+  }
+});
+
+test("两项技能独立冷却，受击期间不能施法", () => {
+  const api = gameContext();
+  const state = api.defaultState();
+  for (const key of ["qian", "kun"]) {
+    state.cultivation[key][0] = { id: `${key}-1`, name: "珠", element: "metal", quality: 1, level: 3, xp: 0, affixes: [] };
+    state.cultivation[key][1] = { id: `${key}-2`, name: "珠", element: "metal", quality: 1, level: 3, xp: 0, affixes: [] };
+  }
+  state.loadout.active = ["qian", "kun"];
+  const game = new api.BattleGame("fire", { practice: true, state });
+  game.daoSkill(0);
+  assert.equal(game.player.skillCooldowns[1], 0);
+  game.player.qiCast = 0;
+  game.daoSkill(1);
+  assert.ok(game.player.skillCooldowns[1] > 0);
+  game.player.hurt = .2;
+  game.player.qiCast = 0;
+  const qi = game.player.qi;
+  game.player.skillCooldowns[0] = 0;
+  game.daoSkill(0);
+  assert.equal(game.player.qi, qi);
+});
+
+test("已学但未装备的心法不会暗中提供被动效果", () => {
+  const api = gameContext();
+  const state = api.defaultState();
+  state.cultivation.zhen[0] = { id: "zhen-one", name: "珠", element: "metal", quality: 1, level: 3, xp: 0, affixes: [] };
+  state.cultivation.zhen[1] = { id: "zhen-two", name: "珠", element: "metal", quality: 1, level: 3, xp: 0, affixes: [] };
+  const unequipped = new api.BattleGame("fire", { practice: true, state });
+  unequipped.enemies[0].attackCd = 0;
+  unequipped.hitEnemy(unequipped.enemies[0], 4);
+  assert.equal(unequipped.enemies[0].attackCd, 0);
+  state.loadout.passive[0] = "zhen";
+  const equipped = new api.BattleGame("fire", { practice: true, state });
+  equipped.enemies[0].attackCd = 0;
+  equipped.hitEnemy(equipped.enemies[0], 4);
+  assert.ok(equipped.enemies[0].attackCd > 0);
+});
+
+test("五境布局各异且支路祭坛位置可达，非火关敌人有攻击前摇", () => {
+  const api = gameContext();
+  const games = ["metal", "wood", "water", "fire", "earth"].map(key => new api.BattleGame(key));
+  assert.equal(new Set(games.map(game => JSON.stringify(game.platforms.slice(1)))).size, 5);
+  for (const game of games) {
+    assert.equal(game.altars.length, 2);
+    for (const altar of game.altars) assert.ok(game.platforms.some(platform => altar.x >= platform.x && altar.x + 28 <= platform.x + platform.w && altar.y + 28 === platform.y));
+    assert.ok(game.enemies.filter(enemy => ["melee", "charger"].includes(enemy.kind)).length >= 4);
+  }
+  const metal = games[0];
+  const foe = metal.enemies[0];
+  metal.enemies = [foe];
+  foe.x = metal.player.x + 75; foe.attackCd = 0;
+  metal.updateEnemies(.016);
+  assert.equal(foe.attackState, "windup");
 });

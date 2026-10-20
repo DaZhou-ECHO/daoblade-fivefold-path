@@ -10,6 +10,7 @@ ELEMENTS = ("metal", "wood", "water", "fire", "earth")
 TRIGRAMS = ("qian", "xun", "kan", "gen", "kun", "zhen", "li", "dui")
 REALMS = ELEMENTS
 MAX_INVENTORY = 80
+LOADOUT_SIZE = 2
 AFFIX_KEYS = {
     "attack", "armorBreak", "qiPower", "hp", "heal", "seed", "qiMax",
     "qiRegen", "cooldown", "crit", "burn", "burst", "defense", "block",
@@ -28,6 +29,7 @@ def default_state() -> dict[str, Any]:
         },
         "inventory": [],
         "cultivation": {name: [None, None, None] for name in TRIGRAMS},
+        "loadout": {"active": [None, None], "passive": [None, None]},
         "progress": {
             "runs": 0,
             "victories": 0,
@@ -43,7 +45,7 @@ def element_totals(state: dict[str, Any]) -> dict[str, int]:
     for slots in state.get("cultivation", {}).values():
         for bead in slots:
             if bead:
-                totals[bead["element"]] += bead["level"] + bead["quality"]
+                totals[bead["element"]] += bead["level"]
     return totals
 
 
@@ -114,18 +116,24 @@ def validate_state(raw: Any, previous: dict[str, Any] | None = None) -> dict[str
     cultivation = state.get("cultivation")
     if not isinstance(cultivation, dict) or set(cultivation) != set(TRIGRAMS):
         raise ValueError("八卦修行图无效")
+    old_slots = previous.get("cultivation", {}) if previous else {}
     for trigram in TRIGRAMS:
         slots = cultivation[trigram]
         if not isinstance(slots, list) or len(slots) != 3:
             raise ValueError("每条八卦路线必须包含三层")
         found_empty = False
-        for bead in slots:
+        for index, bead in enumerate(slots):
             if bead is None:
                 found_empty = True
                 continue
             if found_empty:
                 raise ValueError("八卦路线必须从中心向外依次修行")
             _validate_bead(bead)
+            # 已存在的旧镶嵌保留；新镶嵌必须满足前一层的修行等级。
+            old = old_slots.get(trigram, [None] * 3)
+            was_socketed = isinstance(old, list) and len(old) > index and old[index] is not None
+            if index > 0 and not was_socketed and slots[index - 1]["level"] < index + 1:
+                raise ValueError("前一层灵珠尚需继续修炼")
 
     all_beads = inventory + [
         bead
@@ -136,6 +144,22 @@ def validate_state(raw: Any, previous: dict[str, Any] | None = None) -> dict[str
     ids = [bead["id"] for bead in all_beads]
     if len(ids) != len(set(ids)):
         raise ValueError("同一颗灵珠不能出现两次")
+
+    # 老存档没有出战栏位，读取时补充空栏位，不改变永久镶嵌记录。
+    loadout = state.setdefault("loadout", {"active": [None, None], "passive": [None, None]})
+    if not isinstance(loadout, dict) or set(loadout) != {"active", "passive"}:
+        raise ValueError("出战配置无效")
+    for kind, layer in (("active", 1), ("passive", 0)):
+        equipped = loadout[kind]
+        if not isinstance(equipped, list) or len(equipped) != LOADOUT_SIZE:
+            raise ValueError("出战栏位数量无效")
+        picked = [key for key in equipped if key is not None]
+        if any(not isinstance(key, str) or key not in TRIGRAMS for key in picked):
+            raise ValueError("出战卦路无效")
+        if len(picked) != len(set(picked)):
+            raise ValueError("同一卦路不能重复装备")
+        if any(cultivation[key][layer] is None for key in picked):
+            raise ValueError("尚未学会所装备的技能或心法")
 
     progress = state.get("progress")
     if not isinstance(progress, dict):
