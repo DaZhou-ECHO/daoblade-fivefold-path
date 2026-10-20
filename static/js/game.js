@@ -479,6 +479,7 @@ function grantBeadExperience(amount) {
 }
 
 function startRealm(key, options = {}) {
+  if (saveBlocked && !options.practice) return showToast("存档未同步，请先刷新或重新登录；仍可进入练功场临时试招", true);
   showPanel("game");
   if (activeGame) activeGame.destroy();
   activeGame = new BattleGame(key, options);

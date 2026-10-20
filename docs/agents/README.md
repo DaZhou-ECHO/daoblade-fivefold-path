@@ -2,6 +2,7 @@
 
 | 任务ID | 任务目标 | 状态 | 当前接续Agent | 分支/基线 | 最新交接链接 | 依赖或阻塞 |
 |---|---|---|---|---|---|---|
+| 010-d10-unsynced-battle | 已知失同步时保护正式开战 | 已完成 | agent-20261021-0031-c8e4 | work/010-d10-unsynced-battle-local / 7c25a87 | [交接](010-d10-unsynced-battle/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 依赖本地009；入口先复现后修复，Node85通过；仅本地 |
 | 009-d05-enemy-death-boundary | 燃烧致死同帧停止攻击 | 已完成 | agent-20261021-0031-c8e4 | work/009-d05-enemy-death-boundary-local / 0afa767 | [交接](009-d05-enemy-death-boundary/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 依赖本地008；先复现后修复，Node84通过；仅本地 |
 | 008-d08-combat-feedback | 事件驱动命中与防守文字 | 已完成 | agent-20261021-0031-c8e4 | work/008-d08-combat-feedback-local / cb66145 | [交接](008-d08-combat-feedback/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 依赖本地007；Node82/Python43及命中/格挡实测通过；仅本地 |
 | 007-d09-battle-audio | 五类短音效及有界声音调度 | 已完成 | agent-20261021-0031-c8e4 | work/007-d09-battle-audio-local / bd0ad73 | [交接](007-d09-battle-audio/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 依赖本地006；Node75/Python43及设置流程通过；仅本地 |

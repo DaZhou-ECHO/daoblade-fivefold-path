@@ -19,7 +19,7 @@ function gameContext(touchButtons = [], savedFeedback = null) {
   });
   require("./helpers/load-rules.cjs")(context);
   const source = fs.readFileSync(path.join(__dirname, "..", "static", "js", "game.js"), "utf8").replace(/\nbindUi\(\);\s*initializeSession\(\);\s*$/, "");
-  vm.runInContext(`${source}\nthis.api = { BattleGame, defaultState: DEFAULT_STATE, primarySecondary, previewSocketState, setState: value => { saveData = value; }, setSocket: value => { pendingSocket = value; }, setAudioPlayer: value => { battleAudio = value; }, getFeedback: () => feedback };`, context);
+  vm.runInContext(`${source}\nthis.api = { BattleGame, defaultState: DEFAULT_STATE, primarySecondary, previewSocketState, setState: value => { saveData = value; }, setSocket: value => { pendingSocket = value; }, setAudioPlayer: value => { battleAudio = value; }, getFeedback: () => feedback, startRealm, setSyncBlocked: value => { saveBlocked = value; }, getActiveGame: () => activeGame, setActiveGame: value => { activeGame = value; }, getProgress: () => saveData.progress, mockSave: value => { saveState = value; } };`, context);
   return { ...context.api, dispatchWindow: (name, event) => listeners.get(name)?.(event), listeners };
 }
 
@@ -91,6 +91,21 @@ function trainedState(api, element) {
   state.cultivation.qian[0] = { id: `test-${element}`, name: "试炼珠", element, level: 3, quality: 1, xp: 0, affixes: [] };
   return state;
 }
+
+test("010 失同步拒绝正式开战且保留原局与计数，练功允许，恢复后正式入场",()=>{
+  const api=gameContext();let destroyed=0,saves=0;
+  const original={destroy(){destroyed++;}};
+  api.setActiveGame(original);api.setSyncBlocked(true);api.mockSave(()=>{saves++;return Promise.resolve();});
+  api.startRealm("fire");
+  assert.equal(destroyed,0);assert.equal(api.getActiveGame(),original);
+  assert.equal(api.getProgress().runs,0);assert.equal(saves,0);
+  api.startRealm("fire",{practice:true});
+  assert.equal(destroyed,1);assert.equal(api.getActiveGame().practice,true);
+  assert.equal(api.getProgress().runs,0);assert.equal(saves,0);
+  api.setSyncBlocked(false);api.startRealm("fire");
+  assert.equal(api.getActiveGame().practice,false);assert.equal(api.getProgress().runs,1);assert.equal(saves,1);
+  api.getActiveGame().destroy();
+});
 
 test("009 五境敌人燃烧致死后不再完成同帧攻击",()=>{
   for(const realm of ["fire","wood","metal","water","earth"]){
