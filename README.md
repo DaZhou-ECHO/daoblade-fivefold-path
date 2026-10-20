@@ -68,6 +68,7 @@ node --test tests/combat.test.cjs
 node --test tests/character-art.test.cjs
 node --test tests/defeat.test.cjs
 node --test tests/rules.test.cjs
+node --test tests/action-state.test.cjs
 ```
 
 在受限环境中如果 pytest 无法创建系统临时目录，可为它指定一个**可写的临时目录**，例如 `--basetemp D:\acode\codex\pytest-daoblade-v03`。这不是游戏运行要求。
@@ -79,6 +80,7 @@ app.py                     Flask 页面、认证和存档 API
 shared_rules.py            读取共享规则、默认档、五行和出战契约
 static/data/rules/         规则集JSON（当前legacy-v1，兼容旧玩法）
 static/js/rules.js         前端纯计算、进度视图与不可变战斗快照
+static/js/action-state.js  从战斗实体生成冻结动作视图，供角色渲染消费
 database.py                SQLite 初始化、迁移、按账号存档和版本检查
 game_rules.py              灵珠、八卦、出战配置与不可逆选择校验
 templates/index.html       主界面和对话框

@@ -69,9 +69,10 @@
       ctx.save();
       ctx.translate(x, floor);
       ctx.scale(scale, scale);
-      renderer.draw(ctx, player);
+      const state = DaoBladeActions.createActionState(player);
+      renderer.drawState(ctx, state);
       if (anchors.checked) {
-        const frame = renderer.frame(player);
+        const frame = renderer.frameFromState(state);
         ctx.fillStyle = "#7cffe0"; ctx.fillRect(-1, -1, 3, 3);
         ctx.fillStyle = "#ffce69";
         const dx = frame.hand[0] - 32, dy = frame.hand[1] - 66;

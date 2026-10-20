@@ -102,6 +102,19 @@ function closePoint(actual, expected) {
     `${actual} 应当与 ${expected} 重合`));
 }
 
+test("004提取动作视图后86个已提交003姿态基线保持一致", async () => {
+  const baseline = require("./fixtures/action-pose-baseline.json");
+  const renderer = await readyRenderer(baseline.manifest);
+  function compare(actual, expected, name) {
+    if (typeof expected === "number") return assert.ok(Math.abs(actual - expected) < 1e-9, name);
+    if (expected && typeof expected === "object") {
+      assert.deepEqual(Object.keys(actual), Object.keys(expected), name);
+      for (const key of Object.keys(expected)) compare(actual[key], expected[key], `${name}.${key}`);
+    } else assert.equal(actual, expected, name);
+  }
+  for (const sample of baseline.cases) compare(renderer.frame(sample.input), sample.frame, sample.name);
+});
+
 function gameContext(art, realm = "fire", state) {
   const ctx = recordingContext();
   const canvas = { width: 960, height: 540, getContext: () => ctx };
@@ -119,6 +132,24 @@ function gameContext(art, realm = "fire", state) {
   vm.runInContext(`${source}\nthis.BattleGame = BattleGame; this.defaultState = DEFAULT_STATE;`, context);
   return { game: new context.BattleGame(realm, { practice: true, state }), ctx, defaultState: context.defaultState };
 }
+
+test("真实游戏入口向渲染器传入冻结动作视图，后续战斗变化不改旧视图", async () => {
+  const renderer = await readyRenderer();
+  const { game, ctx } = gameContext(renderer);
+  let captured;
+  const draw = renderer.drawState.bind(renderer);
+  renderer.drawState = (context, state, color) => { captured = state; return draw(context,state,color); };
+  game.player.slash = .14;
+  game.player.slashDuration = .28;
+  game.drawPlayer(ctx,game.player);
+  assert.equal(captured.action_id,"slash");
+  assert.equal(captured.progress,.5);
+  assert.equal(Object.isFrozen(captured),true);
+  assert.equal(captured.player,undefined);
+  game.player.slash=0;
+  assert.equal(captured.progress,.5);
+  assert.equal(captured.action_id,"slash");
+});
 
 test("三段剑双向逐相位握点对齐、脚底固定、收招回位且渲染不写入战斗数据", async () => {
   const renderer = await readyRenderer();

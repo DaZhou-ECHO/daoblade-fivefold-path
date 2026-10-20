@@ -1,0 +1,3595 @@
+{
+  "source_commit": "9033e53",
+  "note": "Captured from the committed 003 renderer via git show, not from current formulas.",
+  "manifest": {
+    "schemaVersion": 1,
+    "id": "swordsman-v1",
+    "stage": 2,
+    "frameSize": [
+      64,
+      96
+    ],
+    "foot": [
+      32,
+      90
+    ],
+    "animations": {
+      "idle": {
+        "src": "/static/sprites/player/base/idle.png",
+        "fps": 6,
+        "frameCount": 4,
+        "frames": [
+          {
+            "hand": [
+              48,
+              53
+            ],
+            "weaponAngle": 1.15
+          },
+          {
+            "hand": [
+              46,
+              53
+            ],
+            "weaponAngle": 1.15
+          },
+          {
+            "hand": [
+              46,
+              53
+            ],
+            "weaponAngle": 1.15
+          },
+          {
+            "hand": [
+              45,
+              53
+            ],
+            "weaponAngle": 1.15
+          }
+        ]
+      },
+      "run": {
+        "src": "/static/sprites/player/actions/run.png",
+        "fps": 12,
+        "frameCount": 8,
+        "frames": [
+          {
+            "hand": [
+              53,
+              57
+            ],
+            "weaponAngle": 1.38
+          },
+          {
+            "hand": [
+              52,
+              54
+            ],
+            "weaponAngle": 1.38
+          },
+          {
+            "hand": [
+              50,
+              53
+            ],
+            "weaponAngle": 1.38
+          },
+          {
+            "hand": [
+              54,
+              55
+            ],
+            "weaponAngle": 1.38
+          },
+          {
+            "hand": [
+              52,
+              55
+            ],
+            "weaponAngle": 1.38
+          },
+          {
+            "hand": [
+              49,
+              53
+            ],
+            "weaponAngle": 1.38
+          },
+          {
+            "hand": [
+              50,
+              53
+            ],
+            "weaponAngle": 1.38
+          },
+          {
+            "hand": [
+              54,
+              54
+            ],
+            "weaponAngle": 1.38
+          }
+        ]
+      }
+    },
+    "weapon": {
+      "src": "/static/sprites/weapons/base/jian.png",
+      "size": [
+        20,
+        64
+      ],
+      "grip": [
+        10,
+        53
+      ]
+    },
+    "proceduralStates": [
+      "jump",
+      "fall",
+      "slash",
+      "block",
+      "qi",
+      "dash",
+      "hurt",
+      "death"
+    ],
+    "fallbackStates": [],
+    "futureLayers": [
+      "primary",
+      "secondary",
+      "trigram",
+      "depth"
+    ]
+  },
+  "cases": [
+    {
+      "name": "slash--1-1-0",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": -1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0.28,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0,
+        "combo": 1,
+        "slashDuration": 0.28
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 1.15,
+        "action": "slash",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "slash--1-1-0.18",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": -1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0.22960000000000003,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0,
+        "combo": 1,
+        "slashDuration": 0.28
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": -0.6084548104956271,
+        "action": "slash",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": -0.09888599537037038,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "slash--1-1-0.3",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": -1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0.196,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0,
+        "combo": 1,
+        "slashDuration": 0.28
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 0.1,
+        "action": "slash",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": -0.054771412037037025,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "slash--1-1-0.5",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": -1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0.14,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0,
+        "combo": 1,
+        "slashDuration": 0.28
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 1.4500000000000002,
+        "action": "slash",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0.07477141203703702,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "slash--1-1-0.78",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": -1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0.061599999999999995,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0,
+        "combo": 1,
+        "slashDuration": 0.28
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 2.5105777777777774,
+        "action": "slash",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0.0796707818930041,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "slash--1-1-0.99",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": -1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0.0028000000000000026,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0,
+        "combo": 1,
+        "slashDuration": 0.28
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 1.1553777777777776,
+        "action": "slash",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0.0002726337448559768,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "slash--1-2-0",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": -1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0.28,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0,
+        "combo": 2,
+        "slashDuration": 0.28
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 1.15,
+        "action": "slash",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "slash--1-2-0.18",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": -1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0.22960000000000003,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0,
+        "combo": 2,
+        "slashDuration": 0.28
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 2.822157434402332,
+        "action": "slash",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": -0.09888599537037038,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "slash--1-2-0.3",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": -1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0.196,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0,
+        "combo": 2,
+        "slashDuration": 0.28
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 3.2,
+        "action": "slash",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": -0.054771412037037025,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "slash--1-2-0.5",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": -1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0.14,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0,
+        "combo": 2,
+        "slashDuration": 0.28
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 1.6249999999999993,
+        "action": "slash",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0.07477141203703702,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "slash--1-2-0.78",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": -1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0.061599999999999995,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0,
+        "combo": 2,
+        "slashDuration": 0.28
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 0.2429481481481484,
+        "action": "slash",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0.0796707818930041,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "slash--1-2-0.99",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": -1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0.0028000000000000026,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0,
+        "combo": 2,
+        "slashDuration": 0.28
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 1.1464148148148148,
+        "action": "slash",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0.0002726337448559768,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "slash--1-3-0",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": -1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0.36,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0,
+        "combo": 3,
+        "slashDuration": 0.36
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 1.15,
+        "action": "slash",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "slash--1-3-0.18",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": -1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0.2952,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0,
+        "combo": 3,
+        "slashDuration": 0.36
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": -0.6084548104956271,
+        "action": "slash",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": -0.0984809027777778,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "slash--1-3-0.3",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": -1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0.252,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0,
+        "combo": 3,
+        "slashDuration": 0.36
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 0.09999999999999998,
+        "action": "slash",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": -0.03832465277777783,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "slash--1-3-0.5",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": -1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0.18,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0,
+        "combo": 3,
+        "slashDuration": 0.36
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 2.1750000000000007,
+        "action": "slash",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0.13832465277777778,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "slash--1-3-0.78",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": -1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0.07919999999999999,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0,
+        "combo": 3,
+        "slashDuration": 0.36
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 3.7062370370370363,
+        "action": "slash",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0.13278463648834016,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "slash--1-3-0.99",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": -1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0.003600000000000003,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0,
+        "combo": 3,
+        "slashDuration": 0.36
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 1.1601037037037036,
+        "action": "slash",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0.0004543895747599336,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "air--1--500",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": -500,
+        "face": -1,
+        "animTime": 0,
+        "onGround": false,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 0.95,
+        "action": "jump",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": -0.08,
+        "rig": true,
+        "legs": [
+          {
+            "x": 26,
+            "sourceX": 0,
+            "thigh": -0.75,
+            "knee": 1.25
+          },
+          {
+            "x": 39,
+            "sourceX": 32,
+            "thigh": 0.45,
+            "knee": 0.8
+          }
+        ]
+      }
+    },
+    {
+      "name": "air--1--100",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": -100,
+        "face": -1,
+        "animTime": 0,
+        "onGround": false,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 0.95,
+        "action": "jump",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": -0.08,
+        "rig": true,
+        "legs": [
+          {
+            "x": 26,
+            "sourceX": 0,
+            "thigh": -0.15000000000000002,
+            "knee": 0.25
+          },
+          {
+            "x": 39,
+            "sourceX": 32,
+            "thigh": 0.09000000000000001,
+            "knee": 0.16000000000000003
+          }
+        ]
+      }
+    },
+    {
+      "name": "air--1--0.001",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": -0.001,
+        "face": -1,
+        "animTime": 0,
+        "onGround": false,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 0.95,
+        "action": "jump",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": -0.08,
+        "rig": true,
+        "legs": [
+          {
+            "x": 26,
+            "sourceX": 0,
+            "thigh": -0.0000015,
+            "knee": 0.0000024999999999999998
+          },
+          {
+            "x": 39,
+            "sourceX": 32,
+            "thigh": 9e-7,
+            "knee": 0.0000016
+          }
+        ]
+      }
+    },
+    {
+      "name": "air--1-0",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": -1,
+        "animTime": 0,
+        "onGround": false,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 1.3499999999999999,
+        "action": "fall",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0.08,
+        "rig": true,
+        "legs": [
+          {
+            "x": 26,
+            "sourceX": 0,
+            "thigh": 0,
+            "knee": 0
+          },
+          {
+            "x": 39,
+            "sourceX": 32,
+            "thigh": 0,
+            "knee": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "air--1-0.001",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0.001,
+        "face": -1,
+        "animTime": 0,
+        "onGround": false,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 1.3499999999999999,
+        "action": "fall",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0.08,
+        "rig": true,
+        "legs": [
+          {
+            "x": 26,
+            "sourceX": 0,
+            "thigh": 1.6e-7,
+            "knee": 1.2e-7
+          },
+          {
+            "x": 39,
+            "sourceX": 32,
+            "thigh": -2.4e-7,
+            "knee": 2.4e-7
+          }
+        ]
+      }
+    },
+    {
+      "name": "air--1-100",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 100,
+        "face": -1,
+        "animTime": 0,
+        "onGround": false,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 1.3499999999999999,
+        "action": "fall",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0.08,
+        "rig": true,
+        "legs": [
+          {
+            "x": 26,
+            "sourceX": 0,
+            "thigh": 0.016,
+            "knee": 0.012
+          },
+          {
+            "x": 39,
+            "sourceX": 32,
+            "thigh": -0.024,
+            "knee": 0.024
+          }
+        ]
+      }
+    },
+    {
+      "name": "air--1-500",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 500,
+        "face": -1,
+        "animTime": 0,
+        "onGround": false,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 1.3499999999999999,
+        "action": "fall",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0.08,
+        "rig": true,
+        "legs": [
+          {
+            "x": 26,
+            "sourceX": 0,
+            "thigh": 0.08,
+            "knee": 0.06
+          },
+          {
+            "x": 39,
+            "sourceX": 32,
+            "thigh": -0.12,
+            "knee": 0.12
+          }
+        ]
+      }
+    },
+    {
+      "name": "death--1-0",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": -1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 0,
+        "qi": 73,
+        "shield": 0,
+        "deathTime": 0,
+        "deathDrop": 35
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 1.15,
+        "action": "death",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0,
+        "rig": true,
+        "rootAngle": 0,
+        "rootX": 0,
+        "rootY": 35,
+        "legs": null
+      }
+    },
+    {
+      "name": "death--1-0.18",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": -1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 0,
+        "qi": 73,
+        "shield": 0,
+        "deathTime": 0.189,
+        "deathDrop": 35
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 0.9675020408163264,
+        "action": "death",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0,
+        "rig": true,
+        "rootAngle": -0.12,
+        "rootX": 1.44,
+        "rootY": 32.60575585422161,
+        "legs": null
+      }
+    },
+    {
+      "name": "death--1-0.42",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": -1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 0,
+        "qi": 73,
+        "shield": 0,
+        "deathTime": 0.441,
+        "deathDrop": 35
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 0.7489705308966507,
+        "action": "death",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0,
+        "rig": true,
+        "rootAngle": 0.52,
+        "rootX": 3.36,
+        "rootY": 25.062397243125265,
+        "legs": null
+      }
+    },
+    {
+      "name": "death--1-0.78",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": -1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 0,
+        "qi": 73,
+        "shield": 0,
+        "deathTime": 0.8190000000000001,
+        "deathDrop": 35
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 0.07999999999999996,
+        "action": "death",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0,
+        "rig": true,
+        "rootAngle": 1.5707963267948966,
+        "rootX": 6.24,
+        "rootY": 15,
+        "legs": null
+      }
+    },
+    {
+      "name": "death--1-1",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": -1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 0,
+        "qi": 73,
+        "shield": 0,
+        "deathTime": 1.05,
+        "deathDrop": 35
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 0,
+        "action": "death",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0,
+        "rig": true,
+        "rootAngle": 1.5707963267948966,
+        "rootX": 8,
+        "rootY": 15,
+        "legs": null
+      }
+    },
+    {
+      "name": "qi--1-0.01",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": -1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": false,
+        "qiCast": 0.01,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 1.202739764309186,
+        "action": "qi",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0.012533323356430426,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "dash--1-0.01",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": -1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0.01,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 1.2203955092681038,
+        "action": "dash",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0.04380165021126465,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "hurt--1-0.01",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": -1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0.01,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 1.1030696604879306,
+        "action": "hurt",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": -0.029722548357643864,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "qi--1-0.1",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": -1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": false,
+        "qiCast": 0.1,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 1.5502010886313513,
+        "action": "qi",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0.09510565162951536,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "dash--1-0.1",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": -1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0.1,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 1.5999999999999999,
+        "action": "dash",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0.28,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "hurt--1-0.1",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": -1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0.1,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 0.8499999999999999,
+        "action": "hurt",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": -0.19,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "qi--1-0.2",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": -1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": false,
+        "qiCast": 0.2,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 1.3973378751088843,
+        "action": "qi",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0.05877852522924733,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "dash--1-0.2",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": -1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0.2,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 1.15,
+        "action": "dash",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 3.4290110376125894e-17,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "hurt--1-0.2",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": -1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0.2,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 1.15,
+        "action": "hurt",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": -2.3268289183799712e-17,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "block--1",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": -1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": true,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 0.1,
+        "action": "block",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": -0.07,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "run--1",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 100,
+        "vy": 0,
+        "face": -1,
+        "animTime": 0.35,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0
+      },
+      "frame": {
+        "action": "run",
+        "index": 4,
+        "hand": [
+          52,
+          55
+        ],
+        "weaponAngle": 1.38
+      }
+    },
+    {
+      "name": "air-slash--1",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": -250,
+        "face": -1,
+        "animTime": 0,
+        "onGround": false,
+        "invuln": 0,
+        "slash": 0.15,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0,
+        "slashDuration": 0.28,
+        "combo": 2
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 2.0423907844387754,
+        "action": "slash",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0.05313943490342565,
+        "rig": true,
+        "legs": [
+          {
+            "x": 26,
+            "sourceX": 0,
+            "thigh": -0.375,
+            "knee": 0.625
+          },
+          {
+            "x": 39,
+            "sourceX": 32,
+            "thigh": 0.225,
+            "knee": 0.4
+          }
+        ]
+      }
+    },
+    {
+      "name": "air-hurt--1",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 250,
+        "face": -1,
+        "animTime": 0,
+        "onGround": false,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0.1,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 0.8499999999999999,
+        "action": "hurt",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": -0.19,
+        "rig": true,
+        "legs": [
+          {
+            "x": 26,
+            "sourceX": 0,
+            "thigh": 0.04,
+            "knee": 0.03
+          },
+          {
+            "x": 39,
+            "sourceX": 32,
+            "thigh": -0.06,
+            "knee": 0.06
+          }
+        ]
+      }
+    },
+    {
+      "name": "slash-1-1-0",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": 1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0.28,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0,
+        "combo": 1,
+        "slashDuration": 0.28
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 1.15,
+        "action": "slash",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "slash-1-1-0.18",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": 1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0.22960000000000003,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0,
+        "combo": 1,
+        "slashDuration": 0.28
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": -0.6084548104956271,
+        "action": "slash",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": -0.09888599537037038,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "slash-1-1-0.3",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": 1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0.196,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0,
+        "combo": 1,
+        "slashDuration": 0.28
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 0.1,
+        "action": "slash",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": -0.054771412037037025,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "slash-1-1-0.5",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": 1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0.14,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0,
+        "combo": 1,
+        "slashDuration": 0.28
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 1.4500000000000002,
+        "action": "slash",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0.07477141203703702,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "slash-1-1-0.78",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": 1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0.061599999999999995,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0,
+        "combo": 1,
+        "slashDuration": 0.28
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 2.5105777777777774,
+        "action": "slash",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0.0796707818930041,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "slash-1-1-0.99",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": 1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0.0028000000000000026,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0,
+        "combo": 1,
+        "slashDuration": 0.28
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 1.1553777777777776,
+        "action": "slash",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0.0002726337448559768,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "slash-1-2-0",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": 1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0.28,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0,
+        "combo": 2,
+        "slashDuration": 0.28
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 1.15,
+        "action": "slash",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "slash-1-2-0.18",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": 1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0.22960000000000003,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0,
+        "combo": 2,
+        "slashDuration": 0.28
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 2.822157434402332,
+        "action": "slash",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": -0.09888599537037038,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "slash-1-2-0.3",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": 1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0.196,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0,
+        "combo": 2,
+        "slashDuration": 0.28
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 3.2,
+        "action": "slash",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": -0.054771412037037025,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "slash-1-2-0.5",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": 1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0.14,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0,
+        "combo": 2,
+        "slashDuration": 0.28
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 1.6249999999999993,
+        "action": "slash",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0.07477141203703702,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "slash-1-2-0.78",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": 1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0.061599999999999995,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0,
+        "combo": 2,
+        "slashDuration": 0.28
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 0.2429481481481484,
+        "action": "slash",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0.0796707818930041,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "slash-1-2-0.99",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": 1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0.0028000000000000026,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0,
+        "combo": 2,
+        "slashDuration": 0.28
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 1.1464148148148148,
+        "action": "slash",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0.0002726337448559768,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "slash-1-3-0",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": 1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0.36,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0,
+        "combo": 3,
+        "slashDuration": 0.36
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 1.15,
+        "action": "slash",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "slash-1-3-0.18",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": 1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0.2952,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0,
+        "combo": 3,
+        "slashDuration": 0.36
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": -0.6084548104956271,
+        "action": "slash",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": -0.0984809027777778,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "slash-1-3-0.3",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": 1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0.252,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0,
+        "combo": 3,
+        "slashDuration": 0.36
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 0.09999999999999998,
+        "action": "slash",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": -0.03832465277777783,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "slash-1-3-0.5",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": 1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0.18,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0,
+        "combo": 3,
+        "slashDuration": 0.36
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 2.1750000000000007,
+        "action": "slash",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0.13832465277777778,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "slash-1-3-0.78",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": 1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0.07919999999999999,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0,
+        "combo": 3,
+        "slashDuration": 0.36
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 3.7062370370370363,
+        "action": "slash",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0.13278463648834016,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "slash-1-3-0.99",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": 1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0.003600000000000003,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0,
+        "combo": 3,
+        "slashDuration": 0.36
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 1.1601037037037036,
+        "action": "slash",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0.0004543895747599336,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "air-1--500",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": -500,
+        "face": 1,
+        "animTime": 0,
+        "onGround": false,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 0.95,
+        "action": "jump",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": -0.08,
+        "rig": true,
+        "legs": [
+          {
+            "x": 26,
+            "sourceX": 0,
+            "thigh": -0.75,
+            "knee": 1.25
+          },
+          {
+            "x": 39,
+            "sourceX": 32,
+            "thigh": 0.45,
+            "knee": 0.8
+          }
+        ]
+      }
+    },
+    {
+      "name": "air-1--100",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": -100,
+        "face": 1,
+        "animTime": 0,
+        "onGround": false,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 0.95,
+        "action": "jump",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": -0.08,
+        "rig": true,
+        "legs": [
+          {
+            "x": 26,
+            "sourceX": 0,
+            "thigh": -0.15000000000000002,
+            "knee": 0.25
+          },
+          {
+            "x": 39,
+            "sourceX": 32,
+            "thigh": 0.09000000000000001,
+            "knee": 0.16000000000000003
+          }
+        ]
+      }
+    },
+    {
+      "name": "air-1--0.001",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": -0.001,
+        "face": 1,
+        "animTime": 0,
+        "onGround": false,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 0.95,
+        "action": "jump",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": -0.08,
+        "rig": true,
+        "legs": [
+          {
+            "x": 26,
+            "sourceX": 0,
+            "thigh": -0.0000015,
+            "knee": 0.0000024999999999999998
+          },
+          {
+            "x": 39,
+            "sourceX": 32,
+            "thigh": 9e-7,
+            "knee": 0.0000016
+          }
+        ]
+      }
+    },
+    {
+      "name": "air-1-0",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": 1,
+        "animTime": 0,
+        "onGround": false,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 1.3499999999999999,
+        "action": "fall",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0.08,
+        "rig": true,
+        "legs": [
+          {
+            "x": 26,
+            "sourceX": 0,
+            "thigh": 0,
+            "knee": 0
+          },
+          {
+            "x": 39,
+            "sourceX": 32,
+            "thigh": 0,
+            "knee": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "air-1-0.001",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0.001,
+        "face": 1,
+        "animTime": 0,
+        "onGround": false,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 1.3499999999999999,
+        "action": "fall",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0.08,
+        "rig": true,
+        "legs": [
+          {
+            "x": 26,
+            "sourceX": 0,
+            "thigh": 1.6e-7,
+            "knee": 1.2e-7
+          },
+          {
+            "x": 39,
+            "sourceX": 32,
+            "thigh": -2.4e-7,
+            "knee": 2.4e-7
+          }
+        ]
+      }
+    },
+    {
+      "name": "air-1-100",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 100,
+        "face": 1,
+        "animTime": 0,
+        "onGround": false,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 1.3499999999999999,
+        "action": "fall",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0.08,
+        "rig": true,
+        "legs": [
+          {
+            "x": 26,
+            "sourceX": 0,
+            "thigh": 0.016,
+            "knee": 0.012
+          },
+          {
+            "x": 39,
+            "sourceX": 32,
+            "thigh": -0.024,
+            "knee": 0.024
+          }
+        ]
+      }
+    },
+    {
+      "name": "air-1-500",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 500,
+        "face": 1,
+        "animTime": 0,
+        "onGround": false,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 1.3499999999999999,
+        "action": "fall",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0.08,
+        "rig": true,
+        "legs": [
+          {
+            "x": 26,
+            "sourceX": 0,
+            "thigh": 0.08,
+            "knee": 0.06
+          },
+          {
+            "x": 39,
+            "sourceX": 32,
+            "thigh": -0.12,
+            "knee": 0.12
+          }
+        ]
+      }
+    },
+    {
+      "name": "death-1-0",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": 1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 0,
+        "qi": 73,
+        "shield": 0,
+        "deathTime": 0,
+        "deathDrop": 35
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 1.15,
+        "action": "death",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0,
+        "rig": true,
+        "rootAngle": 0,
+        "rootX": 0,
+        "rootY": 35,
+        "legs": null
+      }
+    },
+    {
+      "name": "death-1-0.18",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": 1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 0,
+        "qi": 73,
+        "shield": 0,
+        "deathTime": 0.189,
+        "deathDrop": 35
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 0.9675020408163264,
+        "action": "death",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0,
+        "rig": true,
+        "rootAngle": -0.12,
+        "rootX": 1.44,
+        "rootY": 32.60575585422161,
+        "legs": null
+      }
+    },
+    {
+      "name": "death-1-0.42",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": 1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 0,
+        "qi": 73,
+        "shield": 0,
+        "deathTime": 0.441,
+        "deathDrop": 35
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 0.7489705308966507,
+        "action": "death",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0,
+        "rig": true,
+        "rootAngle": 0.52,
+        "rootX": 3.36,
+        "rootY": 25.062397243125265,
+        "legs": null
+      }
+    },
+    {
+      "name": "death-1-0.78",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": 1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 0,
+        "qi": 73,
+        "shield": 0,
+        "deathTime": 0.8190000000000001,
+        "deathDrop": 35
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 0.07999999999999996,
+        "action": "death",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0,
+        "rig": true,
+        "rootAngle": 1.5707963267948966,
+        "rootX": 6.24,
+        "rootY": 15,
+        "legs": null
+      }
+    },
+    {
+      "name": "death-1-1",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": 1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 0,
+        "qi": 73,
+        "shield": 0,
+        "deathTime": 1.05,
+        "deathDrop": 35
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 0,
+        "action": "death",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0,
+        "rig": true,
+        "rootAngle": 1.5707963267948966,
+        "rootX": 8,
+        "rootY": 15,
+        "legs": null
+      }
+    },
+    {
+      "name": "qi-1-0.01",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": 1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": false,
+        "qiCast": 0.01,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 1.202739764309186,
+        "action": "qi",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0.012533323356430426,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "dash-1-0.01",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": 1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0.01,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 1.2203955092681038,
+        "action": "dash",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0.04380165021126465,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "hurt-1-0.01",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": 1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0.01,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 1.1030696604879306,
+        "action": "hurt",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": -0.029722548357643864,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "qi-1-0.1",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": 1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": false,
+        "qiCast": 0.1,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 1.5502010886313513,
+        "action": "qi",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0.09510565162951536,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "dash-1-0.1",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": 1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0.1,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 1.5999999999999999,
+        "action": "dash",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0.28,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "hurt-1-0.1",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": 1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0.1,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 0.8499999999999999,
+        "action": "hurt",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": -0.19,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "qi-1-0.2",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": 1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": false,
+        "qiCast": 0.2,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 1.3973378751088843,
+        "action": "qi",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0.05877852522924733,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "dash-1-0.2",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": 1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0.2,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 1.15,
+        "action": "dash",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 3.4290110376125894e-17,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "hurt-1-0.2",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": 1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0.2,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 1.15,
+        "action": "hurt",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": -2.3268289183799712e-17,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "block-1",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 0,
+        "face": 1,
+        "animTime": 0,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": true,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 0.1,
+        "action": "block",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": -0.07,
+        "rig": true,
+        "legs": null
+      }
+    },
+    {
+      "name": "run-1",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 100,
+        "vy": 0,
+        "face": 1,
+        "animTime": 0.35,
+        "onGround": true,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0
+      },
+      "frame": {
+        "action": "run",
+        "index": 4,
+        "hand": [
+          52,
+          55
+        ],
+        "weaponAngle": 1.38
+      }
+    },
+    {
+      "name": "air-slash-1",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": -250,
+        "face": 1,
+        "animTime": 0,
+        "onGround": false,
+        "invuln": 0,
+        "slash": 0.15,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0,
+        "slashDuration": 0.28,
+        "combo": 2
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 2.0423907844387754,
+        "action": "slash",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": 0.05313943490342565,
+        "rig": true,
+        "legs": [
+          {
+            "x": 26,
+            "sourceX": 0,
+            "thigh": -0.375,
+            "knee": 0.625
+          },
+          {
+            "x": 39,
+            "sourceX": 32,
+            "thigh": 0.225,
+            "knee": 0.4
+          }
+        ]
+      }
+    },
+    {
+      "name": "air-hurt-1",
+      "input": {
+        "x": 120,
+        "y": 404,
+        "w": 38,
+        "h": 70,
+        "vx": 0,
+        "vy": 250,
+        "face": 1,
+        "animTime": 0,
+        "onGround": false,
+        "invuln": 0,
+        "slash": 0,
+        "blocking": false,
+        "qiCast": 0,
+        "dash": 0,
+        "hurt": 0.1,
+        "hp": 100,
+        "qi": 73,
+        "shield": 0
+      },
+      "frame": {
+        "hand": [
+          48,
+          53
+        ],
+        "weaponAngle": 0.8499999999999999,
+        "action": "hurt",
+        "imageKey": "idle",
+        "index": 0,
+        "lean": -0.19,
+        "rig": true,
+        "legs": [
+          {
+            "x": 26,
+            "sourceX": 0,
+            "thigh": 0.04,
+            "knee": 0.03
+          },
+          {
+            "x": 39,
+            "sourceX": 32,
+            "thigh": -0.06,
+            "knee": 0.06
+          }
+        ]
+      }
+    }
+  ]
+}

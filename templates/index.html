@@ -104,6 +104,7 @@
   <dialog id="account-dialog" class="pixel-dialog"><div class="dialog-body"><p class="eyebrow">独立存档</p><h2>剑客账号</h2><p>注册后每个账号保存自己的修行。游客旧存档可由空账号手动导入。</p><label>账号<input id="account-username" autocomplete="username" maxlength="24"></label><label>密码<input id="account-password" type="password" autocomplete="current-password" maxlength="128"></label><div class="dialog-actions"><button id="submit-login" class="pixel-button primary" type="button">登录</button><button id="submit-register" class="pixel-button" type="button">注册</button><button id="close-account" class="pixel-button" type="button">关闭</button></div></div></dialog>
   <dialog id="result-dialog" class="pixel-dialog result-dialog"><form method="dialog"><p class="eyebrow">秘境结算</p><h2 id="result-title">试炼完成</h2><p id="result-message"></p><div id="reward-list" class="reward-list"></div><div class="dialog-actions"><button id="retry-result" type="button" class="pixel-button">重新挑战</button><button id="return-sanctuary" value="default" class="pixel-button primary">返回洞府</button></div></form></dialog>
   <div id="toast" class="toast" role="status"></div>
+  <script src="{{ url_for('static', filename='js/action-state.js') }}"></script>
   <script src="{{ url_for('static', filename='js/character-art.js') }}"></script>
   <script>globalThis.DaoBladeRuleset = {{ ruleset | tojson }};</script>
   <script src="{{ url_for('static', filename='js/rules.js') }}"></script>

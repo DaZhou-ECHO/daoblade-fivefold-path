@@ -1232,7 +1232,8 @@ class BattleGame {
   }
 
   drawPlayer(ctx, p) {
-    if (this.characterArt?.draw(ctx, p, elementColor(this.stats.primary))) {
+    const actionState = globalThis.DaoBladeActions?.createActionState(p);
+    if (actionState && this.characterArt?.drawState(ctx, actionState, elementColor(this.stats.primary))) {
       const x = Math.round(p.x), y = Math.round(p.y);
       if (p.shield > 0) {
         ctx.strokeStyle = "#dfad4c"; ctx.lineWidth = 3;
