@@ -113,6 +113,7 @@ function gameContext(art, realm = "fire", state) {
     performance: { now: () => 0 }, requestAnimationFrame() {}, setTimeout, clearTimeout, console,
     ...(art ? { DaoBladeCharacterArt: { renderer: art } } : {}),
   });
+  require("./helpers/load-rules.cjs")(context);
   const source = fs.readFileSync(path.join(__dirname, "..", "static", "js", "game.js"), "utf8")
     .replace(/\nbindUi\(\);\s*initializeSession\(\);\s*$/, "");
   vm.runInContext(`${source}\nthis.BattleGame = BattleGame; this.defaultState = DEFAULT_STATE;`, context);

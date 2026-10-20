@@ -14,6 +14,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from database import init_app as init_database
 from database import get_db, load_state_record, save_state
 from game_rules import default_state, validate_state
+from shared_rules import get_ruleset, rules_metadata
 
 
 def create_app(test_config: dict | None = None) -> Flask:
@@ -116,17 +117,22 @@ def create_app(test_config: dict | None = None) -> Flask:
             return jsonify(error="没有可导入的游客存档"), 404
         state = validate_state(guest["state"], guest["state"])
         revision = save_state(state, save_slot(user), 0, user["id"])
-        return jsonify(ok=True, state=state, revision=revision)
+        return jsonify(ok=True, state=state, revision=revision, contract=rules_metadata())
 
     @app.get("/")
     def index():
-        return render_template("index.html")
+        return render_template("index.html", ruleset=get_ruleset())
+
+    @app.get("/api/rules")
+    def get_rules():
+        return jsonify(contract=rules_metadata(), ruleset=get_ruleset())
 
     @app.get("/api/state")
     def get_state():
         record = load_state_record(save_slot(current_user()))
         return jsonify(state=record["state"] if record else default_state(),
-                       revision=record["revision"] if record else 0)
+                       revision=record["revision"] if record else 0,
+                       contract=rules_metadata())
 
     @app.post("/api/state")
     def put_state():
@@ -151,7 +157,7 @@ def create_app(test_config: dict | None = None) -> Flask:
         except ValueError as exc:
             status = 409 if "其他窗口" in str(exc) else 400
             return jsonify(error=str(exc)), status
-        return jsonify(ok=True, state=state, revision=new_revision)
+        return jsonify(ok=True, state=state, revision=new_revision, contract=rules_metadata())
 
     @app.post("/api/reset")
     def reset_state():
@@ -170,7 +176,7 @@ def create_app(test_config: dict | None = None) -> Flask:
                                   user["id"] if user else None)
         except ValueError as exc:
             return jsonify(error=str(exc)), 409
-        return jsonify(ok=True, state=state, revision=revision)
+        return jsonify(ok=True, state=state, revision=revision, contract=rules_metadata())
 
     @app.get("/api/health")
     def health():

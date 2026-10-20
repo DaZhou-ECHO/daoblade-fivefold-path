@@ -28,6 +28,7 @@ function harness({ practice = false, deferredSave = false } = {}) {
     recordPanel: name => calls.panels.push(name),
     recordSave: state => { calls.saves.push(JSON.parse(JSON.stringify(state))); return waitSave; },
   });
+  require("./helpers/load-rules.cjs")(context);
   const source = fs.readFileSync(path.join(__dirname, "../static/js/game.js"), "utf8")
     .replace(/\nbindUi\(\);\s*initializeSession\(\);\s*$/, "");
   vm.runInContext(`${source}

@@ -15,6 +15,7 @@ function gameContext() {
     performance: { now: () => 0 }, requestAnimationFrame() {},
     setTimeout, clearTimeout, console,
   });
+  require("./helpers/load-rules.cjs")(context);
   const source = fs.readFileSync(path.join(__dirname, "..", "static", "js", "game.js"), "utf8").replace(/\nbindUi\(\);\s*initializeSession\(\);\s*$/, "");
   vm.runInContext(`${source}\nthis.api = { BattleGame, defaultState: DEFAULT_STATE, primarySecondary, previewSocketState, setState: value => { saveData = value; }, setSocket: value => { pendingSocket = value; } };`, context);
   return context.api;
@@ -30,6 +31,27 @@ test("未镶珠时主副五行都未定，战斗仍可创建", () => {
   const api = gameContext();
   assert.deepEqual(Array.from(api.primarySecondary()), [null, null]);
   assert.equal(new api.BattleGame("fire", { practice: true }).stats.primary, null);
+});
+
+test("实际战斗读取开战快照，关外对象修改不会改变本局或另一局", () => {
+  const api = gameContext();
+  const state = api.defaultState();
+  state.cultivation.qian[0] = { id: "snapshot-1", name: "珠", element: "metal", quality: 1, level: 3, xp: 0, affixes: [] };
+  state.cultivation.qian[1] = { id: "snapshot-2", name: "珠", element: "metal", quality: 1, level: 3, xp: 0, affixes: [] };
+  state.loadout.active[0] = "qian";
+  const first = new api.BattleGame("fire", { practice: true, state });
+  const attack = first.stats.attack;
+  state.loadout.active[0] = null;
+  state.cultivation.qian[0].level = 20;
+  const next = new api.BattleGame("water", { practice: true, state });
+  assert.equal(first.stats.attack, attack);
+  assert.equal(first.stats.loadout.active[0], "qian");
+  assert.equal(next.stats.loadout.active[0], null);
+  assert.ok(next.stats.attack > attack);
+  assert.equal(first.snapshot.progression.nodes["legacy:qian:1"].bead.level, 3);
+  assert.ok(Object.isFrozen(first.stats.loadout.active));
+  first.daoSkill(0);
+  assert.ok(first.player.skillCooldowns[0] > 0);
 });
 
 test("短输入缓冲只接下一剑，不堆积多次攻击", () => {

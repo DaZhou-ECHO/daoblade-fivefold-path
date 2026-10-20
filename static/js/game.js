@@ -1,12 +1,7 @@
 "use strict";
 
-const ELEMENTS = {
-  metal: { zh: "金", color: "#e7e4d6", realm: "矿山剑冢", symbol: "金", desc: "护甲、机关与飞刃", drops: "攻击、破甲与反射" },
-  wood: { zh: "木", color: "#52be7b", realm: "古林药谷", symbol: "木", desc: "藤蔓、毒素与灵种", drops: "生命、恢复与召唤" },
-  water: { zh: "水", color: "#4eb2e0", realm: "寒潭水府", symbol: "水", desc: "寒流、滑行与控制", drops: "剑意、冷却与连击" },
-  fire: { zh: "火", color: "#ef5c45", realm: "熔岩天宫", symbol: "火", desc: "近战围攻、蓄力突进与烈焰剑波", drops: "暴击、燃烧与引爆" },
-  earth: { zh: "土", color: "#cf9849", realm: "荒山遗迹", symbol: "土", desc: "岩壁、重击与地形", drops: "防御、格挡与霸体" },
-};
+const RULES = globalThis.DaoBladeRules.createRuntime(globalThis.DaoBladeRuleset);
+const { elements: ELEMENTS, trigrams: TRIGRAMS, affixes: AFFIXES, qualities: QUALITY } = RULES.config;
 
 const REALMS = {
   metal: { bg: ["#111b29", "#526273"], enemies: ["铁甲傀儡", "飞刃机关"], boss: "白帝剑卫" },
@@ -25,49 +20,7 @@ const REALM_LAYOUTS = {
   earth: { ledges: [[470, 421, 215], [735, 361, 160], [1190, 412, 245], [1800, 404, 220], [2350, 356, 170]], altars: [[790, 361], [2410, 356]], hazards: [[1010, 80], [2130, 100]] },
 };
 
-const TRIGRAMS = {
-  qian: { zh: "乾", use: "攻势 / 剑气", angle: -90, skill: "贯虹剑", effects: ["剑锋心法：强化劈砍与剑气", "习得贯虹剑：直线贯穿", "贯虹剑进阶：追加追击"] },
-  xun: { zh: "巽", use: "身法 / 移动", angle: -45, skill: "穿林步", effects: ["御风心法：移动与二段跳", "习得穿林步：突进斩击", "穿林步进阶：回身追斩"] },
-  kan: { zh: "坎", use: "控制 / 剑意", angle: 0, skill: "流泉引", effects: ["纳川心法：剑意与减速", "习得流泉引：牵引近敌", "流泉引进阶：扩大牵引"] },
-  gen: { zh: "艮", use: "格挡 / 护盾", angle: 45, skill: "止戈式", effects: ["止守心法：强化格挡", "习得止戈式：短时架势", "止戈式进阶：化解后反击"] },
-  kun: { zh: "坤", use: "守御 / 生命", angle: 90, skill: "承岳阵", effects: ["承载心法：生命与守御", "习得承岳阵：生成护盾", "承岳阵进阶：护盾余力反击"] },
-  zhen: { zh: "震", use: "破势 / 硬直", angle: 135, skill: "惊雷踏", effects: ["破势心法：提高硬直", "习得惊雷踏：震地击退", "惊雷踏进阶：震波追击"] },
-  li: { zh: "离", use: "爆发 / 暴击", angle: 180, skill: "照影剑", effects: ["照影心法：积累剑势", "习得照影剑：范围爆发", "照影剑进阶：引燃扩大"] },
-  dui: { zh: "兑", use: "恢复 / 续航", angle: 225, skill: "和息诀", effects: ["调息心法：战斗续航", "习得和息诀：恢复生命剑意", "和息诀进阶：强化下一剑"] },
-};
-
-const AFFIXES = {
-  metal: [
-    ["attack", "锋锐：攻击提高", 5], ["armorBreak", "断甲：削弱敌人护甲", 8], ["qiPower", "剑鸣：剑气伤害提高", 7],
-  ],
-  wood: [
-    ["hp", "生息：生命上限提高", 8], ["heal", "回春：击败敌人恢复生命", 4], ["seed", "灵种：劈砍偶尔追加伤害", 8],
-  ],
-  water: [
-    ["qiMax", "纳川：剑意上限提高", 10], ["qiRegen", "潮生：剑意恢复加快", 12], ["cooldown", "流水：技能冷却缩短", 6],
-  ],
-  fire: [
-    ["crit", "烈心：暴击率提高", 4], ["burn", "灼魂：燃烧伤害提高", 8], ["burst", "焚尽：低生命敌人受到额外伤害", 10],
-  ],
-  earth: [
-    ["defense", "岩骨：受到伤害降低", 5], ["block", "不动：格挡效果提高", 7], ["stagger", "镇岳：击退和硬直提高", 9],
-  ],
-};
-
-const QUALITY = {
-  1: { zh: "一阶", color: "#52be7b" },
-  2: { zh: "二阶", color: "#dfad4c" },
-  3: { zh: "三阶", color: "#aa78da" },
-};
-
-const DEFAULT_STATE = () => ({
-  version: 1,
-  player: { name: "无名剑客", level: 1, spirit: 0 },
-  inventory: [],
-  cultivation: Object.fromEntries(Object.keys(TRIGRAMS).map(key => [key, [null, null, null]])),
-  loadout: { active: [null, null], passive: [null, null] },
-  progress: { runs: 0, victories: 0, clears: Object.fromEntries(Object.keys(ELEMENTS).map(key => [key, 0])), seen_help: false },
-});
+const DEFAULT_STATE = () => RULES.defaultState();
 
 let saveData = DEFAULT_STATE();
 let currentUser = null;
@@ -280,52 +233,12 @@ function showPanel(name) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-function elementTotals(state = saveData) {
-  const totals = Object.fromEntries(Object.keys(ELEMENTS).map(key => [key, 1]));
-  Object.values(state.cultivation).flat().filter(Boolean).forEach(bead => { totals[bead.element] += bead.level; });
-  return totals;
-}
-
-function primarySecondary(state = saveData) {
-  const totals = elementTotals(state);
-  const ranked = Object.keys(ELEMENTS).sort((a, b) => totals[b] - totals[a]);
-  const primary = totals[ranked[0]] > totals[ranked[1]] ? ranked[0] : null;
-  const secondary = primary && totals[ranked[1]] > totals[ranked[2]] ? ranked[1] : null;
-  return [primary, secondary];
-}
-
-function socketedBeads(state = saveData) { return Object.values(state.cultivation).flat().filter(Boolean); }
-
-function getAffixTotals(state = saveData) {
-  const result = {};
-  socketedBeads(state).forEach(bead => bead.affixes.forEach(affix => { result[affix.key] = (result[affix.key] || 0) + affix.value; }));
-  return result;
-}
-
-function calculateStats(state = saveData) {
-  const totals = elementTotals(state);
-  const affixes = getAffixTotals(state);
-  const depth = Object.fromEntries(Object.entries(state.cultivation).map(([key, slots]) => [key, slots.filter(Boolean).length]));
-  const loadout = state.loadout || { active: [null, null], passive: [null, null] };
-  const mastery = Object.fromEntries(Object.keys(TRIGRAMS).map(key => [key, loadout.passive.includes(key) ? depth[key] : 0]));
-  const [primary, secondary] = primarySecondary(state);
-  const stat = {
-    primary, secondary, totals, depth, mastery, loadout,
-    hpMax: Math.round(94 + totals.wood * 3 + mastery.kun * 8 + (affixes.hp || 0)),
-    qiMax: Math.round(70 + totals.water * 3 + mastery.kan * 8 + (affixes.qiMax || 0)),
-    attack: 12 + totals.metal * .85 + mastery.qian * 2 + (affixes.attack || 0) * .45,
-    defense: Math.min(35, totals.earth * .45 + mastery.kun * 1.4 + (affixes.defense || 0) * .4),
-    speed: 205 + mastery.xun * 15,
-    crit: clamp(.04 + totals.fire * .009 + mastery.li * .03 + (affixes.crit || 0) / 100, .04, .55),
-    qiRegen: 7 + totals.water * .3 + (affixes.qiRegen || 0) * .2,
-    block: clamp(.62 + mastery.gen * .06 + (affixes.block || 0) / 100, .62, .92),
-    stagger: Math.min(2.5, 1 + totals.earth * .015 + mastery.zhen * .09 + (affixes.stagger || 0) / 100),
-    cooldown: clamp(1 - (affixes.cooldown || 0) / 100, .65, 1),
-    affixes,
-  };
-  stat.dao = loadout.active[0] || null;
-  return stat;
-}
+// 为现有界面保留调用名；计算只有独立规则适配器一份实现。
+function elementTotals(state = saveData) { return RULES.elementTotals(state); }
+function primarySecondary(state = saveData) { return RULES.primarySecondary(state); }
+function socketedBeads(state = saveData) { return RULES.socketedBeads(state); }
+function getAffixTotals(state = saveData) { return RULES.getAffixTotals(state); }
+function calculateStats(state = saveData) { return RULES.calculateStats(state); }
 
 function renderHeader() {
   const stats = calculateStats();
@@ -554,7 +467,7 @@ function grantBeadExperience(amount) {
   const evolved = [];
   socketedBeads().forEach(bead => {
     bead.xp += amount;
-    while (bead.level < 99 && bead.xp >= bead.level * 30) {
+    while (bead.level < RULES.config.limits.bead_level && bead.xp >= bead.level * 30) {
       bead.xp -= bead.level * 30;
       bead.level += 1;
       saveData.player.spirit += 1;
@@ -606,7 +519,8 @@ class BattleGame {
     this.projectiles = [];
     this.particles = [];
     this.skillEffects = [];
-    this.stats = calculateStats(options.state || saveData);
+    this.snapshot = RULES.createCombatSnapshot(options.state || saveData);
+    this.stats = this.snapshot.stats;
     this.characterArt = globalThis.DaoBladeCharacterArt?.renderer || null;
     if (this.characterArt) void this.characterArt.load();
     this.player = this.makePlayer();
@@ -1225,7 +1139,7 @@ class BattleGame {
     if (win) {
       saveData.progress.victories += 1; saveData.progress.clears[this.realmKey] += 1; saveData.player.spirit += 12;
       const count = 2 + (Math.random() < .35 ? 1 : 0) + this.altars.filter(altar => altar.taken).length;
-      for (let i = 0; i < count && saveData.inventory.length < 80; i++) {
+      for (let i = 0; i < count && saveData.inventory.length < RULES.config.limits.inventory; i++) {
         const element = Math.random() < .72 ? this.realmKey : randomItem(Object.keys(ELEMENTS));
         const bead = makeBead(element); rewards.push(bead); saveData.inventory.push(bead);
       }

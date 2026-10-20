@@ -6,56 +6,16 @@ from copy import deepcopy
 from typing import Any
 
 
-ELEMENTS = ("metal", "wood", "water", "fire", "earth")
-TRIGRAMS = ("qian", "xun", "kan", "gen", "kun", "zhen", "li", "dui")
+# 导入名称保留旧调用方兼容，数据及基础计算来自共用契约。
+from shared_rules import (
+    AFFIX_KEYS, ELEMENTS, LIMITS, TRIGRAMS, default_state,
+    element_totals, primary_secondary, validate_loadout, validate_rule_header,
+)
+
+
 REALMS = ELEMENTS
-MAX_INVENTORY = 80
-LOADOUT_SIZE = 2
-AFFIX_KEYS = {
-    "attack", "armorBreak", "qiPower", "hp", "heal", "seed", "qiMax",
-    "qiRegen", "cooldown", "crit", "burn", "burst", "defense", "block",
-    "stagger",
-}
-
-
-def default_state() -> dict[str, Any]:
-    """返回新的本地存档，五行基础值均为 1。"""
-    return {
-        "version": 1,
-        "player": {
-            "name": "无名剑客",
-            "level": 1,
-            "spirit": 0,
-        },
-        "inventory": [],
-        "cultivation": {name: [None, None, None] for name in TRIGRAMS},
-        "loadout": {"active": [None, None], "passive": [None, None]},
-        "progress": {
-            "runs": 0,
-            "victories": 0,
-            "clears": {name: 0 for name in REALMS},
-            "seen_help": False,
-        },
-    }
-
-
-def element_totals(state: dict[str, Any]) -> dict[str, int]:
-    """以基础值 1 加上已镶嵌灵珠的修为，计算五行总值。"""
-    totals = {element: 1 for element in ELEMENTS}
-    for slots in state.get("cultivation", {}).values():
-        for bead in slots:
-            if bead:
-                totals[bead["element"]] += bead["level"]
-    return totals
-
-
-def primary_secondary(state: dict[str, Any]) -> tuple[str | None, str | None]:
-    """返回明确领先的主、副属性；并列时暂不指定。"""
-    totals = element_totals(state)
-    ordered = sorted(ELEMENTS, key=lambda key: (-totals[key], ELEMENTS.index(key)))
-    primary = ordered[0] if totals[ordered[0]] > totals[ordered[1]] else None
-    secondary = ordered[1] if primary and totals[ordered[1]] > totals[ordered[2]] else None
-    return primary, secondary
+MAX_INVENTORY = LIMITS["inventory"]
+LOADOUT_SIZE = LIMITS["loadout"]
 
 
 def _validate_bead(bead: Any) -> None:
@@ -72,11 +32,11 @@ def _validate_bead(bead: Any) -> None:
         raise ValueError("灵珠五行无效")
     if type(bead["quality"]) is not int or bead["quality"] not in (1, 2, 3):
         raise ValueError("灵珠品阶无效")
-    if type(bead["level"]) is not int or not 1 <= bead["level"] <= 99:
+    if type(bead["level"]) is not int or not 1 <= bead["level"] <= LIMITS["bead_level"]:
         raise ValueError("灵珠等级无效")
-    if type(bead["xp"]) is not int or not 0 <= bead["xp"] <= 999999:
+    if type(bead["xp"]) is not int or not 0 <= bead["xp"] <= LIMITS["bead_xp"]:
         raise ValueError("灵珠经验无效")
-    if not isinstance(bead["affixes"], list) or len(bead["affixes"]) > 3:
+    if not isinstance(bead["affixes"], list) or len(bead["affixes"]) > LIMITS["affixes"]:
         raise ValueError("灵珠词条无效")
     for affix in bead["affixes"]:
         if not isinstance(affix, dict) or not {"key", "label", "value"}.issubset(affix):
@@ -94,8 +54,7 @@ def validate_state(raw: Any, previous: dict[str, Any] | None = None) -> dict[str
     if not isinstance(raw, dict):
         raise ValueError("存档必须是 JSON 对象")
     state = deepcopy(raw)
-    if state.get("version") != 1:
-        raise ValueError("存档版本不受支持")
+    validate_rule_header(state)
 
     player = state.get("player")
     if not isinstance(player, dict):
@@ -119,7 +78,7 @@ def validate_state(raw: Any, previous: dict[str, Any] | None = None) -> dict[str
     old_slots = previous.get("cultivation", {}) if previous else {}
     for trigram in TRIGRAMS:
         slots = cultivation[trigram]
-        if not isinstance(slots, list) or len(slots) != 3:
+        if not isinstance(slots, list) or len(slots) != LIMITS["layers"]:
             raise ValueError("每条八卦路线必须包含三层")
         found_empty = False
         for index, bead in enumerate(slots):
@@ -130,7 +89,7 @@ def validate_state(raw: Any, previous: dict[str, Any] | None = None) -> dict[str
                 raise ValueError("八卦路线必须从中心向外依次修行")
             _validate_bead(bead)
             # 已存在的旧镶嵌保留；新镶嵌必须满足前一层的修行等级。
-            old = old_slots.get(trigram, [None] * 3)
+            old = old_slots.get(trigram, [None] * LIMITS["layers"])
             was_socketed = isinstance(old, list) and len(old) > index and old[index] is not None
             if index > 0 and not was_socketed and slots[index - 1]["level"] < index + 1:
                 raise ValueError("前一层灵珠尚需继续修炼")
@@ -145,21 +104,8 @@ def validate_state(raw: Any, previous: dict[str, Any] | None = None) -> dict[str
     if len(ids) != len(set(ids)):
         raise ValueError("同一颗灵珠不能出现两次")
 
-    # 老存档没有出战栏位，读取时补充空栏位，不改变永久镶嵌记录。
-    loadout = state.setdefault("loadout", {"active": [None, None], "passive": [None, None]})
-    if not isinstance(loadout, dict) or set(loadout) != {"active", "passive"}:
-        raise ValueError("出战配置无效")
-    for kind, layer in (("active", 1), ("passive", 0)):
-        equipped = loadout[kind]
-        if not isinstance(equipped, list) or len(equipped) != LOADOUT_SIZE:
-            raise ValueError("出战栏位数量无效")
-        picked = [key for key in equipped if key is not None]
-        if any(not isinstance(key, str) or key not in TRIGRAMS for key in picked):
-            raise ValueError("出战卦路无效")
-        if len(picked) != len(set(picked)):
-            raise ValueError("同一卦路不能重复装备")
-        if any(cultivation[key][layer] is None for key in picked):
-            raise ValueError("尚未学会所装备的技能或心法")
+    # 旧档缺省栏位的兼容与浏览器共用同一出战约定。
+    state["loadout"] = validate_loadout(state)
 
     progress = state.get("progress")
     if not isinstance(progress, dict):

@@ -2,7 +2,7 @@
 
 **DaoBlade: Fivefold Path** 是一个可在浏览器运行的像素风横版修仙动作游戏。玩家使用相同的移动、跳跃、三段劈砍、格挡、剑气与短闪避；通关五行秘境获得灵珠，再把灵珠永久镶入本命剑的八卦修行图。五行决定招式属性，八卦决定修行方向。
 
-当前仓库中的 `work/v0.3.0-cultivation-worlds` 是**待评测候选分支**，不是正式发布版本。设计和实测记录见 [v0.3.0 设计与实施说明](docs/v0.3.0设计与实施说明.md)、[v0.3.0 测试与交接](docs/v0.3.0测试与交接.md)。历史 v0.2.0 规划仍保留作版本记录。
+当前底层工作候选为 `work/001-d01-shared-rules`，接续 v0.3.0玩法与角色接续成果，**不是正式发布版本**。本轮实现、契约、测试与交接见[实施索引](docs/implementation/00-实施索引.md)；此前记录见[v0.3.0设计](docs/v0.3.0设计与实施说明.md)、[v0.3.0测试](docs/v0.3.0测试与交接.md)。未来修改按[初版分方向策划](docs/planning/first-playable/00-初版总纲与阅读入口.md)逐步实施。
 
 ## 已实现玩法
 
@@ -67,6 +67,7 @@ node --check static/js/game.js
 node --test tests/combat.test.cjs
 node --test tests/character-art.test.cjs
 node --test tests/defeat.test.cjs
+node --test tests/rules.test.cjs
 ```
 
 在受限环境中如果 pytest 无法创建系统临时目录，可为它指定一个**可写的临时目录**，例如 `--basetemp D:\acode\codex\pytest-daoblade-v03`。这不是游戏运行要求。
@@ -75,6 +76,9 @@ node --test tests/defeat.test.cjs
 
 ```text
 app.py                     Flask 页面、认证和存档 API
+shared_rules.py            读取共享规则、默认档、五行和出战契约
+static/data/rules/         规则集JSON（当前legacy-v1，兼容旧玩法）
+static/js/rules.js         前端纯计算、进度视图与不可变战斗快照
 database.py                SQLite 初始化、迁移、按账号存档和版本检查
 game_rules.py              灵珠、八卦、出战配置与不可逆选择校验
 templates/index.html       主界面和对话框
@@ -86,6 +90,10 @@ instance/                  本机数据库，未纳入 Git
 ```
 
 团队提交和评测流程见 [GitHub 团队维护手册](docs/GitHub团队维护手册.md)。
+
+新工作使用`work/001-d01-shared-rules`、`work/002-方向-主题`的补零递增命名，具体基线和PR依赖见[顺序编号与候选维护](docs/GitHub顺序编号与候选维护.md)。[CI模板](docs/implementation/001-d01-shared-rules/06-ci-workflow.yml.example)覆盖Windows/Ubuntu上的规则、战斗、角色、结算与素材；当前令牌缺workflow权限，因此模板尚未放入.github/workflows启用。Node仍仅为测试依赖。
+
+`GET /api/rules`可查询公开的当前规则与契约版本。存档API新增`contract`响应字段，原`state`和`revision`兼容；数据库不会因本轮自动迁移为新阵盘。当前仍是旧永久三层玩法；策划中的可拆换测试、完整八卦、本位限制和境界尚未上线。
 
 ## 已知限制
 
