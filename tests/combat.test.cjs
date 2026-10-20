@@ -92,6 +92,34 @@ function trainedState(api, element) {
   return state;
 }
 
+test("009 五境敌人燃烧致死后不再完成同帧攻击",()=>{
+  for(const realm of ["fire","wood","metal","water","earth"]){
+    const api=gameContext(),game=new api.BattleGame(realm),enemy=game.enemies[0];
+    game.enemies=[enemy];
+    enemy.x=game.player.x+35;enemy.hp=1;enemy.burn=1;enemy.burnTick=0;
+    enemy.attackState=realm==="fire"?"strike":"windup";
+    enemy.attackType="slash";enemy.attackDirection=-1;enemy.attackTimer=.005;
+    const hp=game.player.hp,x=enemy.x;
+    game.updateEnemies(.01);
+    assert.equal(enemy.dead,true,realm);
+    assert.equal(game.player.hp,hp,`${realm}尸体不能继续造成伤害`);
+    assert.equal(enemy.x,x,`${realm}尸体不能继续移动`);
+  }
+});
+
+test("009 非致死燃烧不冻结活敌人，继续正常攻击并标记燃烧事件",()=>{
+  for(const realm of ["fire","wood"]){
+    const api=gameContext(),game=new api.BattleGame(realm),enemy=game.enemies[0];
+    game.enemies=[enemy];enemy.x=game.player.x+35;enemy.hp=20;enemy.burn=1;enemy.burnTick=0;
+    enemy.attackState=realm==="fire"?"strike":"windup";
+    enemy.attackType="slash";enemy.attackDirection=-1;enemy.attackTimer=.005;
+    const hp=game.player.hp;game.updateEnemies(.01);
+    assert.equal(enemy.dead,false);assert.ok(enemy.hp<20);assert.ok(game.player.hp<hp);
+    const burn=game.events.recent.find(e=>e.periodic);
+    assert.equal(burn.action_id,"burn");
+  }
+});
+
 test("008 旧设置默认开启视觉提示，显式关闭可保留且不改声音默认值",()=>{
   const old=gameContext([],{shake:false,sound:false});
   assert.equal(old.getFeedback().combatText,true);assert.equal(old.getFeedback().sound,false);

@@ -952,7 +952,8 @@ class BattleGame {
       if (enemy.kind === "dummy") { enemy.hp = Math.min(enemy.maxHp, enemy.hp + 60 * dt); enemy.hurt = Math.max(0, enemy.hurt - dt); continue; }
       enemy.hurt = Math.max(0, enemy.hurt - dt); enemy.attackCd -= dt; enemy.slow = Math.max(0, enemy.slow - dt);
       if (enemy.slow === 0) enemy.chill = 0;
-      if (enemy.burn > 0) { enemy.burn -= dt; enemy.burnTick -= dt; if (enemy.burnTick <= 0) { enemy.burnTick = .55; this.hitEnemy(enemy, 2 + (this.stats.affixes.burn || 0) * .08, false, true); } }
+      if (enemy.burn > 0) { enemy.burn -= dt; enemy.burnTick -= dt; if (enemy.burnTick <= 0) { enemy.burnTick = .55; this.hitEnemy(enemy, 2 + (this.stats.affixes.burn || 0) * .08, false, true, "burn"); } }
+      if (enemy.dead || this.finished) continue;
       const dx = p.x - enemy.x; const distance = Math.abs(dx); const direction = Math.sign(dx) || 1; const speed = (enemy.kind === "boss" ? 105 : enemy.variant === "stalker" ? 115 : 82) * (enemy.slow > 0 ? .55 : 1);
       if (enemy.attackState === "idle") enemy.face = direction;
       if (this.realmKey === "fire") {
