@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>角色美术预览 · 本命剑</title>
+  <link rel="stylesheet" href="/static/css/game.css">
+  <style>
+    main { max-width: 1060px; margin: 40px auto; padding: 20px; }
+    canvas { width: 100%; height: auto; border: 2px solid #53677b; image-rendering: pixelated; }
+    .art-controls { display: flex; flex-wrap: wrap; gap: 12px; margin: 18px 0; align-items: center; }
+    select { color: #f2e9d5; background: #172435; padding: 10px; border: 1px solid #53677b; }
+    a { color: #dfad4c; }
+    .art-note { color: #a9b9cb; line-height: 1.8; }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">DAOBLADE · CHARACTER ART 01</p>
+    <h1>一柄本命剑，一位行路人</h1>
+    <p class="art-note">束发、交领短袍、深靛衣装与赤色发带。左侧为游戏原始尺寸，右侧为三倍像素检查。</p>
+    <div class="art-controls">
+      <label>动作 <select id="art-action"><option value="idle">待机 · 4 帧</option><option value="run">跑动 · 8 帧</option><option value="slash1">第一剑</option><option value="slash2">第二剑</option><option value="slash3">第三剑</option><option value="block">格挡</option><option value="parry">完美格挡</option><option value="jump">跳跃</option><option value="fall">下落</option><option value="dash">闪避</option><option value="qi">剑气</option><option value="hurt">受击</option><option value="death">战败 · 完整倒地</option></select></label>
+      <label>朝向 <select id="art-facing"><option value="1">向右</option><option value="-1">向左</option></select></label>
+      <label>背景 <select id="art-background"><option value="fire">火 · 熔岩</option><option value="metal">金 · 剑冢</option><option value="wood">木 · 古林</option><option value="water">水 · 寒潭</option><option value="earth">土 · 荒山</option></select></label>
+      <button id="art-pause" class="pixel-button" type="button">暂停动画</button>
+      <button id="art-step" class="pixel-button" type="button">下一帧</button>
+      <label><input id="art-anchors" type="checkbox">显示脚底和握剑点</label>
+      <label>动作进度 <input id="art-phase" type="range" min="0" max="100" step="1" value="0" disabled></label>
+    </div>
+    <canvas id="art-canvas" width="960" height="380" aria-label="角色与战斗动作预览"></canvas>
+    <p id="art-status" role="status">正在读取本地角色素材…</p>
+    <p class="art-note">待机、跑动使用原有 PNG 帧；战斗与倒地使用同一人物和独立剑的程序姿态。战败依次后仰、失衡、倒地，结果窗口在动作结束后出现。五行服章与八卦配饰仍待后续制作。</p>
+    <a href="/">返回游戏，进入练功场检查实战</a>
+  </main>
+  <script src="/static/js/character-art.js"></script>
+  <script src="/static/js/character-preview.js"></script>
+</body>
+</html>

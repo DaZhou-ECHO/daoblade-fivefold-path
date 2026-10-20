@@ -20,6 +20,7 @@
       <span>主属性 <b id="primary-label">未定</b></span>
       <span>副属性 <b id="secondary-label">未定</b></span>
     </div>
+    <div class="account-actions"><span id="account-label">游客试玩</span><button id="account-login" class="pixel-button small" type="button">注册 / 登录</button><button id="account-import" class="pixel-button small" type="button" hidden>导入游客存档</button><button id="account-logout" class="pixel-button small" type="button" hidden>退出登录</button></div>
   </header>
   <nav class="main-nav" aria-label="主要页面">
     <button class="nav-button active" data-panel="sanctuary">洞府</button>
@@ -33,7 +34,7 @@
     <section id="panel-sanctuary" class="panel active">
       <div class="hero-copy">
         <div>
-          <p class="eyebrow">第一版可玩原型</p>
+          <p class="eyebrow">五行剑术试玩版</p>
           <h2>同修一套剑术，各走一条大道</h2>
           <p class="lead">进入五行秘境，以劈砍、格挡和剑气战胜守境者。获得灵珠后，将它永久镶入本命剑的八卦修行图。每一次选择都会改变后续战斗。</p>
           <div class="hero-actions"><button class="pixel-button primary" data-go="realms">进入秘境</button><button class="pixel-button" data-go="cultivation">查看本命剑</button></div>
@@ -61,11 +62,12 @@
       <div class="game-heading">
         <button id="leave-run" class="pixel-button small">放弃闯关</button>
         <div><span id="realm-name">秘境</span><small id="objective-text">击败所有敌人</small></div>
-        <div class="game-stats"><span>生命 <b id="hud-hp">100 / 100</b></span><span>剑意 <b id="hud-qi">100 / 100</b></span><span>敌人 <b id="hud-enemies">0</b></span></div>
+        <div class="game-stats"><span>生命 <b id="hud-hp">100 / 100</b></span><span>剑意 <b id="hud-qi">100 / 100</b></span><span>敌人 <b id="hud-enemies">0</b></span><span id="skill-hud">Q / E 技能</span></div>
+        <button id="pause-run" class="pixel-button small">暂停</button>
       </div>
-      <div class="canvas-wrap"><canvas id="game-canvas" width="960" height="540" aria-label="横版战斗画面"></canvas><div id="game-message" class="game-message hidden"></div></div>
-      <div class="control-bar"><span><kbd>A</kbd><kbd>D</kbd> 移动</span><span><kbd>W</kbd>/<kbd>Space</kbd> 跳跃</span><span><kbd>J</kbd> 劈砍</span><span><kbd>K</kbd> 格挡</span><span><kbd>L</kbd> 剑气</span><span><kbd>Q</kbd> 道法</span></div>
-      <div class="touch-controls" aria-label="触屏操作"><div><button data-touch="left">◀</button><button data-touch="right">▶</button><button data-touch="jump">跃</button></div><div><button data-touch="slash">斩</button><button data-touch="block">御</button><button data-touch="qi">气</button><button data-touch="dao">法</button></div></div>
+      <div class="canvas-wrap"><canvas id="game-canvas" width="960" height="540" aria-label="横版战斗画面"></canvas><div id="game-message" class="game-message hidden"></div><div id="pause-overlay" class="pause-overlay hidden"><h2>暂歇剑锋</h2><p>按 Esc 或继续按钮返回战斗</p><div><button id="resume-run" class="pixel-button primary">继续</button><button id="retry-run" class="pixel-button">重新挑战</button><button id="settings-run" class="pixel-button">按键设置</button><button id="quit-run" class="pixel-button">退出</button></div></div></div>
+      <div class="control-bar"><span><kbd data-control="left">A</kbd><kbd data-control="right">D</kbd> 移动</span><span><kbd data-control="jump">Space</kbd> 跳跃</span><span><kbd data-control="slash">J</kbd> 劈砍</span><span><kbd data-control="block">K</kbd> 格挡</span><span><kbd data-control="qi">L</kbd> 剑气</span><span><kbd data-control="dash">Shift</kbd> 闪避</span><span><kbd data-control="dao">Q</kbd> 技能一</span><span><kbd data-control="dao2">E</kbd> 技能二</span><span><kbd data-control="pause">Esc</kbd> 暂停</span></div>
+      <div class="touch-controls" aria-label="触屏操作"><div><button data-touch="left">◀</button><button data-touch="right">▶</button><button data-touch="jump">跃</button><button data-touch="dash">闪</button></div><div><button data-touch="slash">斩</button><button data-touch="block">御</button><button data-touch="qi">气</button><button data-touch="dao">一</button><button data-touch="dao2">二</button></div></div>
     </section>
 
     <section id="panel-inventory" class="panel">
@@ -74,29 +76,37 @@
     </section>
 
     <section id="panel-cultivation" class="panel">
-      <div class="section-heading"><div><p class="eyebrow">永久成长</p><h2>八卦修行图</h2></div><p>从剑心向外依次修行。入门层强化基础操作，化境层改变技能行为，道法层解锁流派能力。</p></div>
+      <div class="section-heading"><div><p class="eyebrow">永久成长</p><h2>八卦修行图</h2></div><p>第一层学心法，第二层学主动技能，第三层令技能通玄。已镶灵珠无法取下。</p></div>
       <div class="cultivation-layout">
         <div id="bagua-board" class="bagua-board" aria-label="八卦修行图"><div class="bagua-circle circle-one"></div><div class="bagua-circle circle-two"></div><div class="bagua-circle circle-three"></div><div class="sword-heart">剑心<small>本命</small></div></div>
         <aside class="cultivation-aside"><h3>五行修为</h3><div id="element-bars" class="element-bars"></div><h3>待镶灵珠</h3><div id="selected-bead-summary" class="selected-bead-summary">请先在珠匣选择灵珠</div><p class="warning">镶嵌不可撤回。点击闪烁的下一层节点查看效果并确认。</p></aside>
       </div>
-      <div id="path-legend" class="path-legend"></div>
+      <div id="path-legend" class="path-legend"></div><div id="current-build" class="current-build"></div><div id="loadout-panel" class="loadout-panel"></div>
+      <div class="practice-entry"><p>镶珠前可临时试招。练功场不会改变珠匣、修行、经验或秘境进度。</p><button id="practice-run" class="pixel-button">进入练功场</button></div>
     </section>
 
     <section id="panel-manual" class="panel">
       <div class="section-heading"><div><p class="eyebrow">操作与规则</p><h2>本命剑诀</h2></div><p>所有玩家拥有相同基础动作，灵珠与卦位决定动作的强化方式。</p></div>
       <div class="manual-grid">
         <article><b>J</b><h3>劈砍</h3><p>稳定近战连击。金提高破甲，火附加燃烧，土增加击退。</p></article>
-        <article><b>K</b><h3>格挡</h3><p>抵御正面伤害。受击前短暂按下可触发完美格挡和反击。</p></article>
-        <article><b>L</b><h3>远程剑气</h3><p>消耗剑意攻击远处敌人。水提高恢复，木可能分裂剑气。</p></article>
-        <article><b>Q</b><h3>道法</h3><p>任一八卦路线修至第三层后解锁，效果由最深路线决定。</p></article>
+        <article><b>K</b><h3>格挡</h3><p>抵御正面伤害。完美格挡后按 J 主动反击。</p></article>
+        <article><b>L</b><h3>远程剑气</h3><p>消耗剑意攻击远处敌人。五行主修决定穿透、灵种、寒滞、爆发或击退。</p></article>
+        <article><b>Q / E</b><h3>卦路技能</h3><p>修至第二层学习主动技能，第三层进阶。关外可装备两项主动技能和两项心法。</p></article>
+        <article><b>Shift</b><h3>短闪避</h3><p>快速换位，短暂避开攻击；不消耗剑意。</p></article>
+        <article><b>Esc</b><h3>暂停</h3><p>暂停、重试、退出或调整按键。</p></article>
       </div>
       <div class="rules-columns"><div><h3>五行倾向</h3><ul><li>金：攻击、破甲、斩杀</li><li>木：生命、恢复、灵种</li><li>水：剑意、冷却、控制</li><li>火：暴击、燃烧、爆发</li><li>土：防御、格挡、霸体</li></ul></div><div><h3>八卦用法</h3><ul><li>乾：攻势与剑气</li><li>坤：生命与守御</li><li>震：破势与硬直</li><li>巽：移动与身法</li><li>坎：控制与剑意</li><li>离：暴击与爆发</li><li>艮：格挡与护盾</li><li>兑：恢复与续航</li></ul></div></div>
     </section>
   </main>
 
-  <dialog id="socket-dialog" class="pixel-dialog"><form method="dialog"><p class="eyebrow">立道确认</p><h2 id="socket-title">镶嵌灵珠</h2><div id="socket-preview"></div><p class="danger-text">此选择无法撤回，灵珠也不能移动到其他卦位。</p><div class="dialog-actions"><button value="cancel" class="pixel-button">再想想</button><button id="confirm-socket" value="default" class="pixel-button primary">确认立道</button></div></form></dialog>
-  <dialog id="result-dialog" class="pixel-dialog result-dialog"><form method="dialog"><p class="eyebrow">秘境结算</p><h2 id="result-title">试炼完成</h2><p id="result-message"></p><div id="reward-list" class="reward-list"></div><button id="return-sanctuary" value="default" class="pixel-button primary wide">返回洞府</button></form></dialog>
+  <dialog id="socket-dialog" class="pixel-dialog"><form method="dialog"><p class="eyebrow">立道确认</p><h2 id="socket-title">镶嵌灵珠</h2><div id="socket-preview"></div><p class="danger-text">此选择无法撤回，灵珠也不能移动到其他卦位。</p><div class="dialog-actions"><button value="cancel" class="pixel-button">再想想</button><button id="preview-practice" value="preview" class="pixel-button">先试招</button><button id="confirm-socket" value="default" class="pixel-button primary">确认立道</button></div></form></dialog>
+  <dialog id="settings-dialog" class="pixel-dialog"><div class="dialog-body"><p class="eyebrow">操作设置</p><h2>自定义按键</h2><p>点击动作后按下新键；重复的键位不会保存。</p><div id="control-settings" class="control-settings"></div><div class="feedback-settings"><label><input id="shake-toggle" type="checkbox"> 轻微震屏</label><label><input id="sound-toggle" type="checkbox"> 战斗音效</label></div><div class="dialog-actions"><button id="reset-controls" class="pixel-button">恢复默认按键</button><button id="close-settings" class="pixel-button primary">完成</button></div></div></dialog>
+  <dialog id="account-dialog" class="pixel-dialog"><div class="dialog-body"><p class="eyebrow">独立存档</p><h2>剑客账号</h2><p>注册后每个账号保存自己的修行。游客旧存档可由空账号手动导入。</p><label>账号<input id="account-username" autocomplete="username" maxlength="24"></label><label>密码<input id="account-password" type="password" autocomplete="current-password" maxlength="128"></label><div class="dialog-actions"><button id="submit-login" class="pixel-button primary" type="button">登录</button><button id="submit-register" class="pixel-button" type="button">注册</button><button id="close-account" class="pixel-button" type="button">关闭</button></div></div></dialog>
+  <dialog id="result-dialog" class="pixel-dialog result-dialog"><form method="dialog"><p class="eyebrow">秘境结算</p><h2 id="result-title">试炼完成</h2><p id="result-message"></p><div id="reward-list" class="reward-list"></div><div class="dialog-actions"><button id="retry-result" type="button" class="pixel-button">重新挑战</button><button id="return-sanctuary" value="default" class="pixel-button primary">返回洞府</button></div></form></dialog>
   <div id="toast" class="toast" role="status"></div>
+  <script src="{{ url_for('static', filename='js/character-art.js') }}"></script>
+  <script>globalThis.DaoBladeRuleset = {{ ruleset | tojson }};</script>
+  <script src="{{ url_for('static', filename='js/rules.js') }}"></script>
   <script src="{{ url_for('static', filename='js/game.js') }}"></script>
 </body>
 </html>

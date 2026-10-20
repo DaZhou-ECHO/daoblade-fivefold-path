@@ -1,12 +1,7 @@
 "use strict";
 
-const ELEMENTS = {
-  metal: { zh: "金", color: "#e7e4d6", realm: "矿山剑冢", symbol: "金", desc: "护甲、机关与飞刃", drops: "攻击、破甲与反射" },
-  wood: { zh: "木", color: "#52be7b", realm: "古林药谷", symbol: "木", desc: "藤蔓、毒素与灵种", drops: "生命、恢复与召唤" },
-  water: { zh: "水", color: "#4eb2e0", realm: "寒潭水府", symbol: "水", desc: "寒流、滑行与控制", drops: "剑意、冷却与连击" },
-  fire: { zh: "火", color: "#ef5c45", realm: "熔岩天宫", symbol: "火", desc: "近战围攻、蓄力突进与烈焰剑波", drops: "暴击、燃烧与引爆" },
-  earth: { zh: "土", color: "#cf9849", realm: "荒山遗迹", symbol: "土", desc: "岩壁、重击与地形", drops: "防御、格挡与霸体" },
-};
+const RULES = globalThis.DaoBladeRules.createRuntime(globalThis.DaoBladeRuleset);
+const { elements: ELEMENTS, trigrams: TRIGRAMS, affixes: AFFIXES, qualities: QUALITY } = RULES.config;
 
 const REALMS = {
   metal: { bg: ["#111b29", "#526273"], enemies: ["铁甲傀儡", "飞刃机关"], boss: "白帝剑卫" },
@@ -16,60 +11,106 @@ const REALMS = {
   earth: { bg: ["#201a14", "#765638"], enemies: ["石甲俑", "沙暴灵"], boss: "镇岳山君" },
 };
 
-const TRIGRAMS = {
-  qian: { zh: "乾", use: "攻势 / 剑气", angle: -90, effects: ["攻击 +4%", "剑气可穿透", "道法：天剑齐发"] },
-  xun: { zh: "巽", use: "身法 / 移动", angle: -45, effects: ["移动速度 +6%", "空中追加一次跳跃", "道法：御风瞬身"] },
-  kan: { zh: "坎", use: "控制 / 剑意", angle: 0, effects: ["剑意上限 +8", "剑气附加减速", "道法：玄水剑牢"] },
-  gen: { zh: "艮", use: "格挡 / 护盾", angle: 45, effects: ["格挡减伤 +6%", "完美格挡获得护盾", "道法：山岳不移"] },
-  kun: { zh: "坤", use: "守御 / 生命", angle: 90, effects: ["生命上限 +8", "受击获得短暂霸体", "道法：厚土归元"] },
-  zhen: { zh: "震", use: "破势 / 硬直", angle: 135, effects: ["击退效果 +8%", "攻击延长敌人硬直", "道法：惊雷断岳"] },
-  li: { zh: "离", use: "爆发 / 暴击", angle: 180, effects: ["暴击率 +3%", "暴击引爆元素状态", "道法：离火焚天"] },
-  dui: { zh: "兑", use: "恢复 / 续航", angle: 225, effects: ["击败敌人恢复生命", "通关额外获得灵珠经验", "道法：泽被万物"] },
+// 主路保持贯通；高台构成可选支路，祭坛提供额外结算奖励。
+const REALM_LAYOUTS = {
+  metal: { ledges: [[410, 414, 195], [645, 354, 165], [1210, 405, 230], [1800, 392, 205], [2460, 414, 180]], altars: [[715, 354], [1860, 392]], hazards: [[925, 92], [2150, 96]] },
+  wood: { ledges: [[510, 408, 220], [760, 347, 160], [1410, 402, 190], [1760, 347, 160], [2470, 407, 210]], altars: [[820, 347], [1820, 347]], hazards: [[1100, 85], [2240, 88]] },
+  water: { ledges: [[500, 412, 185], [735, 356, 180], [1340, 405, 180], [1680, 351, 175], [2380, 408, 220]], altars: [[790, 356], [1740, 351]], hazards: [[1010, 105], [2070, 105]] },
+  fire: { ledges: [[470, 406, 220], [755, 349, 170], [1310, 411, 230], [1700, 354, 185], [2400, 405, 210]], altars: [[810, 349], [1750, 354]], hazards: [[1180, 90], [2170, 90]] },
+  earth: { ledges: [[470, 421, 215], [735, 361, 160], [1190, 412, 245], [1800, 404, 220], [2350, 356, 170]], altars: [[790, 361], [2410, 356]], hazards: [[1010, 80], [2130, 100]] },
 };
 
-const AFFIXES = {
-  metal: [
-    ["attack", "锋锐：攻击提高", 5], ["armorBreak", "断甲：削弱敌人护甲", 8], ["qiPower", "剑鸣：剑气伤害提高", 7],
-  ],
-  wood: [
-    ["hp", "生息：生命上限提高", 8], ["heal", "回春：击败敌人恢复生命", 4], ["seed", "灵种：劈砍偶尔追加伤害", 8],
-  ],
-  water: [
-    ["qiMax", "纳川：剑意上限提高", 10], ["qiRegen", "潮生：剑意恢复加快", 12], ["cooldown", "流水：技能冷却缩短", 6],
-  ],
-  fire: [
-    ["crit", "烈心：暴击率提高", 4], ["burn", "灼魂：燃烧伤害提高", 8], ["burst", "焚尽：低生命敌人受到额外伤害", 10],
-  ],
-  earth: [
-    ["defense", "岩骨：受到伤害降低", 5], ["block", "不动：格挡效果提高", 7], ["stagger", "镇岳：击退和硬直提高", 9],
-  ],
-};
-
-const QUALITY = {
-  1: { zh: "一阶", color: "#52be7b" },
-  2: { zh: "二阶", color: "#dfad4c" },
-  3: { zh: "三阶", color: "#aa78da" },
-};
-
-const DEFAULT_STATE = () => ({
-  version: 1,
-  player: { name: "无名剑客", level: 1, spirit: 0 },
-  inventory: [],
-  cultivation: Object.fromEntries(Object.keys(TRIGRAMS).map(key => [key, [null, null, null]])),
-  progress: { runs: 0, victories: 0, clears: Object.fromEntries(Object.keys(ELEMENTS).map(key => [key, 0])), seen_help: false },
-});
+const DEFAULT_STATE = () => RULES.defaultState();
 
 let saveData = DEFAULT_STATE();
+let currentUser = null;
+let csrfToken = "";
+let saveRevision = 0;
+let saveBlocked = false;
+let saveQueue = Promise.resolve();
 let selectedBeadId = null;
 let pendingSocket = null;
+let keepSocketPreview = false;
 let activeGame = null;
 let toastTimer = 0;
+let pendingRebindListener = null;
+const DEFAULT_CONTROLS = Object.freeze({ left: "KeyA", right: "KeyD", jump: "Space", slash: "KeyJ", block: "KeyK", qi: "KeyL", dao: "KeyQ", dao2: "KeyE", dash: "ShiftLeft", pause: "Escape" });
+let controls = loadControls();
+let feedback = loadFeedback();
+let audioContext = null;
+const ACTION_LABELS = { left: "左移", right: "右移", jump: "跳跃", slash: "劈砍", block: "格挡", qi: "剑气", dao: "技能一", dao2: "技能二", dash: "闪避", pause: "暂停" };
 
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
 const esc = value => String(value).replace(/[&<>'"]/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[char]));
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const randomItem = items => items[Math.floor(Math.random() * items.length)];
+const elementColor = key => key ? ELEMENTS[key].color : "#dce8ee";
+
+function loadControls() {
+  try {
+    const saved = JSON.parse(localStorage.getItem("daoblade-controls") || "null");
+    if (saved && Object.keys(DEFAULT_CONTROLS).filter(key => key !== "dao2").every(key => typeof saved[key] === "string" && saved[key])) return { ...DEFAULT_CONTROLS, ...saved };
+  } catch (_) { /* 损坏的本地设置使用默认按键。 */ }
+  return { ...DEFAULT_CONTROLS };
+}
+
+function loadFeedback() {
+  try {
+    const saved = JSON.parse(localStorage.getItem("daoblade-feedback") || "null");
+    if (saved && typeof saved.shake === "boolean" && typeof saved.sound === "boolean") return saved;
+  } catch (_) { /* 损坏的本地设置使用默认效果。 */ }
+  return { shake: true, sound: false };
+}
+
+function playHitSound(parry = false) {
+  if (!feedback.sound || !window.AudioContext) return;
+  try {
+    audioContext ||= new window.AudioContext();
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    oscillator.type = parry ? "triangle" : "square";
+    oscillator.frequency.setValueAtTime(parry ? 740 : 180, audioContext.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(parry ? 420 : 90, audioContext.currentTime + .075);
+    gain.gain.setValueAtTime(.025, audioContext.currentTime);
+    gain.gain.exponentialRampToValueAtTime(.001, audioContext.currentTime + .08);
+    oscillator.connect(gain).connect(audioContext.destination);
+    oscillator.start(); oscillator.stop(audioContext.currentTime + .085);
+  } catch (_) { /* 浏览器禁止音频时游戏仍正常运行。 */ }
+}
+
+function actionForCode(code) {
+  if (code === "KeyW" && controls.jump === "Space") return "jump";
+  if (code === "ShiftRight" && controls.dash === "ShiftLeft") return "dash";
+  return Object.keys(controls).find(action => controls[action] === code) || null;
+}
+
+function keyLabel(code) {
+  return code.replace(/^Key|^Digit/, "").replace("ShiftLeft", "Shift").replace("Escape", "Esc").replace("Space", "空格").replace("Arrow", "方向");
+}
+
+function renderControls() {
+  $$('[data-control]').forEach(node => { node.textContent = keyLabel(controls[node.dataset.control]); });
+  $("#control-settings").innerHTML = Object.entries(ACTION_LABELS).map(([action, label]) => `<button type="button" class="pixel-button" data-rebind="${action}"><span>${label}</span><kbd>${keyLabel(controls[action])}</kbd></button>`).join("");
+  $$('[data-rebind]').forEach(button => button.addEventListener("click", () => {
+    if (pendingRebindListener) window.removeEventListener("keydown", pendingRebindListener, true);
+    $$('[data-rebind]').forEach(other => other.classList.remove("listening"));
+    button.classList.add("listening"); button.querySelector("kbd").textContent = "请按键";
+    const listener = event => {
+      event.preventDefault(); event.stopPropagation();
+      window.removeEventListener("keydown", listener, true);
+      pendingRebindListener = null;
+      const action = button.dataset.rebind;
+      if (event.code !== "Escape" || action === "pause") {
+        if (Object.entries(controls).some(([key, value]) => key !== action && value === event.code)) showToast("该按键已被其他动作使用", true);
+        else { controls[action] = event.code; localStorage.setItem("daoblade-controls", JSON.stringify(controls)); }
+      }
+      renderControls();
+    };
+    pendingRebindListener = listener;
+    window.addEventListener("keydown", listener, true);
+  }));
+}
 
 function showToast(message, danger = false) {
   const toast = $("#toast");
@@ -84,12 +125,17 @@ async function loadState() {
   try {
     const response = await fetch("/api/state");
     if (!response.ok) throw new Error("无法读取服务器存档");
-    saveData = (await response.json()).state;
-    localStorage.setItem("daoblade-backup", JSON.stringify(saveData));
+    const payload = await response.json();
+    saveData = payload.state;
+    saveRevision = payload.revision;
+    saveBlocked = false;
+    localStorage.setItem(backupKey(), JSON.stringify(saveData));
     $("#save-status").textContent = "SQLite 已连接";
   } catch (error) {
-    const backup = localStorage.getItem("daoblade-backup");
-    saveData = backup ? JSON.parse(backup) : DEFAULT_STATE();
+    const backup = localStorage.getItem(backupKey());
+    try { saveData = backup ? JSON.parse(backup) : DEFAULT_STATE(); }
+    catch (_) { saveData = DEFAULT_STATE(); }
+    saveBlocked = Boolean(currentUser);
     $("#save-status").textContent = "本地备用存档";
     showToast("服务器存档不可用，已切换到浏览器备用存档", true);
   }
@@ -102,26 +148,83 @@ function normalizeState() {
   saveData.player = { ...fresh.player, ...(saveData.player || {}) };
   saveData.inventory = Array.isArray(saveData.inventory) ? saveData.inventory : [];
   saveData.cultivation = { ...fresh.cultivation, ...(saveData.cultivation || {}) };
+  saveData.loadout = { ...fresh.loadout, ...(saveData.loadout || {}) };
   saveData.progress = { ...fresh.progress, ...(saveData.progress || {}) };
   saveData.progress.clears = { ...fresh.progress.clears, ...(saveData.progress.clears || {}) };
 }
 
 async function saveState(message = "进度已保存") {
-  localStorage.setItem("daoblade-backup", JSON.stringify(saveData));
+  localStorage.setItem(backupKey(), JSON.stringify(saveData));
+  if (saveBlocked) return showToast("存档尚未同步，请重新登录或刷新后检查", true);
+  const accountId = currentUser?.id || null;
+  saveQueue = saveQueue.then(async () => {
+    if (saveBlocked || accountId !== (currentUser?.id || null)) return;
+    try {
+      const requestBody = currentUser ? { state: saveData, revision: saveRevision } : saveData;
+      const response = await fetch("/api/state", { method: "POST", headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken }, body: JSON.stringify(requestBody) });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "保存失败");
+      saveRevision = payload.revision;
+      $("#save-status").textContent = "进度已保存";
+      if (message) showToast(message);
+    } catch (error) {
+      saveBlocked = Boolean(currentUser);
+      $("#save-status").textContent = "存档未同步";
+      showToast(`存档未同步：${error.message}。请检查后刷新。`, true);
+    }
+  });
+  return saveQueue;
+}
+
+function backupKey() { return currentUser ? `daoblade-backup-user-${currentUser.id}` : "daoblade-backup"; }
+
+async function initializeSession() {
   try {
-    const response = await fetch("/api/state", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(saveData) });
+    const response = await fetch("/api/auth/me");
+    if (!response.ok) throw new Error("无法检查登录状态");
     const payload = await response.json();
-    if (!response.ok) throw new Error(payload.error || "保存失败");
-    $("#save-status").textContent = "进度已保存";
-    if (message) showToast(message);
-  } catch (error) {
-    $("#save-status").textContent = "仅保存在浏览器";
-    showToast(`SQLite 保存失败：${error.message}`, true);
-  }
+    currentUser = payload.user;
+    csrfToken = payload.csrf_token;
+  } catch (_) { currentUser = null; }
+  renderAccount();
+  await loadState();
+}
+
+function renderAccount() {
+  $("#account-label").textContent = currentUser ? `剑客 ${currentUser.username}` : "游客试玩";
+  $("#account-login").hidden = Boolean(currentUser);
+  $("#account-logout").hidden = !currentUser;
+  $("#account-import").hidden = !currentUser;
+}
+
+async function submitAccount(action) {
+  if (activeGame && !activeGame.finished) return showToast("请先退出当前闯关再切换账号", true);
+  await saveQueue;
+  const username = $("#account-username").value.trim();
+  const password = $("#account-password").value;
+  try {
+    const response = await fetch(`/api/auth/${action}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, password }) });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.error || "账号操作失败");
+    if (activeGame) { activeGame.destroy(); activeGame = null; }
+    currentUser = payload.user;
+    csrfToken = payload.csrf_token;
+    selectedBeadId = null;
+    pendingSocket = null;
+    $("#account-password").value = "";
+    $("#account-dialog").close();
+    renderAccount();
+    await loadState();
+    showPanel("sanctuary");
+    showToast(`欢迎，${currentUser.username}`);
+  } catch (error) { showToast(error.message, true); }
 }
 
 function showPanel(name) {
-  if (activeGame && name !== "game") activeGame.pause = true;
+  if (name !== "game" && activeGame?.defeat) {
+    activeGame.destroy(); activeGame = null;
+  }
+  if (activeGame && name !== "game" && !activeGame.finished) activeGame.setPause(true);
   $$(".panel").forEach(panel => panel.classList.toggle("active", panel.id === `panel-${name}`));
   $$(".nav-button").forEach(button => button.classList.toggle("active", button.dataset.panel === name));
   if (name === "inventory") renderInventory();
@@ -130,59 +233,20 @@ function showPanel(name) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-function elementTotals() {
-  const totals = Object.fromEntries(Object.keys(ELEMENTS).map(key => [key, 1]));
-  Object.values(saveData.cultivation).flat().filter(Boolean).forEach(bead => { totals[bead.element] += bead.level + bead.quality; });
-  return totals;
-}
-
-function primarySecondary() {
-  const totals = elementTotals();
-  return Object.keys(ELEMENTS).sort((a, b) => totals[b] - totals[a]);
-}
-
-function socketedBeads() { return Object.values(saveData.cultivation).flat().filter(Boolean); }
-
-function getAffixTotals() {
-  const result = {};
-  socketedBeads().forEach(bead => bead.affixes.forEach(affix => { result[affix.key] = (result[affix.key] || 0) + affix.value; }));
-  return result;
-}
-
-function calculateStats() {
-  const totals = elementTotals();
-  const affixes = getAffixTotals();
-  const depth = Object.fromEntries(Object.entries(saveData.cultivation).map(([key, slots]) => [key, slots.filter(Boolean).length]));
-  const [primary, secondary] = primarySecondary();
-  const stat = {
-    primary, secondary, totals, depth,
-    hpMax: Math.round(94 + totals.wood * 3 + depth.kun * 8 + (affixes.hp || 0)),
-    qiMax: Math.round(70 + totals.water * 3 + depth.kan * 8 + (affixes.qiMax || 0)),
-    attack: 12 + totals.metal * .85 + depth.qian * 2 + (affixes.attack || 0) * .45,
-    defense: totals.earth * .45 + depth.kun * 1.4 + (affixes.defense || 0) * .4,
-    speed: 205 + depth.xun * 15,
-    crit: clamp(.04 + totals.fire * .009 + depth.li * .03 + (affixes.crit || 0) / 100, .04, .55),
-    qiRegen: 7 + totals.water * .3 + (affixes.qiRegen || 0) * .2,
-    block: clamp(.62 + depth.gen * .06 + (affixes.block || 0) / 100, .62, .92),
-    stagger: 1 + totals.earth * .015 + depth.zhen * .09 + (affixes.stagger || 0) / 100,
-    cooldown: clamp(1 - (affixes.cooldown || 0) / 100, .65, 1),
-    affixes,
-  };
-  stat.dao = Object.keys(depth).find(key => depth[key] === 3) || null;
-  return stat;
-}
+// 为现有界面保留调用名；计算只有独立规则适配器一份实现。
+function elementTotals(state = saveData) { return RULES.elementTotals(state); }
+function primarySecondary(state = saveData) { return RULES.primarySecondary(state); }
+function socketedBeads(state = saveData) { return RULES.socketedBeads(state); }
+function getAffixTotals(state = saveData) { return RULES.getAffixTotals(state); }
+function calculateStats(state = saveData) { return RULES.calculateStats(state); }
 
 function renderHeader() {
   const stats = calculateStats();
-  const rankedTotals = Object.values(stats.totals).sort((a, b) => b - a);
-  const hasCultivation = socketedBeads().length > 0;
-  const hasPrimary = hasCultivation && rankedTotals[0] > rankedTotals[1];
-  const hasSecondary = hasCultivation && rankedTotals[1] > rankedTotals[2];
   $("#spirit-value").textContent = saveData.player.spirit;
-  $("#primary-label").textContent = hasPrimary ? ELEMENTS[stats.primary].zh : "未定";
-  $("#primary-label").style.color = hasPrimary ? ELEMENTS[stats.primary].color : "#9aabbd";
-  $("#secondary-label").textContent = hasSecondary ? ELEMENTS[stats.secondary].zh : "未定";
-  $("#secondary-label").style.color = hasSecondary ? ELEMENTS[stats.secondary].color : "#9aabbd";
+  $("#primary-label").textContent = stats.primary ? ELEMENTS[stats.primary].zh : "未定";
+  $("#primary-label").style.color = stats.primary ? elementColor(stats.primary) : "#9aabbd";
+  $("#secondary-label").textContent = stats.secondary ? ELEMENTS[stats.secondary].zh : "未定";
+  $("#secondary-label").style.color = stats.secondary ? elementColor(stats.secondary) : "#9aabbd";
   $("#inventory-count").textContent = saveData.inventory.length;
   $("#runs-value").textContent = saveData.progress.runs;
   $("#victories-value").textContent = saveData.progress.victories;
@@ -218,7 +282,7 @@ function makeBead(elementKey, forcedQuality = null) {
   return {
     id: nextId(), element: elementKey, quality, level: quality, xp: 0,
     name: `${randomItem(nouns[elementKey])}·${QUALITY[quality].zh}珠`,
-    affixes: shuffled.map(([key, label, base]) => ({ key, label, value: base + Math.floor(Math.random() * 4) + quality })),
+    affixes: shuffled.map(([key, label, base]) => ({ key, label, value: base + Math.floor(Math.random() * 4) })),
   };
 }
 
@@ -285,13 +349,14 @@ function renderCultivation() {
     radiusSteps.forEach((radius, index) => {
       const bead = slots[index];
       const node = document.createElement("button");
-      node.className = `cultivation-node ${bead ? "filled" : ""} ${selected && index === nextIndex ? "available" : ""}`;
+      const ready = selected && index === nextIndex && canSocket(key, index);
+      node.className = `cultivation-node ${bead ? "filled" : ""} ${ready ? "available" : ""}`;
       node.style.left = `calc(50% + ${Math.cos(radians) * radius}px)`;
       node.style.top = `calc(50% + ${Math.sin(radians) * radius}px)`;
       node.title = bead ? `${bead.name}：${trigram.effects[index]}` : `${trigram.zh}卦${index + 1}层：${trigram.effects[index]}`;
       node.textContent = bead ? ELEMENTS[bead.element].zh : String(index + 1);
       if (bead) node.style.setProperty("--element-color", ELEMENTS[bead.element].color);
-      node.disabled = !bead && !(selected && index === nextIndex);
+      node.disabled = !bead && !ready;
       node.addEventListener("click", () => bead ? showToast(`${bead.name} · ${trigram.effects[index]}`) : openSocketDialog(key, index));
       board.appendChild(node);
     });
@@ -301,15 +366,77 @@ function renderCultivation() {
   const max = Math.max(...Object.values(totals), 10);
   $("#element-bars").innerHTML = Object.entries(ELEMENTS).map(([key, element]) => `<div class="element-row" style="--element-color:${element.color}"><b>${element.zh}</b><span class="element-track"><i style="width:${Math.max(5, totals[key] / max * 100)}%"></i></span><em>${totals[key]}</em></div>`).join("");
   $("#selected-bead-summary").innerHTML = selected ? `<b style="color:${QUALITY[selected.quality].color}">${esc(selected.name)}</b><br>${ELEMENTS[selected.element].zh}行 · 等级 ${selected.level}<br><small>点击任意闪烁节点选择道路</small>` : "请先在珠匣选择灵珠";
+  $("#current-build").innerHTML = buildSummary(saveData);
+  renderLoadout();
+}
+
+function canSocket(key, layer) {
+  if (layer === 0) return true;
+  const previous = saveData.cultivation[key][layer - 1];
+  return Boolean(previous && previous.level >= layer + 1);
+}
+
+function renderLoadout() {
+  const names = { active: "主动技能", passive: "心法" };
+  $("#loadout-panel").innerHTML = Object.entries(names).map(([kind, label]) => {
+    const requiredLayer = kind === "active" ? 1 : 0;
+    const learned = Object.keys(TRIGRAMS).filter(key => saveData.cultivation[key][requiredLayer]);
+    return `<div class="loadout-group"><h3>${label}</h3><div>${saveData.loadout[kind].map((selected, slot) =>
+      `<label>${kind === "active" ? (slot === 0 ? "Q" : "E") : `心法 ${slot + 1}`}<select data-equip-kind="${kind}" data-equip-slot="${slot}">
+      <option value="">空栏位</option>${learned.map(key => `<option value="${key}" ${selected === key ? "selected" : ""}>${TRIGRAMS[key].zh} · ${kind === "active" ? TRIGRAMS[key].skill : TRIGRAMS[key].effects[0]}</option>`).join("")}</select></label>`).join("")}</div></div>`;
+  }).join("");
+  $$('[data-equip-kind]').forEach(select => select.addEventListener("change", async () => {
+    if (activeGame && !activeGame.finished) { renderLoadout(); return showToast("请在关外调整配招", true); }
+    const kind = select.dataset.equipKind;
+    const slot = Number(select.dataset.equipSlot);
+    const choice = select.value || null;
+    if (choice && saveData.loadout[kind].includes(choice)) { renderLoadout(); return showToast("同一卦路不能重复装备", true); }
+    saveData.loadout[kind][slot] = choice;
+    renderCultivation();
+    await saveState("出战配置已保存");
+  }));
+}
+
+function moveDescriptions(stats) {
+  const styles = {
+    metal: ["第三剑延长剑锋并增强破甲", "反击更适合穿透正面防线", "剑气可额外穿透两名敌人"],
+    wood: ["灵种叠层，第三剑消耗灵种恢复生命", "完美格挡小幅回血", "剑气快速种下灵种"],
+    water: ["劈砍附加寒滞", "完美格挡令近敌减速", "剑气延长控制时间"],
+    fire: ["劈砍点燃，第三剑引爆燃烧", "完美格挡强化下一剑", "剑气延长燃烧"],
+    earth: ["第三剑重击并击退", "完美格挡获得护盾", "剑气稳定击退敌人"],
+  };
+  return styles[stats.primary] || ["标准三段连斩", "完美格挡后按劈砍反击", "标准远程剑气"];
+}
+
+function buildSummary(state) {
+  const stats = calculateStats(state);
+  const moves = moveDescriptions(stats);
+  const main = stats.primary ? ELEMENTS[stats.primary].zh : "未定";
+  const sub = stats.secondary ? ELEMENTS[stats.secondary].zh : "未定";
+  const values = Object.entries(ELEMENTS).map(([key, item]) => `${item.zh}${stats.totals[key]}`).join(" · ");
+  return `<div class="build-preview"><p>${values}</p><p>主修 ${main} · 辅修 ${sub} · 攻击 ${stats.attack.toFixed(1)} · 生命 ${stats.hpMax} · 剑意 ${stats.qiMax}</p>
+    <p>劈砍：${moves[0]}</p><p>格挡：${moves[1]}</p><p>剑气：${moves[2]}</p>
+    <p>出战：${stats.loadout.active.map(key => key ? `${TRIGRAMS[key].zh}·${TRIGRAMS[key].skill}` : "空").join(" / ")}；心法：${stats.loadout.passive.map(key => key ? TRIGRAMS[key].zh : "空").join(" / ")}</p></div>`;
+}
+
+function previewSocketState(socket = pendingSocket) {
+  const state = JSON.parse(JSON.stringify(saveData));
+  if (!socket) return state;
+  const index = state.inventory.findIndex(bead => bead.id === socket.beadId);
+  if (index < 0 || state.cultivation[socket.trigramKey]?.[socket.layer] !== null) return state;
+  state.cultivation[socket.trigramKey][socket.layer] = state.inventory.splice(index, 1)[0];
+  return state;
 }
 
 function openSocketDialog(trigramKey, layer) {
   const bead = saveData.inventory.find(item => item.id === selectedBeadId);
   if (!bead) return showToast("请先在珠匣选择一颗灵珠", true);
+  if (!canSocket(trigramKey, layer)) return showToast("前一层灵珠尚需继续修炼", true);
   pendingSocket = { trigramKey, layer, beadId: bead.id };
   const trigram = TRIGRAMS[trigramKey];
   $("#socket-title").textContent = `${trigram.zh}卦 · ${["入门", "化境", "道法"][layer]}层`;
-  $("#socket-preview").innerHTML = `<p><b style="color:${ELEMENTS[bead.element].color}">${esc(bead.name)}</b></p><p>${esc(trigram.effects[layer])}</p><p>组合方向：${ELEMENTS[bead.element].zh}行力量用于${trigram.use}</p>`;
+  $("#socket-preview").innerHTML = `<p><b style="color:${ELEMENTS[bead.element].color}">${esc(bead.name)}</b></p><p>${esc(trigram.effects[layer])}</p>
+    <div class="preview-grid"><div><b>当前</b>${buildSummary(saveData)}</div><div><b>镶嵌后</b>${buildSummary(previewSocketState())}</div></div>`;
   $("#socket-dialog").showModal();
 }
 
@@ -318,10 +445,15 @@ async function confirmSocket(event) {
   if (!pendingSocket) return;
   const { trigramKey, layer, beadId } = pendingSocket;
   const index = saveData.inventory.findIndex(item => item.id === beadId);
-  if (index < 0 || saveData.cultivation[trigramKey][layer]) return;
+  if (index < 0 || saveData.cultivation[trigramKey][layer] || !canSocket(trigramKey, layer)) return;
   const [bead] = saveData.inventory.splice(index, 1);
   saveData.cultivation[trigramKey][layer] = bead;
-  saveData.player.spirit += bead.level + bead.quality;
+  saveData.player.spirit += bead.level;
+  const kind = layer === 0 ? "passive" : layer === 1 ? "active" : null;
+  if (kind) {
+    const empty = saveData.loadout[kind].indexOf(null);
+    if (empty >= 0) saveData.loadout[kind][empty] = trigramKey;
+  }
   selectedBeadId = null;
   pendingSocket = null;
   $("#socket-dialog").close();
@@ -335,7 +467,7 @@ function grantBeadExperience(amount) {
   const evolved = [];
   socketedBeads().forEach(bead => {
     bead.xp += amount;
-    while (bead.level < 99 && bead.xp >= bead.level * 30) {
+    while (bead.level < RULES.config.limits.bead_level && bead.xp >= bead.level * 30) {
       bead.xp -= bead.level * 30;
       bead.level += 1;
       saveData.player.spirit += 1;
@@ -344,7 +476,7 @@ function grantBeadExperience(amount) {
         const options = AFFIXES[bead.element].filter(([key]) => !bead.affixes.some(item => item.key === key));
         if (options.length) {
           const [key, label, base] = randomItem(options);
-          bead.affixes.push({ key, label, value: base + bead.quality + Math.floor(Math.random() * 4) });
+          bead.affixes.push({ key, label, value: base + Math.floor(Math.random() * 4) });
         }
       }
       evolved.push(bead.name);
@@ -353,16 +485,17 @@ function grantBeadExperience(amount) {
   return evolved;
 }
 
-function startRealm(key) {
+function startRealm(key, options = {}) {
   showPanel("game");
   if (activeGame) activeGame.destroy();
-  activeGame = new BattleGame(key);
+  activeGame = new BattleGame(key, options);
   activeGame.start();
 }
 
 class BattleGame {
-  constructor(realmKey) {
+  constructor(realmKey, options = {}) {
     this.realmKey = realmKey;
+    this.practice = Boolean(options.practice);
     this.realm = REALMS[realmKey];
     this.element = ELEMENTS[realmKey];
     this.canvas = $("#game-canvas");
@@ -375,20 +508,36 @@ class BattleGame {
     this.cameraX = 0;
     this.pause = false;
     this.finished = false;
+    this.disposed = false;
+    this.defeat = null;
     this.lastTime = performance.now();
+    this.elapsed = 0;
+    this.screenShake = 0;
+    this.hitStop = 0;
+    this.shockwaveAttackId = -1;
     this.keys = new Set();
     this.projectiles = [];
     this.particles = [];
-    this.stats = calculateStats();
+    this.skillEffects = [];
+    this.snapshot = RULES.createCombatSnapshot(options.state || saveData);
+    this.stats = this.snapshot.stats;
+    this.characterArt = globalThis.DaoBladeCharacterArt?.renderer || null;
+    if (this.characterArt) void this.characterArt.load();
     this.player = this.makePlayer();
-    this.platforms = [{ x: 0, y: this.floorY, w: this.worldWidth, h: 80 }, { x: 520, y: 390, w: 240, h: 25 }, { x: 1080, y: 355, w: 210, h: 25 }, { x: 1730, y: 400, w: 260, h: 25 }, { x: 2380, y: 360, w: 210, h: 25 }];
-    this.enemies = this.makeEnemies();
+    const layout = REALM_LAYOUTS[realmKey];
+    this.platforms = [{ x: 0, y: this.floorY, w: this.worldWidth, h: 80 }, ...layout.ledges.map(([x, y, w]) => ({ x, y, w, h: 22 }))];
+    this.altars = this.practice ? [] : layout.altars.map(([x, y]) => ({ x, y: y - 28, taken: false }));
+    this.hazards = this.practice ? [] : layout.hazards.map(([x, w]) => ({ x, w }));
+    this.hazardTimer = 0;
+    this.enemies = this.practice ? [this.enemy("dummy", "试剑木桩", 620, 99999, "dummy")] : this.makeEnemies();
     this.boundKeyDown = event => this.keyDown(event);
     this.boundKeyUp = event => this.keyUp(event);
+    this.boundBlur = () => this.setPause(true);
+    this.boundVisibility = () => { if (document.hidden) this.setPause(true); };
   }
 
   makePlayer() {
-    return { x: 120, y: 380, w: 38, h: 70, vx: 0, vy: 0, face: 1, onGround: false, hp: this.stats.hpMax, qi: this.stats.qiMax, invuln: 0, slash: 0, slashDuration: .28, slashCooldown: 0, qiCast: 0, qiCooldown: 0, daoCooldown: 0, attackId: 0, combo: 0, lastSlashAt: 0, blocking: false, blockStarted: 0, blockFlash: 0, jumpCount: 0, animTime: 0 };
+    return { x: 120, y: this.floorY - 70, w: 38, h: 70, vx: 0, vy: 0, face: 1, onGround: true, hp: this.stats.hpMax, qi: this.stats.qiMax, invuln: 0, slash: 0, slashDuration: .28, slashCooldown: 0, qiCast: 0, qiCooldown: 0, skillCooldowns: [0, 0], attackId: 0, combo: 0, lastSlashAt: -10, blocking: false, blockStarted: -10, parryArmed: 0, parryLock: 0, counterWindow: 0, counterAttack: false, blockFlash: 0, dash: 0, dashCooldown: 0, dashDirection: 1, jumpCount: 0, jumpBuffer: 0, coyote: .1, queuedSlash: 0, hurt: 0, shield: 0, shieldTime: 0, flameBuff: 0, healCooldown: 0, animTime: 0 };
   }
 
   makeEnemies() {
@@ -402,10 +551,11 @@ class BattleGame {
         this.enemy("boss", this.realm.boss, 2860, 280, "boss"),
       ];
     }
+    const special = { metal: "guard", wood: "stalker", water: "skirmisher", earth: "crusher" }[this.realmKey];
     const normal = [
-      this.enemy("melee", this.realm.enemies[0], 700, 60), this.enemy("ranged", this.realm.enemies[1], 1140, 52),
-      this.enemy("melee", this.realm.enemies[0], 1550, 68), this.enemy("ranged", this.realm.enemies[1], 2030, 58),
-      this.enemy("melee", this.realm.enemies[0], 2380, 76), this.enemy("boss", this.realm.boss, 2860, 240),
+      this.enemy("melee", this.realm.enemies[0], 670, 60, special), this.enemy("melee", this.realm.enemies[0], 1070, 58),
+      this.enemy("ranged", this.realm.enemies[1], 1500, 52, this.realmKey === "water" ? "binder" : "caster"), this.enemy("melee", this.realm.enemies[0], 1930, 70, special),
+      this.enemy("melee", this.realm.enemies[0], 2390, 76), this.enemy("boss", this.realm.boss, 2860, 240, "boss"),
     ];
     return normal;
   }
@@ -414,118 +564,275 @@ class BattleGame {
     const boss = kind === "boss";
     const height = boss ? 100 : variant === "caster" ? 64 : 62;
     const width = boss ? 66 : variant === "charger" ? 48 : 42;
-    return { kind, variant, name, x, y: this.floorY - height, w: width, h: height, hp, maxHp: hp, vx: 0, face: -1, attackCd: .8 + Math.random(), attackState: "idle", attackTimer: 0, attackType: "", attackHit: false, comboStep: 0, hurt: 0, burn: 0, burnTick: 0, slow: 0, dead: false, lastHit: -1 };
+    return { kind, variant, name, x, y: this.floorY - height, w: width, h: height, hp, maxHp: hp, vx: 0, face: -1, attackCd: .8 + Math.random(), attackState: "idle", attackTimer: 0, attackType: "", attackHit: false, attackDirection: -1, comboStep: 0, hurt: 0, burn: 0, burnTick: 0, slow: 0, chill: 0, seeds: 0, dead: false, lastHit: -1 };
   }
 
   start() {
-    $("#realm-name").textContent = `${this.element.zh} · ${this.element.realm}`;
-    $("#objective-text").textContent = `击败 ${this.realm.enemies.join("、")}与${this.realm.boss}`;
-    saveData.progress.runs += 1;
+    $("#realm-name").textContent = this.practice ? "练功场 · 临时试招" : `${this.element.zh} · ${this.element.realm}`;
+    $("#objective-text").textContent = this.practice ? "木桩会恢复，不结算战利品" : `击败 ${this.realm.enemies.join("、")}与${this.realm.boss}`;
+    if (!this.practice) { saveData.progress.runs += 1; void saveState(""); }
+    $("#pause-overlay").classList.add("hidden");
     window.addEventListener("keydown", this.boundKeyDown);
     window.addEventListener("keyup", this.boundKeyUp);
+    window.addEventListener("blur", this.boundBlur);
+    document.addEventListener("visibilitychange", this.boundVisibility);
     this.bindTouch();
     this.updateHud();
     requestAnimationFrame(time => this.loop(time));
   }
 
   destroy() {
+    this.disposed = true;
     this.finished = true;
+    if (this.defeat) { this.defeat.resolve(false); this.defeat = null; }
     window.removeEventListener("keydown", this.boundKeyDown);
     window.removeEventListener("keyup", this.boundKeyUp);
+    window.removeEventListener("blur", this.boundBlur);
+    document.removeEventListener("visibilitychange", this.boundVisibility);
+    this.clearInput();
+    $("#pause-overlay").classList.add("hidden");
+  }
+
+  clearInput() { this.keys.clear(); this.player.blocking = false; this.player.parryArmed = 0; this.player.queuedSlash = 0; this.player.jumpBuffer = 0; }
+
+  quit() { const target = this.practice ? "cultivation" : "realms"; this.destroy(); activeGame = null; showPanel(target); }
+
+  setPause(value) {
+    if (this.finished) return;
+    this.pause = value;
+    this.lastTime = performance.now();
+    this.clearInput();
+    $("#pause-overlay").classList.toggle("hidden", !value);
   }
 
   keyDown(event) {
-    if (["KeyA", "KeyD", "KeyW", "Space", "KeyJ", "KeyK", "KeyL", "KeyQ"].includes(event.code)) event.preventDefault();
+    const action = actionForCode(event.code);
+    if (action) event.preventDefault();
     if (event.repeat) return;
-    this.keys.add(event.code);
-    if (event.code === "KeyW" || event.code === "Space") this.jump();
-    if (event.code === "KeyJ") this.slash();
-    if (event.code === "KeyK") { this.player.blocking = true; this.player.blockStarted = performance.now(); }
-    if (event.code === "KeyL") this.swordQi();
-    if (event.code === "KeyQ") this.daoSkill();
+    if (action === "pause") return this.setPause(!this.pause);
+    if (this.finished || this.pause || !action) return;
+    this.keys.add(action);
+    this.performAction(action);
   }
 
-  keyUp(event) { this.keys.delete(event.code); if (event.code === "KeyK") this.player.blocking = false; }
+  keyUp(event) {
+    const action = actionForCode(event.code);
+    if (action) this.keys.delete(action);
+    if (action === "block") this.player.blocking = false;
+  }
+
+  performAction(action) {
+    if (this.finished || this.pause) return;
+    if (action === "jump") this.jump();
+    else if (action === "slash") this.slash();
+    else if (action === "block") this.beginBlock();
+    else if (action === "qi") this.swordQi();
+    else if (action === "dao") this.daoSkill(0);
+    else if (action === "dao2") this.daoSkill(1);
+    else if (action === "dash") this.dash();
+  }
 
   bindTouch() {
     $$('[data-touch]').forEach(button => {
       button.onpointerdown = event => {
         event.preventDefault();
         const action = button.dataset.touch;
-        if (action === "left" || action === "right") this.keys.add(action === "left" ? "KeyA" : "KeyD");
-        if (action === "jump") this.jump(); if (action === "slash") this.slash(); if (action === "qi") this.swordQi(); if (action === "dao") this.daoSkill();
-        if (action === "block") { this.player.blocking = true; this.player.blockStarted = performance.now(); }
+        if (this.finished || this.pause) return;
+        if (action === "left" || action === "right") this.keys.add(action);
+        this.performAction(action);
       };
-      button.onpointerup = button.onpointercancel = () => { this.keys.delete("KeyA"); this.keys.delete("KeyD"); if (button.dataset.touch === "block") this.player.blocking = false; };
+      button.onpointerup = button.onpointercancel = () => { this.keys.delete(button.dataset.touch); if (button.dataset.touch === "block") this.player.blocking = false; };
     });
   }
 
   jump() {
-    const maxJumps = this.stats.depth.xun >= 2 ? 2 : 1;
-    if (this.player.onGround || this.player.jumpCount < maxJumps) { this.player.vy = -500; this.player.onGround = false; this.player.jumpCount += 1; this.burst(this.player.x + 16, this.player.y + 70, "#dbe8ed", 7); }
+    this.player.jumpBuffer = .14;
+    this.tryJump();
+  }
+
+  tryJump() {
+    const p = this.player;
+    const first = p.onGround || p.coyote > 0;
+    if (!p.jumpBuffer || p.dash > 0 || p.hurt > 0 || (!first && (this.stats.mastery.xun < 1 || p.jumpCount >= 2))) return;
+    p.vy = -500; p.onGround = false; p.coyote = 0; p.jumpCount = first ? 1 : p.jumpCount + 1; p.jumpBuffer = 0;
+    this.burst(p.x + 16, p.y + p.h, "#dbe8ed", 7);
   }
 
   slash() {
     const p = this.player;
-    if (p.slashCooldown > 0) return;
-    const now = performance.now();
-    p.combo = now - p.lastSlashAt < 560 ? p.combo % 3 + 1 : 1;
-    p.lastSlashAt = now;
+    if (p.dash > 0 || p.hurt > 0 || p.qiCast > 0) return;
+    if (p.slashCooldown > 0 || p.slash > 0) { p.queuedSlash = .2; return; }
+    this.beginSlash();
+  }
+
+  beginSlash() {
+    const p = this.player;
+    p.blocking = false; p.parryArmed = 0;
+    p.counterAttack = p.counterWindow > 0;
+    p.counterWindow = 0;
+    p.combo = this.elapsed - p.lastSlashAt < .68 ? p.combo % 3 + 1 : 1;
+    p.lastSlashAt = this.elapsed;
     p.slashDuration = p.combo === 3 ? .36 : .28;
     p.slash = p.slashDuration;
-    p.slashCooldown = (p.combo === 3 ? .46 : .34) * this.stats.cooldown;
+    p.slashCooldown = (p.combo === 3 ? .47 : .32) * this.stats.cooldown;
+    p.queuedSlash = 0;
     p.attackId += 1;
-    p.vx += p.face * (p.combo === 3 ? 95 : 48);
-    this.burst(p.x + p.w / 2 + p.face * 28, p.y + 34, "#dcecff", 5);
+    p.vx += p.face * (p.combo === 3 ? 105 : 48);
+    this.burst(p.x + p.w / 2 + p.face * 28, p.y + 34, elementColor(this.stats.primary), p.counterAttack ? 14 : 5);
+  }
+
+  beginBlock() {
+    const p = this.player;
+    if (p.dash > 0 || p.hurt > 0 || p.qiCast > 0 || (p.slash > .12)) return;
+    if (p.slash > 0 && p.combo === 3) return;
+    p.slash = 0; p.queuedSlash = 0; p.blocking = true; p.blockStarted = this.elapsed;
+    p.parryArmed = p.parryLock <= 0 ? .22 : 0;
+    p.parryLock = .5;
+  }
+
+  dash() {
+    const p = this.player;
+    if (p.dashCooldown > 0 || p.dash > 0 || p.hurt > 0 || p.qiCast > 0 || (p.slash > 0 && (p.combo === 3 || p.slash > .12))) return;
+    p.blocking = false; p.parryArmed = 0; p.slash = 0; p.queuedSlash = 0;
+    p.dash = .2; p.dashCooldown = .88; p.dashDirection = (this.keys.has("right") ? 1 : 0) - (this.keys.has("left") ? 1 : 0) || p.face;
+    p.face = p.dashDirection; p.vy = Math.min(0, p.vy);
+    this.burst(p.x + p.w / 2, p.y + p.h / 2, elementColor(this.stats.primary), 9);
   }
 
   swordQi() {
     const p = this.player;
-    if (p.qi < 20 || p.qiCooldown > 0) return;
+    if (p.qi < 20 || p.qiCooldown > 0 || p.dash > 0 || p.hurt > 0 || p.blocking || p.slash > 0) return;
     p.qi -= 20; p.qiCooldown = .65 * this.stats.cooldown;
-    const damage = this.stats.attack * (.72 + this.stats.depth.qian * .12) * (1 + (this.stats.affixes.qiPower || 0) / 100);
-    p.qiCast = .28;
+    p.skillPose = null;
+    const damage = this.stats.attack * (.72 + this.stats.mastery.qian * .12) * (1 + (this.stats.affixes.qiPower || 0) / 100);
+    p.qiCast = .25;
     p.vx -= p.face * 35;
-    this.projectiles.push({ type: "swordQi", owner: "player", x: p.x + (p.face > 0 ? p.w : -38), y: p.y + 24, vx: p.face * 640, vy: 0, w: 48, h: 20, damage, life: 1.8, maxLife: 1.8, pierce: this.stats.depth.qian >= 2 ? 2 : 0, color: ELEMENTS[this.stats.primary].color });
+    this.projectiles.push({ type: "swordQi", owner: "player", x: p.x + (p.face > 0 ? p.w : -38), y: p.y + 24, vx: p.face * (this.stats.primary === "earth" ? 430 : 640), vy: 0, w: this.stats.primary === "earth" ? 58 : 48, h: this.stats.primary === "earth" ? 26 : 20, damage, life: 1.8, maxLife: 1.8, pierce: (this.stats.primary === "metal" ? 2 : 0) + (this.stats.secondary === "metal" ? 1 : 0) + (this.stats.mastery.qian >= 1 ? 1 : 0), hitIds: new Set(), color: elementColor(this.stats.primary) });
     this.burst(p.x + p.w / 2 + p.face * 32, p.y + 33, "#dff6ff", 12);
   }
 
-  daoSkill() {
-    if (!this.stats.dao) return showToast("将任一八卦路线修至第三层后才能施展道法", true);
-    if (this.player.daoCooldown > 0 || this.player.qi < 35) return;
-    this.player.qi -= 35; this.player.daoCooldown = 8;
-    const dao = this.stats.dao;
-    if (dao === "qian" || dao === "li" || dao === "zhen") {
-      this.enemies.filter(e => !e.dead && Math.abs(e.x - this.player.x) < 480).forEach(e => this.hitEnemy(e, this.stats.attack * 2.2, true));
-      this.burst(this.player.x, this.player.y, ELEMENTS[this.stats.primary].color, 34);
-    } else if (dao === "xun") { this.player.x += this.player.face * 300; this.player.invuln = 1.5; }
-    else if (dao === "kan") { this.enemies.forEach(e => { e.slow = 5; }); }
-    else if (dao === "gen" || dao === "kun") { this.player.invuln = 4; }
-    else if (dao === "dui") { this.player.hp = Math.min(this.stats.hpMax, this.player.hp + this.stats.hpMax * .45); }
-    showToast(`施展道法：${TRIGRAMS[dao].effects[2]}`);
+  daoSkill(slot = 0) {
+    const dao = this.stats.loadout.active[slot];
+    if (!dao || this.stats.depth[dao] < 2) return showToast("先修至第二层，并在洞府装备主动技能", true);
+    const p = this.player;
+    if (p.skillCooldowns[slot] > 0 || p.qi < 30 || p.dash > 0 || p.hurt > 0 || p.qiCast > 0 || p.slash > 0 || p.blocking) return;
+    p.qi -= 30;
+    p.skillCooldowns[slot] = 8 * this.stats.cooldown;
+    p.qiCast = .22;
+    p.skillPose = dao;
+    const upgraded = this.stats.depth[dao] === 3;
+    const beforeX = p.x;
+    const cx = p.x + p.w / 2;
+    const cy = p.y + p.h / 2;
+    const close = (reach) => this.enemies.filter(enemy => !enemy.dead && Math.abs(enemy.x - cx) < reach && Math.abs(enemy.y + enemy.h / 2 - cy) < 105);
+    const strike = (enemy, scale = 1.6) => this.hitEnemy(enemy, this.stats.attack * scale, false, false, "skill");
+    if (dao === "qian") {
+      this.enemies.filter(enemy => !enemy.dead && (enemy.x - cx) * p.face > -15 && (enemy.x - cx) * p.face < (upgraded ? 550 : 390) && Math.abs(enemy.y - p.y) < 75).forEach(enemy => strike(enemy, upgraded ? 2.4 : 1.9));
+      this.skillEffects.push({ x: cx + p.face * 170, y: cy, radius: upgraded ? 350 : 250, kind: "line", color: elementColor(this.stats.primary), life: .38 });
+    } else if (dao === "xun") {
+      p.x = clamp(p.x + p.face * (upgraded ? 240 : 190), 0, this.worldWidth - p.w);
+      p.invuln = Math.max(p.invuln, .35);
+      this.enemies.filter(enemy => !enemy.dead && enemy.x >= Math.min(beforeX, p.x) - 25 && enemy.x <= Math.max(beforeX, p.x) + 70 && Math.abs(enemy.y - p.y) < 70).forEach(enemy => strike(enemy, upgraded ? 2.2 : 1.5));
+      this.skillEffects.push({ x: (beforeX + p.x) / 2, y: cy, radius: Math.abs(p.x - beforeX) / 2 + 45, kind: "line", color: elementColor(this.stats.primary), life: .34 });
+    } else if (dao === "kan") {
+      close(upgraded ? 255 : 185).forEach(enemy => { enemy.slow = Math.max(enemy.slow, enemy.kind === "boss" ? 1 : 2.5); if (enemy.kind !== "boss") enemy.x += Math.sign(cx - enemy.x) * (upgraded ? 65 : 35); strike(enemy, .85); });
+    } else if (dao === "gen") {
+      p.parryArmed = upgraded ? .9 : .6;
+      p.parryLock = p.parryArmed;
+      p.blocking = true;
+      p.skillParry = upgraded;
+      p.skillGuard = p.parryArmed;
+    } else if (dao === "kun") {
+      p.shield = Math.min(35, p.shield + (upgraded ? 26 : 18));
+      p.shieldTime = 5;
+      p.skillShieldCounter = upgraded;
+    } else if (dao === "zhen") {
+      close(upgraded ? 260 : 180).forEach(enemy => { strike(enemy, 1.45); enemy.attackCd = Math.max(enemy.attackCd, enemy.kind === "boss" ? .45 : 1); });
+    } else if (dao === "li") {
+      close(upgraded ? 235 : 170).forEach(enemy => { strike(enemy, upgraded ? 2.4 : 1.8); enemy.burn = Math.max(enemy.burn, upgraded ? 4 : 2.5); });
+    } else if (dao === "dui") {
+      p.hp = Math.min(this.stats.hpMax, p.hp + this.stats.hpMax * (upgraded ? .27 : .18));
+      p.qi = Math.min(this.stats.qiMax, p.qi + (upgraded ? 20 : 12));
+      if (upgraded) p.nextSlashBuff = 1;
+    }
+    if (!this.skillEffects.some(effect => effect.kind === "line" && effect.life === .38)) {
+      this.skillEffects.push({ x: cx, y: cy, radius: dao === "kun" || dao === "gen" ? 75 : 160, kind: "ring", color: elementColor(this.stats.primary), life: .48 });
+    }
+    this.burst(cx, cy, elementColor(this.stats.primary), 24);
+    showToast(`${TRIGRAMS[dao].zh}卦 · ${TRIGRAMS[dao].skill}${upgraded ? "·通玄" : ""}`);
   }
 
   loop(time) {
-    if (this.finished) return;
-    const dt = Math.min((time - this.lastTime) / 1000, .034);
+    if (this.disposed || (this.finished && !this.defeat)) return;
+    const dt = Math.max(0, Math.min((time - this.lastTime) / 1000, .034));
     this.lastTime = time;
-    if (!this.pause) this.update(dt);
+    if (this.defeat) {
+      if (!document.hidden) this.advanceDefeat(dt);
+    } else if (!this.pause) {
+      this.screenShake = Math.max(0, this.screenShake - dt);
+      if (this.hitStop > 0) this.hitStop = Math.max(0, this.hitStop - dt);
+      else this.update(dt);
+    }
     this.draw();
-    requestAnimationFrame(next => this.loop(next));
+    // 先画出最终倒地帧，再允许结算对话框出现。
+    if (this.defeat && this.defeat.elapsed >= this.defeat.duration) {
+      this.defeat.resolve(true); this.defeat = null;
+    }
+    if (!this.disposed && (!this.finished || this.defeat)) requestAnimationFrame(next => this.loop(next));
+  }
+
+  advanceDefeat(dt) {
+    if (!this.defeat) return;
+    this.defeat.elapsed = Math.min(this.defeat.duration, this.defeat.elapsed + Math.max(0, dt));
+    this.player.deathTime = this.defeat.elapsed;
+    const fall = Math.min(1, this.defeat.elapsed / .45);
+    this.player.deathDrop = this.defeat.initialOffset + this.defeat.drop * fall * fall;
+  }
+
+  defeatVisual() {
+    this.player.deathTime = 0;
+    const foot = this.player.y + this.player.h;
+    const ground = this.platforms.filter(platform => platform.y >= foot - 1
+      && this.player.x + this.player.w > platform.x && this.player.x < platform.x + platform.w)
+      .reduce((nearest, platform) => Math.min(nearest, platform.y), this.floorY);
+    const initialOffset = Math.min(0, this.floorY - foot);
+    this.player.deathDrop = initialOffset;
+    return new Promise(resolve => {
+      this.defeat = { elapsed: 0, duration: globalThis.DaoBladeCharacterArt?.DEFEAT_DURATION || 1.05,
+        initialOffset, drop: Math.max(0, ground - foot - initialOffset), resolve };
+    });
   }
 
   update(dt) {
+    if (this.finished) return;
     const p = this.player;
+    this.elapsed += dt;
     p.animTime += dt;
-    p.invuln = Math.max(0, p.invuln - dt); p.slash = Math.max(0, p.slash - dt); p.slashCooldown = Math.max(0, p.slashCooldown - dt); p.qiCast = Math.max(0, p.qiCast - dt); p.qiCooldown = Math.max(0, p.qiCooldown - dt); p.daoCooldown = Math.max(0, p.daoCooldown - dt); p.blockFlash = Math.max(0, p.blockFlash - dt);
+    p.invuln = Math.max(0, p.invuln - dt); p.slash = Math.max(0, p.slash - dt); p.slashCooldown = Math.max(0, p.slashCooldown - dt); p.qiCast = Math.max(0, p.qiCast - dt); p.qiCooldown = Math.max(0, p.qiCooldown - dt); p.skillCooldowns = p.skillCooldowns.map(value => Math.max(0, value - dt)); p.blockFlash = Math.max(0, p.blockFlash - dt);
+    p.parryArmed = Math.max(0, p.parryArmed - dt); p.parryLock = Math.max(0, p.parryLock - dt);
+    if (p.skillGuard > 0) { p.skillGuard = Math.max(0, p.skillGuard - dt); if (p.skillGuard === 0) { p.skillParry = false; if (!this.keys.has("block")) p.blocking = false; } }
+    p.counterWindow = Math.max(0, p.counterWindow - dt); p.queuedSlash = Math.max(0, p.queuedSlash - dt);
+    p.jumpBuffer = Math.max(0, p.jumpBuffer - dt); p.dashCooldown = Math.max(0, p.dashCooldown - dt);
+    p.dash = Math.max(0, p.dash - dt); p.hurt = Math.max(0, p.hurt - dt);
+    p.shieldTime = Math.max(0, p.shieldTime - dt); if (!p.shieldTime) { p.shield = 0; p.skillShieldCounter = false; }
+    p.flameBuff = Math.max(0, p.flameBuff - dt); p.healCooldown = Math.max(0, p.healCooldown - dt);
+    p.slowTime = Math.max(0, (p.slowTime || 0) - dt);
+    if (p.queuedSlash > 0 && p.slashCooldown <= 0 && p.slash <= 0 && p.dash <= 0 && p.hurt <= 0 && p.qiCast <= 0) this.beginSlash();
     p.qi = Math.min(this.stats.qiMax, p.qi + this.stats.qiRegen * dt);
-    const move = (this.keys.has("KeyD") ? 1 : 0) - (this.keys.has("KeyA") ? 1 : 0);
-    if (move) p.face = move;
-    p.vx += (move * this.stats.speed - p.vx) * Math.min(1, dt * 11);
-    if (!move) p.vx *= Math.pow(.001, dt);
+    const move = (this.keys.has("right") ? 1 : 0) - (this.keys.has("left") ? 1 : 0);
+    if (move && p.dash <= 0 && p.slash <= 0 && p.hurt <= 0 && !p.blocking) p.face = move;
+    if (p.hurt > 0) p.vx *= Math.pow(.02, dt);
+    else if (p.dash > 0) p.vx = p.dashDirection * 570;
+    else {
+      const speed = this.stats.speed * (p.slowTime > 0 ? .7 : 1);
+      const target = p.blocking || p.qiCast > 0 ? move * speed * .35 : move * speed;
+      p.vx += (target - p.vx) * Math.min(1, dt * 11);
+      if (!move) p.vx *= Math.pow(.001, dt);
+    }
     p.vy += 1250 * dt;
     p.x = clamp(p.x + p.vx * dt, 0, this.worldWidth - p.w);
     p.y += p.vy * dt;
+    const wasGrounded = p.onGround;
     p.onGround = false;
     for (const platform of this.platforms) {
       const oldBottom = p.y + p.h - p.vy * dt;
@@ -533,50 +840,91 @@ class BattleGame {
         p.y = platform.y - p.h; p.vy = 0; p.onGround = true; p.jumpCount = 0;
       }
     }
+    p.coyote = p.onGround ? .11 : wasGrounded ? .11 : Math.max(0, p.coyote - dt);
+    this.tryJump();
+    this.hazardTimer = Math.max(0, this.hazardTimer - dt);
+    if (p.onGround && this.hazardTimer === 0 && Math.sin(this.elapsed * 3) > .45 && this.hazards.some(h => p.x + p.w > h.x && p.x < h.x + h.w)) {
+      this.hazardTimer = 1;
+      this.damagePlayer(9, p.x + (p.face > 0 ? 100 : -100));
+    }
+    if (this.finished) { this.updateHud(); return; }
+    this.altars.forEach(altar => {
+      if (!altar.taken && this.overlap(p.x, p.y, p.w, p.h, altar.x, altar.y, 28, 28)) {
+        altar.taken = true;
+        p.hp = Math.min(this.stats.hpMax, p.hp + 12);
+        p.qi = Math.min(this.stats.qiMax, p.qi + 18);
+        this.burst(altar.x + 14, altar.y + 14, "#dfad4c", 16);
+        showToast("发现支路祭坛：恢复气血，通关后额外得珠");
+      }
+    });
     if (p.y > this.height + 120) this.damagePlayer(30, p.x - 20);
+    if (this.finished) { this.updateHud(); return; }
     if (p.y > this.height + 80) { p.x = Math.max(40, p.x - 180); p.y = 280; p.vy = 0; }
 
     if (p.slash > 0) {
       const progress = 1 - p.slash / p.slashDuration;
       const active = progress > .18 && progress < .78;
-      const range = p.combo === 3 ? 104 : 82; const left = p.face > 0 ? p.x + p.w - 4 : p.x - range + 4;
+      const range = (p.combo === 3 ? (this.stats.primary === "metal" ? 132 : 104) : 82) + (this.stats.secondary === "metal" ? 10 : 0); const left = p.face > 0 ? p.x + p.w - 4 : p.x - range + 4;
       this.enemies.filter(e => active && !e.dead && e.lastHit !== p.attackId && this.overlap(left, p.y + 4, range, 62, e.x, e.y, e.w, e.h)).forEach(e => {
         e.lastHit = p.attackId;
         let damage = this.stats.attack * [1, 1, 1.12, 1.34][p.combo] * (1 + (this.stats.affixes.attack || 0) / 100);
         const crit = Math.random() < this.stats.crit;
         if (crit) damage *= 1.75;
-        this.hitEnemy(e, damage, crit);
+        this.hitEnemy(e, damage * (p.counterAttack ? 1.35 : 1) * (p.nextSlashBuff ? 1.35 : 1), crit, false, "slash");
+        p.nextSlashBuff = 0;
+        p.qi = Math.min(this.stats.qiMax, p.qi + 3 + (this.stats.secondary === "water" ? 1 : 0));
       });
     }
     this.updateEnemies(dt);
+    if (this.finished) { this.updateHud(); return; }
     this.updateProjectiles(dt);
     this.particles.forEach(particle => { particle.x += particle.vx * dt; particle.y += particle.vy * dt; particle.life -= dt; });
     this.particles = this.particles.filter(particle => particle.life > 0);
+    this.skillEffects.forEach(effect => { effect.life -= dt; });
+    this.skillEffects = this.skillEffects.filter(effect => effect.life > 0);
     this.cameraX += (clamp(p.x - this.width * .42, 0, this.worldWidth - this.width) - this.cameraX) * Math.min(1, dt * 5);
     this.updateHud();
-    if (!this.finished && this.enemies.every(enemy => enemy.dead)) this.finish(true);
+    if (!this.practice && !this.finished && this.enemies.every(enemy => enemy.dead)) this.finish(true);
   }
 
   updateEnemies(dt) {
     const p = this.player;
     for (const enemy of this.enemies) {
+      if (this.finished) break;
       if (enemy.dead) continue;
+      if (enemy.kind === "dummy") { enemy.hp = Math.min(enemy.maxHp, enemy.hp + 60 * dt); enemy.hurt = Math.max(0, enemy.hurt - dt); continue; }
       enemy.hurt = Math.max(0, enemy.hurt - dt); enemy.attackCd -= dt; enemy.slow = Math.max(0, enemy.slow - dt);
+      if (enemy.slow === 0) enemy.chill = 0;
       if (enemy.burn > 0) { enemy.burn -= dt; enemy.burnTick -= dt; if (enemy.burnTick <= 0) { enemy.burnTick = .55; this.hitEnemy(enemy, 2 + (this.stats.affixes.burn || 0) * .08, false, true); } }
-      const dx = p.x - enemy.x; const distance = Math.abs(dx); const direction = Math.sign(dx) || 1; const speed = (enemy.kind === "boss" ? 105 : 82) * (enemy.slow > 0 ? .55 : 1);
-      enemy.face = direction;
+      const dx = p.x - enemy.x; const distance = Math.abs(dx); const direction = Math.sign(dx) || 1; const speed = (enemy.kind === "boss" ? 105 : enemy.variant === "stalker" ? 115 : 82) * (enemy.slow > 0 ? .55 : 1);
+      if (enemy.attackState === "idle") enemy.face = direction;
       if (this.realmKey === "fire") {
         this.updateFireEnemy(enemy, dt, distance, direction, speed);
         continue;
       }
-      if (enemy.kind === "melee" || enemy.kind === "boss") {
-        if (distance > 58 && distance < 520) enemy.x += direction * speed * dt;
-        if (distance < (enemy.kind === "boss" ? 82 : 58) && enemy.attackCd <= 0) { enemy.attackCd = enemy.kind === "boss" ? .85 : 1.2; this.damagePlayer(enemy.kind === "boss" ? 22 : 12, enemy.x); }
-        if (enemy.kind === "boss" && distance < 620 && enemy.attackCd < .25 && Math.random() < dt * 1.2) this.enemyShot(enemy, direction);
-      } else {
+      if (enemy.attackState !== "idle") {
+        enemy.attackTimer -= dt;
+        if (enemy.attackState === "windup" && enemy.attackTimer <= 0) {
+          enemy.attackState = "recover";
+          enemy.attackTimer = .24;
+          enemy.attackCd = enemy.kind === "boss" ? 1.05 : enemy.kind === "ranged" ? 1.8 : 1.2;
+          if (enemy.kind === "ranged" || enemy.attackType === "bolt") this.enemyShot(enemy, enemy.attackDirection);
+          else {
+            const reach = enemy.kind === "boss" ? 100 : enemy.variant === "crusher" ? 80 : 65;
+            const attackX = enemy.attackDirection > 0 ? enemy.x + enemy.w - 5 : enemy.x - reach + 5;
+            if (this.overlap(attackX, enemy.y + 6, reach, enemy.h - 10, p.x, p.y, p.w, p.h)) this.damagePlayer(enemy.kind === "boss" ? 23 : enemy.variant === "crusher" ? 17 : 12, enemy.x);
+          }
+        } else if (enemy.attackState === "recover" && enemy.attackTimer <= 0) enemy.attackState = "idle";
+      } else if (enemy.kind === "ranged") {
         if (distance < 190) enemy.x -= direction * speed * dt;
-        else if (distance > 360 && distance < 650) enemy.x += direction * speed * dt;
-        if (distance < 680 && enemy.attackCd <= 0) { enemy.attackCd = 1.65; this.enemyShot(enemy, direction); }
+        else if (distance > 380 && distance < 660) enemy.x += direction * speed * dt;
+        if (distance < 660 && enemy.attackCd <= 0) this.beginEnemyAttack(enemy, "bolt", .55);
+      } else {
+        if (distance > 65 && distance < 525) enemy.x += direction * speed * dt;
+        if (distance < (enemy.kind === "boss" ? 160 : 115) && enemy.attackCd <= 0) {
+          const rangedBoss = enemy.kind === "boss" && distance > 110;
+          this.beginEnemyAttack(enemy, rangedBoss ? "bolt" : "slash", enemy.variant === "crusher" ? .7 : enemy.kind === "boss" ? .55 : .38);
+        }
       }
       enemy.x = clamp(enemy.x, 40, this.worldWidth - 80);
     }
@@ -589,12 +937,13 @@ class BattleGame {
         enemy.attackState = "strike";
         enemy.attackTimer = enemy.attackType === "dash" ? .34 : .22;
         enemy.attackHit = false;
-        if (enemy.attackType === "fireball") this.enemyShot(enemy, direction, "fireball");
-        if (enemy.attackType === "wave") this.enemyShot(enemy, direction, "wave");
+        if (enemy.attackType === "fireball") this.enemyShot(enemy, enemy.attackDirection, "fireball");
+        if (enemy.attackType === "wave") this.enemyShot(enemy, enemy.attackDirection, "wave");
       } else if (enemy.attackState === "strike") {
-        if (enemy.attackType === "dash") enemy.x += direction * (enemy.kind === "boss" ? 470 : 380) * dt;
+        if (enemy.attackType === "dash") enemy.x += enemy.attackDirection * (enemy.kind === "boss" ? 470 : 380) * dt;
         const reach = enemy.kind === "boss" ? 106 : enemy.variant === "charger" ? 84 : 66;
-        if (!enemy.attackHit && ["slash", "dash"].includes(enemy.attackType) && distance < reach) {
+        const frontX = enemy.attackDirection > 0 ? enemy.x + enemy.w - 5 : enemy.x - reach + 5;
+        if (!enemy.attackHit && ["slash", "dash"].includes(enemy.attackType) && this.overlap(frontX, enemy.y + 7, reach, enemy.h - 12, this.player.x, this.player.y, this.player.w, this.player.h)) {
           enemy.attackHit = true;
           this.damagePlayer(enemy.kind === "boss" ? 24 : enemy.variant === "charger" ? 16 : 12, enemy.x);
         }
@@ -642,6 +991,7 @@ class BattleGame {
     enemy.attackState = "windup";
     enemy.attackTimer = windup;
     enemy.attackHit = false;
+    enemy.attackDirection = enemy.face;
   }
 
   enemyShot(enemy, direction, type = "bolt") {
@@ -651,42 +1001,123 @@ class BattleGame {
 
   updateProjectiles(dt) {
     for (const shot of this.projectiles) {
+      if (this.finished) break;
       shot.vy += (shot.gravity || 0) * dt;
       shot.x += shot.vx * dt; shot.y += shot.vy * dt; shot.life -= dt;
       if (shot.owner === "player") {
         for (const enemy of this.enemies) {
-          if (!enemy.dead && this.overlap(shot.x, shot.y, shot.w, shot.h, enemy.x, enemy.y, enemy.w, enemy.h)) {
-            this.hitEnemy(enemy, shot.damage, false); shot.pierce -= 1; if (shot.pierce < 0) { shot.life = 0; break; }
+          if (!enemy.dead && !shot.hitIds.has(enemy) && this.overlap(shot.x, shot.y, shot.w, shot.h, enemy.x, enemy.y, enemy.w, enemy.h)) {
+            shot.hitIds.add(enemy);
+            this.hitEnemy(enemy, shot.damage, false, false, "qi");
+            if (this.stats.primary === "fire") {
+              this.enemies.filter(other => other !== enemy && !other.dead && Math.abs(other.x - enemy.x) < 72 && Math.abs(other.y - enemy.y) < 65).slice(0, 3).forEach(other => this.hitEnemy(other, shot.damage * .28, false, false, "burst"));
+              this.burst(enemy.x, enemy.y, "#ffb15b", 12);
+            }
+            shot.pierce -= 1; if (shot.pierce < 0) { shot.life = 0; break; }
           }
         }
-      } else if (this.overlap(shot.x, shot.y, shot.w, shot.h, this.player.x, this.player.y, this.player.w, this.player.h)) { this.damagePlayer(shot.damage, shot.x); shot.life = 0; }
+      } else if (this.overlap(shot.x, shot.y, shot.w, shot.h, this.player.x, this.player.y, this.player.w, this.player.h)) { this.damagePlayer(shot.damage, shot.x); if (this.realmKey === "water") this.player.slowTime = 1.2; shot.life = 0; }
     }
     this.projectiles = this.projectiles.filter(shot => shot.life > 0 && shot.x > -100 && shot.x < this.worldWidth + 100);
   }
 
-  hitEnemy(enemy, damage, crit = false, dot = false) {
-    if (enemy.dead) return;
-    if (!dot && this.stats.primary === "fire") enemy.burn = Math.max(enemy.burn, 2.5);
-    if (!dot && this.stats.primary === "water") enemy.slow = Math.max(enemy.slow, 1.5);
-    if (!dot && this.stats.primary === "earth") enemy.x += this.player.face * 18 * this.stats.stagger;
-    if (!dot && this.stats.primary === "wood" && Math.random() < .18) this.player.hp = Math.min(this.stats.hpMax, this.player.hp + 3);
-    if (!dot && (this.stats.affixes.seed || 0) && Math.random() < .16) damage += this.stats.affixes.seed;
+  hitEnemy(enemy, damage, crit = false, dot = false, kind = "skill") {
+    if (this.finished || enemy.dead) return;
+    const p = this.player;
+    if (!dot) {
+      if (this.stats.primary === "fire") {
+        enemy.burn = Math.max(enemy.burn, kind === "qi" ? 3.2 : 2.4);
+        if (kind === "slash" && p.combo === 3) {
+          damage += Math.min(16, 5 + enemy.burn * 3);
+          enemy.burn = 0;
+          this.burst(enemy.x + enemy.w / 2, enemy.y + enemy.h / 2, "#ffb15b", 12);
+          this.enemies.filter(other => other !== enemy && !other.dead && Math.abs(other.x - enemy.x) < 60 && Math.abs(other.y - enemy.y) < 65).slice(0, 2).forEach(other => this.hitEnemy(other, Math.min(9, damage * .2), false, true, "burst"));
+        }
+      }
+      if (this.stats.primary === "water") {
+        enemy.chill = Math.min(3, enemy.chill + (kind === "qi" ? 2 : 1));
+        enemy.slow = Math.max(enemy.slow, enemy.kind === "boss" ? .8 : kind === "slash" && p.combo === 3 ? 2.4 : .75 + enemy.chill * .45);
+      }
+      if (this.stats.primary === "wood") {
+        enemy.seeds = Math.min(3, enemy.seeds + (kind === "qi" ? 2 : 1));
+        if (kind === "slash" && p.combo === 3 && enemy.seeds >= 2 && p.healCooldown <= 0) {
+          p.hp = Math.min(this.stats.hpMax, p.hp + Math.min(10, 4 + enemy.seeds * 2));
+          p.healCooldown = 1.4; enemy.seeds = 0;
+        }
+      }
+      if (this.stats.primary === "metal" && ((kind === "slash" && p.combo === 3) || kind === "skill")) damage *= 1.18;
+      if (this.stats.primary === "earth") {
+        enemy.x = clamp(enemy.x + p.face * (kind === "slash" && p.combo === 3 ? 48 : 18) * this.stats.stagger, 40, this.worldWidth - 80);
+        if (kind === "slash" && p.combo === 3) {
+          enemy.slow = Math.max(enemy.slow, .55);
+          if (this.shockwaveAttackId !== p.attackId) {
+            this.shockwaveAttackId = p.attackId;
+            this.enemies.filter(other => other !== enemy && !other.dead && Math.abs(other.x - enemy.x) < 90 && Math.abs(other.y - enemy.y) < 65).slice(0, 2).forEach(other => {
+              other.x = clamp(other.x + p.face * 30, 40, this.worldWidth - 80);
+              other.slow = Math.max(other.slow, .55);
+            });
+            this.burst(enemy.x, enemy.y + enemy.h - 8, "#cf9849", 14);
+          }
+        }
+      }
+      if (kind === "qi" && this.stats.mastery.kan >= 1) enemy.slow = Math.max(enemy.slow, enemy.kind === "boss" ? .8 : 1.3);
+      if (this.stats.mastery.zhen >= 2) enemy.attackCd = Math.max(enemy.attackCd, enemy.kind === "boss" ? .08 : .16);
+      if (crit && this.stats.mastery.li >= 2 && enemy.burn > 0) { damage += Math.min(12, enemy.burn * 3); enemy.burn = 0; }
+      // 副属性只提供一项轻量增益，不重复触发主属性整套机制。
+      if (this.stats.secondary === "fire") enemy.burn = Math.max(enemy.burn, .8);
+      else if (this.stats.secondary === "water") enemy.slow = Math.max(enemy.slow, .45);
+      else if (this.stats.secondary === "wood" && kind === "slash" && p.healCooldown <= 0) { p.hp = Math.min(this.stats.hpMax, p.hp + 2); p.healCooldown = 2; }
+      else if (this.stats.secondary === "metal") damage *= 1.05;
+      else if (this.stats.secondary === "earth") enemy.x = clamp(enemy.x + p.face * 7, 40, this.worldWidth - 80);
+      if ((this.stats.affixes.seed || 0) && Math.random() < .16) damage += this.stats.affixes.seed;
+      if (kind === "slash" && p.flameBuff > 0) { enemy.burn = Math.max(enemy.burn, 2.5); p.flameBuff = 0; }
+    }
+    if (!dot && enemy.variant === "guard") damage *= .82;
     if ((this.stats.affixes.burst || 0) && enemy.hp / enemy.maxHp < .3) damage *= 1 + this.stats.affixes.burst / 100;
     enemy.hp -= damage; enemy.hurt = .16; this.burst(enemy.x + enemy.w / 2, enemy.y + enemy.h / 2, crit ? "#fff0a5" : this.element.color, crit ? 12 : 6);
-    if (enemy.hp <= 0) { enemy.dead = true; if (this.stats.depth.dui > 0 || this.stats.affixes.heal) this.player.hp = Math.min(this.stats.hpMax, this.player.hp + 3 + this.stats.depth.dui * 2 + (this.stats.affixes.heal || 0) * .2); }
+    if (!dot) { this.hitStop = Math.max(this.hitStop, .026); this.screenShake = Math.max(this.screenShake, .11); playHitSound(); }
+    if (enemy.hp <= 0) {
+      if (enemy.kind === "dummy") { enemy.hp = enemy.maxHp; return; }
+      enemy.dead = true;
+      if (this.stats.mastery.dui > 0 || this.stats.affixes.heal) p.hp = Math.min(this.stats.hpMax, p.hp + 3 + this.stats.mastery.dui * 2 + (this.stats.affixes.heal || 0) * .2);
+    }
   }
 
   damagePlayer(amount, sourceX) {
     const p = this.player;
-    if (p.invuln > 0) return;
-    const attackFromFront = Math.sign(sourceX - p.x) === p.face;
+    if (this.finished || p.invuln > 0 || (p.dash > .08 && p.dash <= .2)) return;
+    const attackFromFront = Math.sign(sourceX - (p.x + p.w / 2)) === p.face;
     if (p.blocking && attackFromFront) {
-      const perfect = performance.now() - p.blockStarted < 240;
-      if (perfect) { p.invuln = .45; p.blockFlash = .32; this.burst(p.x + p.w / 2, p.y + 30, "#fff0a5", 20); const enemy = this.enemies.find(e => !e.dead && Math.abs(e.x - p.x) < 110); if (enemy) this.hitEnemy(enemy, this.stats.attack * .9, true); return; }
+      if (p.parryArmed > 0) {
+        p.parryArmed = 0; p.invuln = .38; p.blockFlash = .32; p.counterWindow = .7;
+        if (p.skillParry) {
+          this.enemies.filter(e => !e.dead && Math.abs(e.x - p.x) < 135).slice(0, 3).forEach(e => this.hitEnemy(e, this.stats.attack * .75, false, false, "counter"));
+          p.skillParry = false;
+        }
+        p.qi = Math.min(this.stats.qiMax, p.qi + 8);
+        if (this.stats.primary === "metal") this.enemies.filter(e => !e.dead && Math.abs(e.x - p.x) < 100 && Math.sign(e.x - p.x) === p.face).slice(0, 2).forEach(e => this.hitEnemy(e, this.stats.attack * .65, false, false, "counter"));
+        if (this.stats.primary === "earth" || this.stats.mastery.gen >= 1) { p.shield = Math.min(18, p.shield + 9); p.shieldTime = 4; }
+        if (this.stats.primary === "wood" && p.healCooldown <= 0) { p.hp = Math.min(this.stats.hpMax, p.hp + 5); p.healCooldown = 2; }
+        if (this.stats.primary === "fire") p.flameBuff = 3;
+        if (this.stats.primary === "water") this.enemies.filter(e => !e.dead && Math.abs(e.x - p.x) < 140).forEach(e => { e.slow = Math.max(e.slow, 1.5); });
+        this.screenShake = Math.max(this.screenShake, .16); playHitSound(true);
+        this.burst(p.x + p.w / 2, p.y + 30, "#fff0a5", 20); return;
+      }
       amount *= 1 - this.stats.block;
     }
     amount = Math.max(1, amount - this.stats.defense);
+    if (p.shield > 0) {
+      const absorbed = Math.min(p.shield, amount);
+      p.shield -= absorbed; amount -= absorbed;
+      if (absorbed && p.skillShieldCounter) {
+        this.enemies.filter(e => !e.dead && Math.abs(e.x - p.x) < 110).slice(0, 2).forEach(e => this.hitEnemy(e, this.stats.attack * .45, false, false, "counter"));
+        p.skillShieldCounter = false;
+      }
+    }
+    if (amount <= 0) return;
     p.hp -= amount; p.invuln = .65; p.vx = sourceX < p.x ? 180 : -180; this.burst(p.x + p.w / 2, p.y + 30, "#ef5c45", 10);
+    this.screenShake = Math.max(this.screenShake, .2);
+    p.hurt = .2; p.queuedSlash = 0; p.jumpBuffer = 0; p.slash = 0; p.dash = 0; p.qiCast = 0; p.blocking = false; p.skillGuard = 0; p.skillParry = false;
     if (p.hp <= 0) this.finish(false);
   }
 
@@ -697,15 +1128,22 @@ class BattleGame {
     if (this.finished) return;
     this.finished = true;
     window.removeEventListener("keydown", this.boundKeyDown); window.removeEventListener("keyup", this.boundKeyUp);
+    window.removeEventListener("blur", this.boundBlur); document.removeEventListener("visibilitychange", this.boundVisibility);
+    this.clearInput(); $("#pause-overlay").classList.add("hidden");
+    const visual = win ? Promise.resolve(true) : this.defeatVisual();
+    if (this.practice) {
+      if (await visual && !this.disposed) { activeGame = null; showPanel("cultivation"); }
+      return;
+    }
     const rewards = [];
     if (win) {
       saveData.progress.victories += 1; saveData.progress.clears[this.realmKey] += 1; saveData.player.spirit += 12;
-      const count = 2 + (Math.random() < .35 ? 1 : 0);
-      for (let i = 0; i < count && saveData.inventory.length < 80; i++) {
+      const count = 2 + (Math.random() < .35 ? 1 : 0) + this.altars.filter(altar => altar.taken).length;
+      for (let i = 0; i < count && saveData.inventory.length < RULES.config.limits.inventory; i++) {
         const element = Math.random() < .72 ? this.realmKey : randomItem(Object.keys(ELEMENTS));
         const bead = makeBead(element); rewards.push(bead); saveData.inventory.push(bead);
       }
-      const evolved = grantBeadExperience(18 + this.stats.depth.dui * 4);
+      const evolved = grantBeadExperience(18 + this.stats.mastery.dui * 4);
       $("#result-title").textContent = `${this.element.realm} · 试炼成功`;
       $("#result-message").textContent = evolved.length ? `已镶灵珠获得修为。${evolved.join("、")}完成进化。` : "已镶灵珠获得修为，本命剑进一步成长。";
     } else {
@@ -714,23 +1152,43 @@ class BattleGame {
       $("#result-message").textContent = "本次未能击败守境者，已镶灵珠仍获得少量修为。调整路线后可以再次挑战。";
     }
     $("#reward-list").innerHTML = rewards.length ? rewards.map(bead => `<div class="reward-item" style="${beadStyle(bead)}"><b>${esc(bead.name)}</b><small>${QUALITY[bead.quality].zh} · ${bead.affixes.length}词条</small></div>`).join("") : '<div class="empty-message">本次没有获得新灵珠</div>';
-    renderAll(); await saveState(""); $("#result-dialog").showModal();
+    // 原有奖励和保存仍只执行一次；延迟的仅是结果窗口。
+    renderAll();
+    const [, present] = await Promise.all([saveState(""), visual]);
+    if (present && !this.disposed) $("#result-dialog").showModal();
   }
 
   updateHud() {
     $("#hud-hp").textContent = `${Math.ceil(Math.max(0, this.player.hp))} / ${this.stats.hpMax}`;
     $("#hud-qi").textContent = `${Math.floor(this.player.qi)} / ${this.stats.qiMax}`;
     $("#hud-enemies").textContent = this.enemies.filter(enemy => !enemy.dead).length;
+    $("#skill-hud").textContent = this.stats.loadout.active.map((key, index) => `${index ? "E" : "Q"} ${key ? TRIGRAMS[key].skill : "未装备"}${this.player.skillCooldowns[index] > 0 ? ` ${this.player.skillCooldowns[index].toFixed(1)}s` : ""}`).join(" · ");
   }
 
   draw() {
     const ctx = this.ctx; const camera = this.cameraX; const [dark, light] = this.realm.bg;
     const gradient = ctx.createLinearGradient(0, 0, 0, this.height); gradient.addColorStop(0, dark); gradient.addColorStop(1, light); ctx.fillStyle = gradient; ctx.fillRect(0, 0, this.width, this.height);
     this.drawBackground(ctx, camera);
-    ctx.save(); ctx.translate(-camera, 0);
+    ctx.save(); ctx.translate(-camera + (feedback.shake && this.screenShake > 0 ? (Math.random() - .5) * 6 : 0), feedback.shake && this.screenShake > 0 ? (Math.random() - .5) * 4 : 0);
     for (const platform of this.platforms) this.drawPlatform(ctx, platform);
+    this.hazards.forEach(hazard => {
+      ctx.fillStyle = this.element.color; ctx.globalAlpha = Math.sin(this.elapsed * 3) > .45 ? .78 : .3;
+      for (let x = hazard.x; x < hazard.x + hazard.w; x += 15) { ctx.fillRect(x, this.floorY - 8, 9, 8); ctx.fillRect(x + 3, this.floorY - 17, 3, 9); }
+      ctx.globalAlpha = 1;
+    });
+    this.altars.filter(altar => !altar.taken).forEach(altar => {
+      ctx.fillStyle = "#6b5436"; ctx.fillRect(altar.x + 4, altar.y + 17, 20, 11);
+      ctx.fillStyle = "#dfad4c"; ctx.fillRect(altar.x + 10, altar.y + 2, 8, 15);
+      ctx.fillStyle = "#fff0b5"; ctx.fillRect(altar.x + 13, altar.y - 3, 2, 8);
+    });
     this.enemies.forEach(enemy => { if (!enemy.dead) this.drawEnemy(ctx, enemy); });
     this.projectiles.forEach(shot => this.drawProjectile(ctx, shot));
+    this.skillEffects.forEach(effect => {
+      ctx.save(); ctx.globalAlpha = clamp(effect.life * 2, 0, 1); ctx.strokeStyle = effect.color; ctx.lineWidth = 5;
+      if (effect.kind === "line") ctx.strokeRect(effect.x - effect.radius, effect.y - 12, effect.radius * 2, 24);
+      else { ctx.beginPath(); ctx.arc(effect.x, effect.y, effect.radius * (1.35 - effect.life * .5), 0, Math.PI * 2); ctx.stroke(); }
+      ctx.restore();
+    });
     this.particles.forEach(particle => { ctx.globalAlpha = clamp(particle.life * 2, 0, 1); ctx.fillStyle = particle.color; ctx.fillRect(Math.round(particle.x), Math.round(particle.y), 4, 4); }); ctx.globalAlpha = 1;
     this.drawPlayer(ctx, this.player);
     ctx.restore();
@@ -740,10 +1198,30 @@ class BattleGame {
   drawBackground(ctx, camera) {
     ctx.fillStyle = "rgba(5,10,18,.36)";
     for (let i = -1; i < 8; i++) { const x = i * 310 - (camera * .18 % 310); ctx.beginPath(); ctx.moveTo(x, 420); ctx.lineTo(x + 130, 190 - (i % 2) * 55); ctx.lineTo(x + 285, 420); ctx.fill(); }
-    ctx.fillStyle = "rgba(230,235,220,.07)";
-    for (let i = 0; i < 22; i++) { const x = (i * 173 - camera * .35) % 1200; ctx.fillRect(x, 120 + (i * 61 % 250), 45, 4); }
-    ctx.fillStyle = this.element.color; ctx.globalAlpha = .12;
-    for (let i = 0; i < 10; i++) ctx.fillRect((i * 257 - camera * .55) % 1300, 280 + (i % 3) * 35, 9, 150);
+    ctx.save();
+    ctx.globalAlpha = .24;
+    for (let i = -1; i < 9; i++) {
+      const x = i * 190 - (camera * .35 % 190);
+      if (this.realmKey === "metal") {
+        ctx.fillStyle = "#8d9aa8"; ctx.fillRect(x + 62, 245, 14, 205); ctx.fillRect(x + 49, 241, 40, 8);
+        ctx.fillStyle = "#e7e4d6"; ctx.fillRect(x + 66, 205, 6, 50);
+      } else if (this.realmKey === "wood") {
+        ctx.fillStyle = "#214a38"; ctx.fillRect(x + 58, 245, 27, 205);
+        ctx.fillStyle = "#52be7b"; ctx.fillRect(x + 17, 205, 111, 52); ctx.fillRect(x + 34, 175, 81, 32);
+      } else if (this.realmKey === "water") {
+        ctx.fillStyle = "#4083a0"; ctx.fillRect(x + 24, 247, 17, 190); ctx.fillRect(x + 105, 247, 17, 190); ctx.fillRect(x + 14, 233, 118, 14);
+        ctx.fillStyle = "#8bcce0"; ctx.fillRect(x + 63, 258, 5, 179);
+      } else if (this.realmKey === "fire") {
+        ctx.fillStyle = "#7e302b"; ctx.fillRect(x + 43, 278, 72, 158); ctx.fillRect(x + 25, 262, 108, 17);
+        ctx.fillStyle = "#ef5c45"; ctx.fillRect(x + 52, 305, 55, 9); ctx.fillRect(x + 65, 341, 27, 65);
+      } else {
+        ctx.fillStyle = "#a48a67"; ctx.fillRect(x + 35, 257, 82, 177); ctx.fillRect(x + 23, 246, 105, 13);
+        ctx.fillStyle = "#cf9849"; ctx.fillRect(x + 64, 275, 23, 90);
+      }
+    }
+    ctx.restore();
+    ctx.fillStyle = this.element.color; ctx.globalAlpha = .1;
+    for (let i = 0; i < 22; i++) ctx.fillRect((i * 173 - camera * .6) % 1250, 135 + (i * 61 % 250), 18, 3);
     ctx.globalAlpha = 1;
   }
 
@@ -754,7 +1232,32 @@ class BattleGame {
   }
 
   drawPlayer(ctx, p) {
-    const hitFlicker = p.invuln > 0 && Math.floor(p.invuln * 20) % 2;
+    if (this.characterArt?.draw(ctx, p, elementColor(this.stats.primary))) {
+      const x = Math.round(p.x), y = Math.round(p.y);
+      if (p.shield > 0) {
+        ctx.strokeStyle = "#dfad4c"; ctx.lineWidth = 3;
+        ctx.strokeRect(x - 5, y - 5, p.w + 10, p.h + 10);
+      }
+      return;
+    }
+    if (p.hp <= 0 && Number.isFinite(p.deathTime)) {
+      // 缺图/模块失败时也展示完整倒地；只变换绘制副本，不移动实体。
+      const progress = clamp(p.deathTime / 1.05, 0, 1);
+      const eased = progress * progress * (3 - 2 * progress);
+      const angle = Math.PI / 2 * eased;
+      ctx.save();
+      try {
+        ctx.translate(Math.round(p.x + p.w / 2), Math.round(p.y + p.h));
+        ctx.scale(p.face < 0 ? -1 : 1, 1);
+        ctx.translate(8 * progress, (p.deathDrop || 0) - 20 * Math.abs(Math.sin(angle)));
+        ctx.rotate(angle);
+        this.drawPlayerCanvas(ctx, { ...p, x: -p.w / 2, y: -p.h, face: 1, vx: 0 });
+      } finally { ctx.restore(); }
+    } else this.drawPlayerCanvas(ctx, p);
+  }
+
+  drawPlayerCanvas(ctx, p) {
+    const hitFlicker = p.hp > 0 && p.invuln > 0 && Math.floor(p.invuln * 20) % 2;
     const x = Math.round(p.x), y = Math.round(p.y);
     const running = p.onGround && Math.abs(p.vx) > 35;
     const bob = running ? Math.round(Math.sin(p.animTime * 15) * 2) : 0;
@@ -772,7 +1275,11 @@ class BattleGame {
     ctx.fillStyle = "#34465a"; ctx.fillRect(6, 30, 8, 25); ctx.fillRect(29, 29, 8, 25);
     ctx.fillStyle = "#af3f35"; ctx.fillRect(7, 48, 30, 6); ctx.fillStyle = "#dfad4c"; ctx.fillRect(20, 48, 5, 6);
     ctx.fillStyle = "#172230"; ctx.fillRect(9, 54, 26, 8); ctx.fillRect(8 + step, 61, 10, 9); ctx.fillRect(25 - step, 61, 10, 9);
-    ctx.fillStyle = ELEMENTS[this.stats.primary].color; ctx.fillRect(9, 27, 3, 21); ctx.fillRect(32, 29, 3, 17);
+    ctx.fillStyle = "#d4c4a6"; ctx.fillRect(12, 26, 15, 3); ctx.fillRect(20, 29, 3, 10); ctx.fillRect(25, 31, 5, 3);
+    ctx.fillStyle = "#b73e35"; ctx.fillRect(11, 50, 25, 3); ctx.fillRect(29, 53, 5, 13);
+    ctx.fillStyle = "#dfad4c"; ctx.fillRect(15, 43, 8, 3);
+    if (this.stats.primary) { ctx.fillStyle = elementColor(this.stats.primary); ctx.fillRect(16, 42, 5, 5); }
+    ctx.fillStyle = elementColor(this.stats.primary); ctx.fillRect(9, 27, 3, 21); ctx.fillRect(32, 29, 3, 17);
     ctx.fillStyle = "#0a0f16"; ctx.fillRect(25, 17, 3, 3);
 
     if (p.blocking) {
@@ -786,23 +1293,48 @@ class BattleGame {
       const sweep = p.combo === 2 ? -2.45 : p.combo === 3 ? 3.5 : 2.35;
       const angle = start + sweep * progress;
       ctx.save(); ctx.translate(31, 34); ctx.rotate(angle); ctx.fillStyle = "#dfad4c"; ctx.fillRect(-7, -4, 14, 7); ctx.fillStyle = "#eef5f5"; ctx.fillRect(4, -2, p.combo === 3 ? 63 : 52, 5); ctx.fillStyle = "#91a8b8"; ctx.fillRect(15, 3, 40, 2); ctx.restore();
-      ctx.strokeStyle = ELEMENTS[this.stats.primary].color; ctx.globalAlpha = .25 + Math.sin(progress * Math.PI) * .7; ctx.lineWidth = p.combo === 3 ? 11 : 7; ctx.beginPath();
+      ctx.strokeStyle = elementColor(this.stats.primary); ctx.globalAlpha = .25 + Math.sin(progress * Math.PI) * .7; ctx.lineWidth = p.combo === 3 ? 11 : 7; ctx.beginPath();
       if (p.combo === 2) ctx.arc(30, 34, 58, 1.8, -.85, true); else ctx.arc(30, 34, p.combo === 3 ? 70 : 58, -1.35, 1.1); ctx.stroke(); ctx.globalAlpha = 1;
+      if (p.combo === 3 && this.stats.primary === "metal") { ctx.fillStyle = "rgba(231,228,214,.58)"; ctx.fillRect(72, 27, 65, 7); }
+      if (p.combo === 3 && this.stats.primary === "earth") { ctx.fillStyle = "rgba(207,152,73,.54)"; ctx.fillRect(44, 57, 90, 10); }
     } else if (p.qiCast > 0) {
       ctx.fillStyle = "#dfad4c"; ctx.fillRect(27, 30, 11, 6); ctx.fillStyle = "#eaf7ff"; ctx.fillRect(35, 31, 48, 4);
-      ctx.strokeStyle = ELEMENTS[this.stats.primary].color; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(42, 34, 20 + p.qiCast * 35, 0, Math.PI * 2); ctx.stroke();
+      ctx.strokeStyle = elementColor(this.stats.primary); ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(42, 34, 20 + p.qiCast * 35, 0, Math.PI * 2); ctx.stroke();
+      if (p.skillPose) {
+        ctx.fillStyle = elementColor(this.stats.primary);
+        ctx.fillRect(43, 3, 25, 3); ctx.fillRect(46, 11, 21, 3); ctx.fillRect(48, 19, 17, 3);
+        ctx.fillStyle = "#fff4d3"; ctx.fillRect(55, 4, 4, 17);
+      }
     } else {
       ctx.save(); ctx.translate(28, 30); ctx.rotate(-.58); ctx.fillStyle = "#dfad4c"; ctx.fillRect(-5, -3, 13, 6); ctx.fillStyle = "#dce8ee"; ctx.fillRect(7, -2, 43, 4); ctx.restore();
     }
     ctx.restore();
+    if (p.dash > 0) { ctx.fillStyle = elementColor(this.stats.primary); ctx.globalAlpha = .25; ctx.fillRect(x - p.face * 26, y + 10, p.w, p.h - 18); ctx.globalAlpha = 1; }
+    if (p.shield > 0) { ctx.strokeStyle = "#dfad4c"; ctx.lineWidth = 3; ctx.strokeRect(x - 5, y - 5, p.w + 10, p.h + 10); }
   }
 
   drawEnemy(ctx, enemy) {
+    if (enemy.kind === "dummy") {
+      const x = Math.round(enemy.x), y = Math.round(enemy.y);
+      ctx.fillStyle = "#6b4e35"; ctx.fillRect(x + 15, y + 10, 12, enemy.h - 10);
+      ctx.fillStyle = "#bd9060"; ctx.fillRect(x + 5, y + 8, enemy.w - 10, 35);
+      ctx.fillStyle = "#e6c390"; ctx.fillRect(x + 10, y + 13, enemy.w - 20, 7);
+      ctx.fillStyle = "#ffdb9a"; ctx.fillRect(x + 19, y + 21, 5, 5); return;
+    }
     if (this.realmKey === "fire") return this.drawFireEnemy(ctx, enemy);
     const x = Math.round(enemy.x), y = Math.round(enemy.y); ctx.save(); if (enemy.hurt > 0) ctx.globalAlpha = .55;
-    ctx.fillStyle = enemy.kind === "boss" ? "#18131d" : "#17202b"; ctx.fillRect(x, y, enemy.w, enemy.h); ctx.fillStyle = this.element.color; ctx.fillRect(x + 5, y + 8, enemy.w - 10, 9); ctx.fillRect(x + enemy.w / 2 - 4, y + 24, 8, 8);
-    if (enemy.kind === "ranged") { ctx.fillRect(x - 12, y + 22, 14, 5); ctx.fillRect(x + enemy.w - 2, y + 22, 14, 5); }
-    if (enemy.kind === "boss") { ctx.fillStyle = "#dfad4c"; ctx.fillRect(x - 7, y + 12, 7, 46); ctx.fillRect(x + enemy.w, y + 12, 7, 46); }
+    if (enemy.attackState === "windup") { ctx.strokeStyle = "#ffe29b"; ctx.lineWidth = 3; ctx.strokeRect(x - 8, y - 7, enemy.w + 16, enemy.h + 14); }
+    const body = { metal: "#344051", wood: "#244536", water: "#234e66", earth: "#55402e" }[this.realmKey];
+    ctx.fillStyle = body; ctx.fillRect(x + 5, y + 18, enemy.w - 10, enemy.h - 20);
+    ctx.fillStyle = this.element.color; ctx.fillRect(x + 3, y + 8, enemy.w - 6, 12);
+    ctx.fillStyle = "#111925"; ctx.fillRect(x + 9, y + 15, enemy.w - 18, 6);
+    ctx.fillStyle = "#f4e1bb"; ctx.fillRect(x + enemy.w / 2 + enemy.face * 5, y + 24, 5, 5);
+    ctx.fillStyle = "#101a22"; ctx.fillRect(x + 7, y + enemy.h - 14, 10, 14); ctx.fillRect(x + enemy.w - 17, y + enemy.h - 14, 10, 14);
+    if (enemy.variant === "guard" || enemy.variant === "crusher") { ctx.fillStyle = this.element.color; ctx.fillRect(x - 7, y + 25, 12, 30); ctx.fillRect(x + enemy.w - 5, y + 25, 12, 30); }
+    if (enemy.variant === "stalker") { ctx.fillStyle = "#6ed193"; ctx.fillRect(x - 13, y + 29, 17, 5); ctx.fillRect(x + enemy.w, y + 37, 17, 5); }
+    if (enemy.variant === "skirmisher") { ctx.fillStyle = "#8ccfe8"; ctx.fillRect(x - 11, y + 41, 13, 5); ctx.fillRect(x + enemy.w - 2, y + 41, 13, 5); }
+    if (enemy.kind === "ranged") { ctx.fillStyle = this.element.color; ctx.fillRect(x + enemy.w - 2, y + 29, 16, 5); ctx.fillRect(x + enemy.w + 8, y + 23, 8, 17); }
+    if (enemy.kind === "boss") { ctx.fillStyle = "#dfad4c"; ctx.fillRect(x - 9, y + 12, 8, 48); ctx.fillRect(x + enemy.w + 1, y + 12, 8, 48); ctx.fillRect(x + 12, y - 8, enemy.w - 24, 13); }
     ctx.fillStyle = "#08101a"; ctx.fillRect(x, y - 12, enemy.w, 6); ctx.fillStyle = this.element.color; ctx.fillRect(x, y - 12, enemy.w * clamp(enemy.hp / enemy.maxHp, 0, 1), 6); ctx.restore();
   }
 
@@ -865,12 +1397,62 @@ class BattleGame {
 }
 
 function bindUi() {
+  $("#account-login").addEventListener("click", () => $("#account-dialog").showModal());
+  $("#close-account").addEventListener("click", () => $("#account-dialog").close());
+  $("#submit-login").addEventListener("click", () => submitAccount("login"));
+  $("#submit-register").addEventListener("click", () => submitAccount("register"));
+  $("#account-logout").addEventListener("click", async () => {
+    if (activeGame && !activeGame.finished) activeGame.quit();
+    await saveQueue;
+    try {
+      const response = await fetch("/api/auth/logout", { method: "POST", headers: { "X-CSRF-Token": csrfToken } });
+      if (!response.ok) throw new Error("退出失败，请重试");
+      currentUser = null; csrfToken = ""; saveRevision = 0; saveBlocked = false;
+      selectedBeadId = null; pendingSocket = null;
+      await initializeSession();
+      showPanel("sanctuary");
+    } catch (error) { showToast(error.message, true); }
+  });
+  $("#account-import").addEventListener("click", async () => {
+    if (!currentUser || !window.confirm("仅当账号没有存档时可以导入游客存档。确定导入吗？")) return;
+    try {
+      const response = await fetch("/api/auth/import-guest", { method: "POST", headers: { "X-CSRF-Token": csrfToken } });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "导入失败");
+      await loadState();
+      showToast("游客存档已导入当前账号");
+    } catch (error) { showToast(error.message, true); }
+  });
   $$(".nav-button").forEach(button => button.addEventListener("click", () => showPanel(button.dataset.panel)));
   $$('[data-go]').forEach(button => button.addEventListener("click", () => showPanel(button.dataset.go)));
   $("#confirm-socket").addEventListener("click", confirmSocket);
-  $("#leave-run").addEventListener("click", () => { if (activeGame && !activeGame.finished) activeGame.finish(false); });
-  $("#return-sanctuary").addEventListener("click", event => { event.preventDefault(); $("#result-dialog").close(); activeGame = null; showPanel("sanctuary"); });
+  $("#socket-dialog").addEventListener("close", () => { if (!keepSocketPreview) pendingSocket = null; keepSocketPreview = false; });
+  $("#preview-practice").addEventListener("click", () => { keepSocketPreview = true; startRealm("fire", { practice: true, state: previewSocketState() }); });
+  $("#practice-run").addEventListener("click", () => startRealm("fire", { practice: true, state: previewSocketState() }));
+  $("#pause-run").addEventListener("click", () => activeGame?.setPause(!activeGame.pause));
+  $("#resume-run").addEventListener("click", () => activeGame?.setPause(false));
+  $("#retry-run").addEventListener("click", () => { if (activeGame) startRealm(activeGame.realmKey, { practice: activeGame.practice, state: activeGame.practice ? previewSocketState() : saveData }); });
+  $("#quit-run").addEventListener("click", () => activeGame?.quit());
+  $("#leave-run").addEventListener("click", () => activeGame?.quit());
+  $("#settings-run").addEventListener("click", () => { renderControls(); $("#settings-dialog").showModal(); });
+  $("#shake-toggle").checked = feedback.shake;
+  $("#sound-toggle").checked = feedback.sound;
+  for (const [id, key] of [["shake-toggle", "shake"], ["sound-toggle", "sound"]]) {
+    $(`#${id}`).addEventListener("change", event => { feedback[key] = event.target.checked; localStorage.setItem("daoblade-feedback", JSON.stringify(feedback)); });
+  }
+  $("#settings-dialog").addEventListener("close", () => { if (pendingRebindListener) window.removeEventListener("keydown", pendingRebindListener, true); pendingRebindListener = null; });
+  $("#close-settings").addEventListener("click", () => $("#settings-dialog").close());
+  $("#reset-controls").addEventListener("click", () => { controls = { ...DEFAULT_CONTROLS }; localStorage.setItem("daoblade-controls", JSON.stringify(controls)); renderControls(); });
+  $("#return-sanctuary").addEventListener("click", event => {
+    event.preventDefault(); $("#result-dialog").close();
+    activeGame?.destroy(); activeGame = null; showPanel("sanctuary");
+  });
+  $("#retry-result").addEventListener("click", event => {
+    event.preventDefault(); $("#result-dialog").close();
+    if (activeGame) startRealm(activeGame.realmKey);
+  });
+  renderControls();
 }
 
 bindUi();
-loadState();
+initializeSession();

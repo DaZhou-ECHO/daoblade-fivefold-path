@@ -1,0 +1,8 @@
+{
+  "tool": "built-in imagegen + Pillow crop/alpha/palette processing",
+  "sheetSha256": "669a3724846312935672a60851d8209bf6514824e9d69b5462005a470533cfa5",
+  "swordSha256": "e69b7f7605557dce31fcf91e606bdde1b68b84d90bf9e9a8ae1b6f834187732f",
+  "frameCount": 12,
+  "bodyPalette": 32,
+  "swordPalette": 16
+}
