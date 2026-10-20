@@ -18,7 +18,7 @@ function gameContext(touchButtons = []) {
   });
   require("./helpers/load-rules.cjs")(context);
   const source = fs.readFileSync(path.join(__dirname, "..", "static", "js", "game.js"), "utf8").replace(/\nbindUi\(\);\s*initializeSession\(\);\s*$/, "");
-  vm.runInContext(`${source}\nthis.api = { BattleGame, defaultState: DEFAULT_STATE, primarySecondary, previewSocketState, setState: value => { saveData = value; }, setSocket: value => { pendingSocket = value; } };`, context);
+  vm.runInContext(`${source}\nthis.api = { BattleGame, defaultState: DEFAULT_STATE, primarySecondary, previewSocketState, setState: value => { saveData = value; }, setSocket: value => { pendingSocket = value; }, setAudioPlayer: value => { battleAudio = value; } };`, context);
   return { ...context.api, dispatchWindow: (name, event) => listeners.get(name)?.(event), listeners };
 }
 
@@ -90,6 +90,17 @@ function trainedState(api, element) {
   state.cultivation.qian[0] = { id: `test-${element}`, name: "试炼珠", element, level: 3, quality: 1, xp: 0, affixes: [] };
   return state;
 }
+
+test("007 实际事件音效消费者在暂停和结束时停止，销毁后的输入不补播", () => {
+  const api=gameContext(),played=[];let stops=0;
+  api.setAudioPlayer({play:event=>played.push(event.type),stop:()=>stops++});
+  const game=new api.BattleGame("fire",{practice:true});
+  game.performAction("slash");assert.deepEqual(played,["slash_started"]);
+  game.setPause(true);assert.equal(stops,1);
+  game.performAction("slash");assert.equal(played.length,1);
+  game.setPause(false);game.destroy();assert.equal(stops,2);
+  game.performAction("slash");assert.equal(played.length,1);
+});
 
 test("006 挥空只有起手，命中按真实判定发一次事件，持续伤害独立标记", () => {
   const api=gameContext(), game=new api.BattleGame("fire",{practice:true}), seen=[];

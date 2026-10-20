@@ -37,7 +37,7 @@ let pendingRebindListener = null;
 const DEFAULT_CONTROLS = Object.freeze({ left: "KeyA", right: "KeyD", jump: "Space", slash: "KeyJ", block: "KeyK", qi: "KeyL", dao: "KeyQ", dao2: "KeyE", dash: "ShiftLeft", pause: "Escape" });
 let controls = loadControls();
 let feedback = loadFeedback();
-let audioContext = null;
+let battleAudio = null;
 const ACTION_LABELS = { left: "左移", right: "右移", jump: "跳跃", slash: "劈砍", block: "格挡", qi: "剑气", dao: "技能一", dao2: "技能二", dash: "闪避", pause: "暂停" };
 
 const $ = selector => document.querySelector(selector);
@@ -63,20 +63,13 @@ function loadFeedback() {
   return { shake: true, sound: false };
 }
 
-function playHitSound(parry = false) {
-  if (!feedback.sound || !window.AudioContext) return;
-  try {
-    audioContext ||= new window.AudioContext();
-    const oscillator = audioContext.createOscillator();
-    const gain = audioContext.createGain();
-    oscillator.type = parry ? "triangle" : "square";
-    oscillator.frequency.setValueAtTime(parry ? 740 : 180, audioContext.currentTime);
-    oscillator.frequency.exponentialRampToValueAtTime(parry ? 420 : 90, audioContext.currentTime + .075);
-    gain.gain.setValueAtTime(.025, audioContext.currentTime);
-    gain.gain.exponentialRampToValueAtTime(.001, audioContext.currentTime + .08);
-    oscillator.connect(gain).connect(audioContext.destination);
-    oscillator.start(); oscillator.stop(audioContext.currentTime + .085);
-  } catch (_) { /* 浏览器禁止音频时游戏仍正常运行。 */ }
+function playBattleSound(event) {
+  if (!globalThis.DaoBladeBattleAudio) return;
+  battleAudio ||= globalThis.DaoBladeBattleAudio.createPlayer({
+    createContext: () => window.AudioContext ? new window.AudioContext() : null,
+    enabled: () => feedback.sound,
+  });
+  battleAudio.play(event);
 }
 
 function actionForCode(code) {
@@ -611,8 +604,8 @@ class BattleGame {
   }
 
   handleBattleEvent(event) {
-    if (event.type === "enemy_hit" && !event.periodic) playHitSound();
-    else if (event.type === "player_parried") playHitSound(true);
+    if (event.type === "battle_ended") battleAudio?.stop();
+    else playBattleSound(event);
   }
 
   endBattleEvents(outcome) {
@@ -649,6 +642,7 @@ class BattleGame {
   setPause(value) {
     if (this.finished) return;
     this.pause = value;
+    if (value) battleAudio?.stop();
     this.lastTime = performance.now();
     this.clearInput();
     $("#pause-overlay").classList.toggle("hidden", !value);
@@ -1504,7 +1498,11 @@ function bindUi() {
   $("#shake-toggle").checked = feedback.shake;
   $("#sound-toggle").checked = feedback.sound;
   for (const [id, key] of [["shake-toggle", "shake"], ["sound-toggle", "sound"]]) {
-    $(`#${id}`).addEventListener("change", event => { feedback[key] = event.target.checked; localStorage.setItem("daoblade-feedback", JSON.stringify(feedback)); });
+    $(`#${id}`).addEventListener("change", event => {
+      feedback[key] = event.target.checked;
+      if (key === "sound" && !feedback.sound) battleAudio?.stop();
+      localStorage.setItem("daoblade-feedback", JSON.stringify(feedback));
+    });
   }
   $("#settings-dialog").addEventListener("close", () => { if (pendingRebindListener) window.removeEventListener("keydown", pendingRebindListener, true); pendingRebindListener = null; });
   $("#close-settings").addEventListener("click", () => $("#settings-dialog").close());
