@@ -412,3 +412,44 @@ test("真实游戏入口遇到剑图绘制异常立即回退，下一次绘制�
   assert.equal(ctx.saveDepth, 0);
   assert.equal(JSON.stringify(game.player), before);
 });
+
+test("倒地逐阶段双向旋转整个人与同一把剑，握点重合且不改实体状态", async () => {
+  const renderer = await readyRenderer();
+  for (const face of [-1, 1]) {
+    const angles = [];
+    for (const progress of [0, .18, .42, .6, .78, .9, 1]) {
+      const current = player({ hp: 0, invuln: .16, face, deathTime: progress * 1.05, deathDrop: 0 });
+      const before = structuredClone(current), ctx = recordingContext();
+      assert.equal(renderer.draw(ctx, current), true);
+      const frame = renderer.frame(current);
+      const [legs, body, sword, hand] = ctx.images;
+      assert.equal(legs.image, renderer.images.idle);
+      assert.equal(sword.image, renderer.images.weapon);
+      closePoint(worldPoint(sword, sword.args[0] + 10, sword.args[1] + 54),
+        worldPoint(body, frame.hand[0] - 32, frame.hand[1] - 90));
+      closePoint(worldPoint(hand, frame.hand[0] - 32, frame.hand[1] - 90),
+        worldPoint(body, frame.hand[0] - 32, frame.hand[1] - 90));
+      assert.ok(ctx.images.every(command => command.alpha === 1), "死亡不冻结在受击闪烁的半透明状态");
+      assert.equal(ctx.saveDepth, 0);
+      assert.deepEqual(current, before);
+      angles.push(frame.rootAngle);
+    }
+    assert.equal(angles[0], 0);
+    assert.ok(angles[1] < 0, "先有受击后仰");
+    assert.ok(angles[2] > 0, "再失衡前倾");
+    assert.ok(Math.abs(angles.at(-1) - Math.PI / 2) < 1e-9, "最终全身横卧");
+  }
+});
+
+test("模块缺省时倒地也能安全绘制且不会改动碰撞箱", () => {
+  for (const face of [-1, 1]) {
+    const { game, ctx } = gameContext(null);
+    Object.assign(game.player, { hp: 0, deathTime: 1.05, deathDrop: 12, face });
+    const before = JSON.stringify(game.player);
+    assert.doesNotThrow(() => game.drawPlayer(ctx, game.player));
+    assert.ok(ctx.rectangles.length > 10);
+    assert.equal(ctx.saveDepth, 0);
+    assert.equal(JSON.stringify(game.player), before);
+    assert.equal(game.player.w, 38); assert.equal(game.player.h, 70);
+  }
+});

@@ -41,6 +41,7 @@
   // 只消费已有计时器。腰部以上与腿部分层，脚底不随上身摆动。
   // 动作起落均回到基础握点/剑角；不向战斗对象写入渲染状态。
   const clamp01 = value => Math.max(0, Math.min(1, value));
+  const DEFEAT_DURATION = 1.05;
   function keyframe(progress, keys) {
     for (let i = 1; i < keys.length; i += 1) {
       if (progress <= keys[i][0]) {
@@ -77,7 +78,13 @@
       lean = action === "jump" ? -.08 : .08;
       angle += action === "jump" ? -.2 : .2;
     } else if (action === "death") {
-      lean = -.48; angle = 2.7;
+      const progress = clamp01((player.deathTime || 0) / DEFEAT_DURATION);
+      const rootAngle = keyframe(progress, [[0, 0], [.18, -.12], [.42, .52],
+        [.78, Math.PI / 2], [.9, 1.48], [1, Math.PI / 2]]);
+      return { ...base, action, imageKey: "idle", index: 0, lean: 0, rig: true,
+        weaponAngle: keyframe(progress, [[0, angle], [.35, .8], [.78, .08], [1, 0]]),
+        rootAngle, rootX: 8 * progress,
+        rootY: (player.deathDrop || 0) - 20 * Math.abs(Math.sin(rootAngle)) };
     }
     return { ...base, action, imageKey: "idle", index: 0, lean, weaponAngle: angle, rig: true };
   }
@@ -174,11 +181,15 @@
       ctx.save();
       try {
         ctx.imageSmoothingEnabled = false;
-        if (player.invuln > 0 && Math.floor(player.invuln * 20) % 2) ctx.globalAlpha = .38;
+        if (player.hp > 0 && player.invuln > 0 && Math.floor(player.invuln * 20) % 2) ctx.globalAlpha = .38;
         ctx.translate(Math.round(player.x + player.w / 2), Math.round(player.y + player.h));
         ctx.scale(player.face < 0 ? -1 : 1, 1);
         ctx.fillStyle = "rgba(0,0,0,.3)";
-        ctx.fillRect(-19, -2, 38, 4);
+        ctx.fillRect(-19, (player.deathDrop || 0) - 2, 38, 4);
+        if (frame.action === "death") {
+          ctx.translate(frame.rootX, frame.rootY);
+          ctx.rotate(frame.rootAngle);
+        }
         const image = this.images[frame.imageKey || frame.action];
         if (frame.rig) {
           ctx.drawImage(image, 0, 66, 64, 30, -footX, 66 - footY, 64, 30);
@@ -215,7 +226,7 @@
     }
   }
 
-  const api = { Renderer, validManifest, selectAction, renderer: new Renderer() };
+  const api = { Renderer, validManifest, selectAction, DEFEAT_DURATION, renderer: new Renderer() };
   root.DaoBladeCharacterArt = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(typeof globalThis !== "undefined" ? globalThis : window);

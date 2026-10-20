@@ -268,6 +268,9 @@ async function submitAccount(action) {
 }
 
 function showPanel(name) {
+  if (name !== "game" && activeGame?.defeat) {
+    activeGame.destroy(); activeGame = null;
+  }
   if (activeGame && name !== "game" && !activeGame.finished) activeGame.setPause(true);
   $$(".panel").forEach(panel => panel.classList.toggle("active", panel.id === `panel-${name}`));
   $$(".nav-button").forEach(button => button.classList.toggle("active", button.dataset.panel === name));
@@ -592,6 +595,8 @@ class BattleGame {
     this.cameraX = 0;
     this.pause = false;
     this.finished = false;
+    this.disposed = false;
+    this.defeat = null;
     this.lastTime = performance.now();
     this.elapsed = 0;
     this.screenShake = 0;
@@ -663,7 +668,9 @@ class BattleGame {
   }
 
   destroy() {
+    this.disposed = true;
     this.finished = true;
+    if (this.defeat) { this.defeat.resolve(false); this.defeat = null; }
     window.removeEventListener("keydown", this.boundKeyDown);
     window.removeEventListener("keyup", this.boundKeyUp);
     window.removeEventListener("blur", this.boundBlur);
@@ -689,7 +696,7 @@ class BattleGame {
     if (action) event.preventDefault();
     if (event.repeat) return;
     if (action === "pause") return this.setPause(!this.pause);
-    if (this.pause || !action) return;
+    if (this.finished || this.pause || !action) return;
     this.keys.add(action);
     this.performAction(action);
   }
@@ -701,6 +708,7 @@ class BattleGame {
   }
 
   performAction(action) {
+    if (this.finished || this.pause) return;
     if (action === "jump") this.jump();
     else if (action === "slash") this.slash();
     else if (action === "block") this.beginBlock();
@@ -715,7 +723,7 @@ class BattleGame {
       button.onpointerdown = event => {
         event.preventDefault();
         const action = button.dataset.touch;
-        if (this.pause) return;
+        if (this.finished || this.pause) return;
         if (action === "left" || action === "right") this.keys.add(action);
         this.performAction(action);
       };
@@ -841,19 +849,48 @@ class BattleGame {
   }
 
   loop(time) {
-    if (this.finished) return;
-    const dt = Math.min((time - this.lastTime) / 1000, .034);
+    if (this.disposed || (this.finished && !this.defeat)) return;
+    const dt = Math.max(0, Math.min((time - this.lastTime) / 1000, .034));
     this.lastTime = time;
-    if (!this.pause) {
+    if (this.defeat) {
+      if (!document.hidden) this.advanceDefeat(dt);
+    } else if (!this.pause) {
       this.screenShake = Math.max(0, this.screenShake - dt);
       if (this.hitStop > 0) this.hitStop = Math.max(0, this.hitStop - dt);
       else this.update(dt);
     }
     this.draw();
-    requestAnimationFrame(next => this.loop(next));
+    // 先画出最终倒地帧，再允许结算对话框出现。
+    if (this.defeat && this.defeat.elapsed >= this.defeat.duration) {
+      this.defeat.resolve(true); this.defeat = null;
+    }
+    if (!this.disposed && (!this.finished || this.defeat)) requestAnimationFrame(next => this.loop(next));
+  }
+
+  advanceDefeat(dt) {
+    if (!this.defeat) return;
+    this.defeat.elapsed = Math.min(this.defeat.duration, this.defeat.elapsed + Math.max(0, dt));
+    this.player.deathTime = this.defeat.elapsed;
+    const fall = Math.min(1, this.defeat.elapsed / .45);
+    this.player.deathDrop = this.defeat.initialOffset + this.defeat.drop * fall * fall;
+  }
+
+  defeatVisual() {
+    this.player.deathTime = 0;
+    const foot = this.player.y + this.player.h;
+    const ground = this.platforms.filter(platform => platform.y >= foot - 1
+      && this.player.x + this.player.w > platform.x && this.player.x < platform.x + platform.w)
+      .reduce((nearest, platform) => Math.min(nearest, platform.y), this.floorY);
+    const initialOffset = Math.min(0, this.floorY - foot);
+    this.player.deathDrop = initialOffset;
+    return new Promise(resolve => {
+      this.defeat = { elapsed: 0, duration: globalThis.DaoBladeCharacterArt?.DEFEAT_DURATION || 1.05,
+        initialOffset, drop: Math.max(0, ground - foot - initialOffset), resolve };
+    });
   }
 
   update(dt) {
+    if (this.finished) return;
     const p = this.player;
     this.elapsed += dt;
     p.animTime += dt;
@@ -896,6 +933,7 @@ class BattleGame {
       this.hazardTimer = 1;
       this.damagePlayer(9, p.x + (p.face > 0 ? 100 : -100));
     }
+    if (this.finished) { this.updateHud(); return; }
     this.altars.forEach(altar => {
       if (!altar.taken && this.overlap(p.x, p.y, p.w, p.h, altar.x, altar.y, 28, 28)) {
         altar.taken = true;
@@ -906,6 +944,7 @@ class BattleGame {
       }
     });
     if (p.y > this.height + 120) this.damagePlayer(30, p.x - 20);
+    if (this.finished) { this.updateHud(); return; }
     if (p.y > this.height + 80) { p.x = Math.max(40, p.x - 180); p.y = 280; p.vy = 0; }
 
     if (p.slash > 0) {
@@ -923,6 +962,7 @@ class BattleGame {
       });
     }
     this.updateEnemies(dt);
+    if (this.finished) { this.updateHud(); return; }
     this.updateProjectiles(dt);
     this.particles.forEach(particle => { particle.x += particle.vx * dt; particle.y += particle.vy * dt; particle.life -= dt; });
     this.particles = this.particles.filter(particle => particle.life > 0);
@@ -936,6 +976,7 @@ class BattleGame {
   updateEnemies(dt) {
     const p = this.player;
     for (const enemy of this.enemies) {
+      if (this.finished) break;
       if (enemy.dead) continue;
       if (enemy.kind === "dummy") { enemy.hp = Math.min(enemy.maxHp, enemy.hp + 60 * dt); enemy.hurt = Math.max(0, enemy.hurt - dt); continue; }
       enemy.hurt = Math.max(0, enemy.hurt - dt); enemy.attackCd -= dt; enemy.slow = Math.max(0, enemy.slow - dt);
@@ -1046,6 +1087,7 @@ class BattleGame {
 
   updateProjectiles(dt) {
     for (const shot of this.projectiles) {
+      if (this.finished) break;
       shot.vy += (shot.gravity || 0) * dt;
       shot.x += shot.vx * dt; shot.y += shot.vy * dt; shot.life -= dt;
       if (shot.owner === "player") {
@@ -1066,7 +1108,7 @@ class BattleGame {
   }
 
   hitEnemy(enemy, damage, crit = false, dot = false, kind = "skill") {
-    if (enemy.dead) return;
+    if (this.finished || enemy.dead) return;
     const p = this.player;
     if (!dot) {
       if (this.stats.primary === "fire") {
@@ -1129,7 +1171,7 @@ class BattleGame {
 
   damagePlayer(amount, sourceX) {
     const p = this.player;
-    if (p.invuln > 0 || (p.dash > .08 && p.dash <= .2)) return;
+    if (this.finished || p.invuln > 0 || (p.dash > .08 && p.dash <= .2)) return;
     const attackFromFront = Math.sign(sourceX - (p.x + p.w / 2)) === p.face;
     if (p.blocking && attackFromFront) {
       if (p.parryArmed > 0) {
@@ -1174,7 +1216,11 @@ class BattleGame {
     window.removeEventListener("keydown", this.boundKeyDown); window.removeEventListener("keyup", this.boundKeyUp);
     window.removeEventListener("blur", this.boundBlur); document.removeEventListener("visibilitychange", this.boundVisibility);
     this.clearInput(); $("#pause-overlay").classList.add("hidden");
-    if (this.practice) { activeGame = null; showPanel("cultivation"); return; }
+    const visual = win ? Promise.resolve(true) : this.defeatVisual();
+    if (this.practice) {
+      if (await visual && !this.disposed) { activeGame = null; showPanel("cultivation"); }
+      return;
+    }
     const rewards = [];
     if (win) {
       saveData.progress.victories += 1; saveData.progress.clears[this.realmKey] += 1; saveData.player.spirit += 12;
@@ -1192,7 +1238,10 @@ class BattleGame {
       $("#result-message").textContent = "本次未能击败守境者，已镶灵珠仍获得少量修为。调整路线后可以再次挑战。";
     }
     $("#reward-list").innerHTML = rewards.length ? rewards.map(bead => `<div class="reward-item" style="${beadStyle(bead)}"><b>${esc(bead.name)}</b><small>${QUALITY[bead.quality].zh} · ${bead.affixes.length}词条</small></div>`).join("") : '<div class="empty-message">本次没有获得新灵珠</div>';
-    renderAll(); await saveState(""); $("#result-dialog").showModal();
+    // 原有奖励和保存仍只执行一次；延迟的仅是结果窗口。
+    renderAll();
+    const [, present] = await Promise.all([saveState(""), visual]);
+    if (present && !this.disposed) $("#result-dialog").showModal();
   }
 
   updateHud() {
@@ -1277,11 +1326,24 @@ class BattleGame {
       }
       return;
     }
-    this.drawPlayerCanvas(ctx, p);
+    if (p.hp <= 0 && Number.isFinite(p.deathTime)) {
+      // 缺图/模块失败时也展示完整倒地；只变换绘制副本，不移动实体。
+      const progress = clamp(p.deathTime / 1.05, 0, 1);
+      const eased = progress * progress * (3 - 2 * progress);
+      const angle = Math.PI / 2 * eased;
+      ctx.save();
+      try {
+        ctx.translate(Math.round(p.x + p.w / 2), Math.round(p.y + p.h));
+        ctx.scale(p.face < 0 ? -1 : 1, 1);
+        ctx.translate(8 * progress, (p.deathDrop || 0) - 20 * Math.abs(Math.sin(angle)));
+        ctx.rotate(angle);
+        this.drawPlayerCanvas(ctx, { ...p, x: -p.w / 2, y: -p.h, face: 1, vx: 0 });
+      } finally { ctx.restore(); }
+    } else this.drawPlayerCanvas(ctx, p);
   }
 
   drawPlayerCanvas(ctx, p) {
-    const hitFlicker = p.invuln > 0 && Math.floor(p.invuln * 20) % 2;
+    const hitFlicker = p.hp > 0 && p.invuln > 0 && Math.floor(p.invuln * 20) % 2;
     const x = Math.round(p.x), y = Math.round(p.y);
     const running = p.onGround && Math.abs(p.vx) > 35;
     const bob = running ? Math.round(Math.sin(p.animTime * 15) * 2) : 0;
@@ -1467,7 +1529,14 @@ function bindUi() {
   $("#settings-dialog").addEventListener("close", () => { if (pendingRebindListener) window.removeEventListener("keydown", pendingRebindListener, true); pendingRebindListener = null; });
   $("#close-settings").addEventListener("click", () => $("#settings-dialog").close());
   $("#reset-controls").addEventListener("click", () => { controls = { ...DEFAULT_CONTROLS }; localStorage.setItem("daoblade-controls", JSON.stringify(controls)); renderControls(); });
-  $("#return-sanctuary").addEventListener("click", event => { event.preventDefault(); $("#result-dialog").close(); activeGame = null; showPanel("sanctuary"); });
+  $("#return-sanctuary").addEventListener("click", event => {
+    event.preventDefault(); $("#result-dialog").close();
+    activeGame?.destroy(); activeGame = null; showPanel("sanctuary");
+  });
+  $("#retry-result").addEventListener("click", event => {
+    event.preventDefault(); $("#result-dialog").close();
+    if (activeGame) startRealm(activeGame.realmKey);
+  });
   renderControls();
 }
 

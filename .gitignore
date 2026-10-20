@@ -5,6 +5,6 @@ __pycache__/
 instance/*.db
 instance/*.sqlite3
 .env
-/.pytest-tmp-character/
+/.pytest-tmp-character*/
 /work/
 
