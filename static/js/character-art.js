@@ -41,6 +41,30 @@
   // 只消费已有计时器。腰部以上与腿部分层，脚底不随上身摆动。
   // 动作起落均回到基础握点/剑角；不向战斗对象写入渲染状态。
   const clamp01 = value => Math.max(0, Math.min(1, value));
+  // 以现有竖直速度驱动腿部，跨越最高点时连续恢复；不添加物理计时器。
+  function airborneLegs(player) {
+    if (player.onGround || player.hp <= 0) return null;
+    const rise = clamp01(-(player.vy || 0) / 500);
+    const fall = clamp01((player.vy || 0) / 500);
+    return [
+      { x: 26, sourceX: 0, thigh: -.75 * rise + .08 * fall, knee: 1.25 * rise + .06 * fall },
+      { x: 39, sourceX: 32, thigh: .45 * rise - .12 * fall, knee: .8 * rise + .12 * fall },
+    ];
+  }
+
+  function drawLegs(ctx, image, legs, footX, footY) {
+    for (const leg of legs) {
+      ctx.save();
+      try {
+        ctx.translate(leg.x - footX, 66 - footY);
+        ctx.rotate(leg.thigh);
+        ctx.drawImage(image, leg.sourceX, 66, 32, 11, leg.sourceX - leg.x, 0, 32, 11);
+        ctx.translate(0, 11);
+        ctx.rotate(leg.knee);
+        ctx.drawImage(image, leg.sourceX, 77, 32, 19, leg.sourceX - leg.x, 0, 32, 19);
+      } finally { ctx.restore(); }
+    }
+  }
   const DEFEAT_DURATION = 1.05;
   function keyframe(progress, keys) {
     for (let i = 1; i < keys.length; i += 1) {
@@ -165,7 +189,7 @@
       const action = selectAction(player);
       if (this.status !== "ready" || !action) return null;
       if (!["idle", "run"].includes(action)) {
-        return combatPose(player, action, this.manifest.animations.idle.frames[0]);
+        return { ...combatPose(player, action, this.manifest.animations.idle.frames[0]), legs: airborneLegs(player) };
       }
       const animation = this.manifest.animations[action];
       const time = Number.isFinite(player.animTime) ? Math.max(0, player.animTime) : 0;
@@ -192,7 +216,8 @@
         }
         const image = this.images[frame.imageKey || frame.action];
         if (frame.rig) {
-          ctx.drawImage(image, 0, 66, 64, 30, -footX, 66 - footY, 64, 30);
+          if (frame.legs) drawLegs(ctx, image, frame.legs, footX, footY);
+          else ctx.drawImage(image, 0, 66, 64, 30, -footX, 66 - footY, 64, 30);
         } else {
           ctx.drawImage(image, frame.index * 64, 0, 64, 96, -footX, -footY, 64, 96);
         }

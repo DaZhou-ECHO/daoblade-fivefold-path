@@ -45,7 +45,7 @@
     ctx.font = "14px monospace";
     ctx.fillText("1x / 64 x 96", 125, 55);
     ctx.fillText("3x / NEAREST", 550, 35);
-    const phase = action.value === "death" && paused ? Math.min(1, elapsed) : elapsed % 1;
+    const phase = paused && !["idle", "run"].includes(action.value) ? Math.min(1, elapsed) : elapsed % 1;
     if (!paused) phaseControl.value = String(Math.round(phase * 100));
     for (const [x, floor, scale] of [[170, 250, 1], [620, 320, 3]]) {
       ctx.fillStyle = "#867450";
@@ -57,7 +57,9 @@
         slash: remaining * .28, slashDuration: .28, combo: Number(action.value.at(-1)),
       });
       if (["block", "parry"].includes(action.value)) Object.assign(player, { blocking: true, blockFlash: action.value === "parry" ? .2 : 0 });
-      if (["jump", "fall"].includes(action.value)) Object.assign(player, { onGround: false, vy: action.value === "jump" ? -100 : 100 });
+      if (["jump", "fall"].includes(action.value)) Object.assign(player, {
+        onGround: false, vy: action.value === "jump" ? -500 * (1 - phase) : 500 * phase,
+      });
       if (action.value === "dash") player.dash = remaining * .2;
       if (action.value === "qi") player.qiCast = remaining * .25;
       if (action.value === "hurt") player.hurt = remaining * .2;
