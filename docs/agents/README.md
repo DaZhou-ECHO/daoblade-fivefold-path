@@ -2,6 +2,7 @@
 
 | 任务ID | 任务目标 | 状态 | 当前接续Agent | 分支/基线 | 最新交接链接 | 依赖或阻塞 |
 |---|---|---|---|---|---|---|
+| 028-d02-guard-input-buffer | 初次普通格挡短缓冲 | 已完成 | agent-20261021-0031-c8e4 | work/028-d02-guard-input-buffer-local / ca0c240 | [交接](028-d02-guard-input-buffer/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 99/154通过；0.18秒普通挡/三帧率，不自动弹反；水境胜利待验收，仅本地 |
 | 027-d06-water-playtest | 水境真实主路与首领验证 | 待验收 | agent-20261021-0031-c8e4 | work/027-d06-water-playtest-local / e62987d | [交接](027-d06-water-playtest/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 真实五守卫/剑碑刷新通过；首领首轮失败，初次K缓冲转028；仅本地 |
 | 026-d02-held-guard | 持续防守受击恢复与输入清理 | 已完成 | agent-20261021-0031-c8e4 | work/026-d02-held-guard-local / 64f48ac | [交接](026-d02-held-guard/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 99/150通过；真实水境持续K对照；普通挡恢复不自动弹反，仅本地 |
 | 025-d02-defense-origin | 贴身格挡与击退方向修正 | 已完成 | agent-20261021-0031-c8e4 | work/025-d02-defense-origin-local / 470dca3 | [交接](025-d02-defense-origin/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 99/146通过；同夹具旧代码4失败，新代码通过；持续K另转026，仅本地 |

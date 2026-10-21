@@ -745,3 +745,40 @@ test("026 未持有输入的技能格挡不延续，背击只恢复普通挡且�
   const back=bufferGame();back.keyDown({code:"KeyK",preventDefault(){}});back.damagePlayer(12,back.player.x-100);assert.equal(back.player.parryArmed,0);bufferSteps(back,8);assert.equal(back.player.blocking,true);assert.equal(back.player.parryArmed,0);
   const dead=bufferGame();dead.keyDown({code:"KeyK",preventDefault(){}});dead.damagePlayer(999,dead.player.x-100);assert.equal(dead.finished,true);assert.equal(dead.player.guardRecovery,false);
 });
+
+
+test("028 收招末尾持有K在窗口内恢复普通挡，不提前打断且不弹反",()=>{
+  for(const field of ["qiCast","hurt","dash","slash"]){
+    const g=bufferGame();g.player[field]=.09;g.player.combo=3;
+    g.keyDown({code:"KeyK",preventDefault(){}});assert.equal(g.player.blocking,false);assert.equal(g.player[field],.09);
+    bufferSteps(g,4);assert.equal(g.player.blocking,true,field);assert.equal(g.player.parryArmed,0);
+  }
+});
+
+
+test("028 普通挡缓冲过期不延迟举盾，新攻击/受击/暂停取消",()=>{
+  const long=bufferGame();long.player.hurt=.3;long.keyDown({code:"KeyK",preventDefault(){}});bufferSteps(long,15);assert.equal(long.player.blocking,false);assert.equal(long.guardInput,0);
+  for(const cancel of [g=>g.keyUp({code:"KeyK"}),g=>g.setPause(true),g=>g.destroy(),g=>g.damagePlayer(12,g.player.x-100),...['slash','qi','dao','dao2','dash'].map(a=>g=>g.performAction(a))]){
+    const g=bufferGame();g.player.qiCast=.09;g.keyDown({code:"KeyK",preventDefault(){}});assert.ok(g.guardInput);cancel(g);assert.equal(g.guardInput,0);
+    if(!g.disposed){bufferSteps(g,12);assert.equal(g.player.blocking,false);}
+  }
+});
+test("028 触控与键盘持有共用缓冲，最后来源松开取消，短按不遗留",()=>{
+  for(const first of ["keyboard","touch"]){
+    const b=touchButton("block"),api=gameContext([b]),g=new api.BattleGame("fire",{practice:true});g.bindTouch();g.player.qiCast=.09;
+    g.keyDown({code:"KeyK",preventDefault(){}});b.onpointerdown(pointer(28));
+    if(first==="keyboard")g.keyUp({code:"KeyK"});else b.onpointerup(pointer(28));
+    bufferSteps(g,4);assert.equal(g.player.blocking,true);assert.equal(g.player.parryArmed,0);
+    if(first==="keyboard")b.onpointerup(pointer(28));else g.keyUp({code:"KeyK"});assert.equal(g.player.blocking,false);
+  }
+  const g=bufferGame();g.player.qiCast=.09;g.keyDown({code:"KeyK",preventDefault(){}});g.keyUp({code:"KeyK"});bufferSteps(g,4);assert.equal(g.player.blocking,false);
+});
+test("028 立即合法的K保留原弹反，第三段未结束不可提前取消，帧率不改普通挡语义",()=>{
+  const ready=bufferGame();ready.keyDown({code:"KeyK",preventDefault(){}});assert.equal(ready.player.parryArmed,.22);assert.equal(ready.player.parryLock,.5);
+  for(const dt of [1/30,1/60,1/120]){
+    const g=bufferGame();g.player.slash=.15;g.player.combo=3;g.keyDown({code:"KeyK",preventDefault(){}});
+    g.update(dt);assert.equal(g.player.blocking,false);assert.ok(g.player.slash>0);
+    for(let i=1;i<Math.ceil(.17/dt);i++)g.update(dt);
+    assert.equal(g.player.blocking,true);assert.equal(g.player.parryArmed,0);assert.equal(g.player.parryLock,0);
+  }
+});

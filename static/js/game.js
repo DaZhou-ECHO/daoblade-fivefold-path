@@ -534,7 +534,7 @@ class BattleGame {
     this.labPending=false; this.labError=false;
     this.lab = this.practice||this.labRun ? options.labCompiled || null : null;
     this.labMetrics = { direct: 0, burn: 0, burst: 0 };
-    this.skillInput=null;
+    this.skillInput=null; this.guardInput=0;
     this.level = LEVELS.getDefinition(realmKey);
     this.checkpoint=this.labRun ? this.level.checkpoint||this.level.lab_checkpoint : this.level.checkpoint;
     if(this.labRun && (!this.checkpoint || this.labTrial.realm_id!==realmKey))throw new Error("试炼秘境与地图不匹配");
@@ -675,7 +675,7 @@ class BattleGame {
   }
 
   clearInput() {
-    this.skillInput=null;
+    this.skillInput=null; this.guardInput=0;
     const pointers = [...this.touchPointers];
     this.touchPointers.clear(); this.keyboardKeys.clear(); this.keys.clear();
     for (const [id, { button }] of pointers) this.releaseTouchCapture(button, id);
@@ -693,7 +693,7 @@ class BattleGame {
     this.touchPointers.delete(id);
     const { action, button } = pointer;
     if (!this.keyboardKeys.has(action) && ![...this.touchPointers.values()].some(item => item.action === action)) this.keys.delete(action);
-    if (action === "block" && !this.keys.has("block")) { this.player.blocking = false; this.player.guardRecovery = false; }
+    if (action === "block" && !this.keys.has("block")) { this.player.blocking = false; this.player.guardRecovery = false; this.guardInput = 0; }
     this.releaseTouchCapture(button, id);
   }
 
@@ -725,13 +725,13 @@ class BattleGame {
       this.keyboardKeys.delete(action);
       if (![...this.touchPointers.values()].some(pointer => pointer.action === action)) this.keys.delete(action);
     }
-    if (action === "block" && !this.keys.has("block")) { this.player.blocking = false; this.player.guardRecovery = false; }
+    if (action === "block" && !this.keys.has("block")) { this.player.blocking = false; this.player.guardRecovery = false; this.guardInput = 0; }
   }
 
   performAction(action) {
     if (this.disposed || this.finished || this.pause || this.labPending || this.labError) return;
     if(["slash","qi","block","dash"].includes(action))this.skillInput=null;
-    if(["slash","qi","dao","dao2","dash"].includes(action))this.player.guardRecovery=false;
+    if(["slash","qi","dao","dao2","dash"].includes(action)){this.player.guardRecovery=false;this.guardInput=0;}
     if (action === "jump") this.jump();
     else if (action === "slash") this.slash();
     else if (action === "block") this.beginBlock();
@@ -795,13 +795,28 @@ class BattleGame {
     this.burst(p.x + p.w / 2 + p.face * 28, p.y + 34, elementColor(this.stats.primary), p.counterAttack ? 14 : 5);
   }
 
-  beginBlock() {
+  blockInputBlocked() {
     const p = this.player;
-    if (p.dash > 0 || p.hurt > 0 || p.qiCast > 0 || (p.slash > .12)) return;
-    if (p.slash > 0 && p.combo === 3) return;
+    return p.dash > 0 || p.hurt > 0 || p.qiCast > 0 || p.slash > .12 || (p.slash > 0 && p.combo === 3);
+  }
+
+  beginBlock(ordinary = false) {
+    const p = this.player;
+    if (this.blockInputBlocked()) {
+      if (!ordinary && this.keys.has("block")) this.guardInput = .18;
+      return;
+    }
+    this.guardInput = 0;
     p.guardRecovery = false; p.slash = 0; p.queuedSlash = 0; p.blocking = true; p.blockStarted = this.elapsed;
-    p.parryArmed = p.parryLock <= 0 ? .22 : 0;
-    p.parryLock = .5;
+    p.parryArmed = ordinary ? 0 : p.parryLock <= 0 ? .22 : 0;
+    if (!ordinary) p.parryLock = .5;
+  }
+
+  flushGuardInput(dt) {
+    if (!this.guardInput) return;
+    this.guardInput = Math.max(0, this.guardInput - dt);
+    if (!this.keys.has("block")) { this.guardInput = 0; return; }
+    if (this.guardInput && !this.blockInputBlocked()) this.beginBlock(true);
   }
 
   dash() {
@@ -995,6 +1010,7 @@ class BattleGame {
       p.guardRecovery = false;
       if (this.keys.has("block") && p.slash <= 0 && p.dash <= 0 && p.qiCast <= 0) { p.blocking = true; p.parryArmed = 0; }
     }
+    this.flushGuardInput(dt);
     p.shieldTime = Math.max(0, p.shieldTime - dt); if (!p.shieldTime) { p.shield = 0; p.skillShieldCounter = false; }
     p.flameBuff = Math.max(0, p.flameBuff - dt); p.healCooldown = Math.max(0, p.healCooldown - dt);
     p.slowTime = Math.max(0, (p.slowTime || 0) - dt);
@@ -1324,7 +1340,7 @@ class BattleGame {
     if (amount <= 0) return;
     p.hp -= amount; p.invuln = .65; p.vx = sourceX < p.x + p.w / 2 ? 180 : -180; this.burst(p.x + p.w / 2, p.y + 30, "#ef5c45", 10);
     this.screenShake = Math.max(this.screenShake, .2);
-    this.skillInput=null;
+    this.skillInput=null; this.guardInput=0;
     p.guardRecovery = p.blocking && this.keys.has("block"); p.parryArmed = 0;
     p.hurt = .2; p.queuedSlash = 0; p.jumpBuffer = 0; p.slash = 0; p.dash = 0; p.qiCast = 0; p.blocking = false; p.skillGuard = 0; p.skillParry = false;
     this.emitBattleEvent("player_hurt", { source_id: sourceId, target_id: "player", action_id: actionId, element: this.realmKey, phase: "impact", amount });
