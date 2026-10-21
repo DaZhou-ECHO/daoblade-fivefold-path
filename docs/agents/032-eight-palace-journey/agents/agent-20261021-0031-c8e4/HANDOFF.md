@@ -2,17 +2,17 @@
 
 ## 身份与任务
 - 任务ID / AgentID：032-eight-palace-journey / agent-20261021-0031-c8e4。
-- 更新时间与时区：2026-10-21 23:13 Asia/Shanghai。
+- 更新时间与时区：2026-10-21 23:16 Asia/Shanghai。
 - 接手来源：[031](../../../031-d07-hazard-rhythm/agents/agent-20261021-0031-c8e4/HANDOFF.md)，031已在61c2786收尾。
 - 当前目标与验收条件：[任务](../../TASK.md)、[需求总清单](../../../../../docs/implementation/正式征程总清单.md)：完整八宫、正式突破扩容、对应掉落、五境主支路/多图，独立新档浏览器完整链路。
 - 状态：已完成（四项首版开发及Agent浏览器验证）；全部十策划、最终平衡和真人设备验收另计。
 
 ## 当前代码现场
 - 仓库位置：D:/desktop/研/gpt/学习与训练/.reading/daoblade-fivefold-path。
-- 分支与代码基线提交：work/032-eight-palace-journey-local；开工61c2786，阶段A/B f8afac5，随后阶段C本地提交；以Git现场确认，不循环写自身最终提交号。
+- 分支与代码基线提交：work/032-eight-palace-journey-local；开工61c2786，阶段A/B f8afac5，阶段C代码/证据21a0c21；随后仅证据空白/交接整理，以Git现场确认，不循环写文档自身最终提交号。
 - 远端核对时间及结果：本轮未核对；上次历史核对2026-10-21 00:31，不能当作当前远端状态。未上传/合并/发布。
 - PR链接及已核实状态：无本任务PR。
-- 未提交文件：提交前journey.py、game.js、journey-ui.js、模板、测试、032证据/日志/交接、总清单/验收、相关策划与索引均本Agent；无未知修改。随后本地提交，以git status核对。
+- 未提交文件：代码/阶段C已在21a0c21本地提交；当前仅本Agent的2份证据行尾空白、DEVLOG/HANDOFF及索引整理待提交。无未知修改；提交后以git status核对。
 - 正在运行的服务或长任务：Flask127.0.0.1:5064，会话5666；`.venv/Scripts/python.exe -m flask --app app run --no-reload --port 5064`，DAOBLADE_DATABASE为绝对路径work/u16-array-lab.sqlite3。旧71300/88196/64722/72763已停，不重复启动。
 - 数据保护：新增表前备份work/u16-before-journey-20261021-1814.sqlite3（忽略文件）；测试DB/备份/凭据不纳入Git。
 - 浏览器：tab6/browser2，play018_1123已真实退出重登，当前正式征程/乾宫，无活跃试炼。版本36/筑基/容量10装8/26珠/60修为/7挑战含突破/6普通胜利；火2木土金水各1。旧lab版本53独立保留。
@@ -34,7 +34,7 @@
 - 旧文档冲突及本任务采用的依据：旧legacy/lab保留不迁移；专题12候选40已由032收束采用。策划顶部和当前总览已标最新状态，旧阶段日志不覆盖当前结果。
 
 ## 验证与证据
-- 实际命令、结果和适用代码状态：[完整检查](../../evidence/release-checks.txt)109 Python/177 Node/14JS/文档/diff通过，适用于最终代码；随后仅文档更新。早先首页2/UI2项定向通过记录保留在evidence/post-template-checks.txt。
+- 实际命令、结果和适用代码状态：[完整检查](../../evidence/release-checks.txt)109 Python/177 Node/14JS/文档/diff通过，适用于最终代码；随后仅文档/证据空白整理，git diff 61c2786 --check整任务通过。早先首页2/UI2项定向通过记录保留在evidence/post-template-checks.txt。
 - 真实引擎：8宫技能、心法选中/停用/击退；10图×3帧率、每组2支路，共60支路往返。隔离地形不算浏览器通关。
 - 人工检查及证据链接：[正式验收](../../../../../docs/implementation/正式征程验收.md)逐步列出实际普通按键流程/掉落/突破/两构筑/支路；是Agent操作，不是真人手感验收。
 - [重登](../../evidence/relogin-final.png)、[扩容后胜利](../../evidence/eight-bead-fire-win.png)、[突破](../../evidence/breakthrough-win.png)、[事后只读审计](../../evidence/persisted-journey-audit.json)。读取审计未写进度。

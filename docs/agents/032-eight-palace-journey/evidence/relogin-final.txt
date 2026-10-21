@@ -12,7 +12,7 @@ Browser tab: 6, Title: "本命剑：八荒五行", URL: "http://127.0.0.1:5064/"
 		11 button 正式征程
 		12 button 五行秘境
 		13 button 灵珠匣 0
-			14 text 灵珠匣 
+			14 text 灵珠匣
 			15 text 0
 		16 button 八卦修行
 		17 button 阵盘试验
@@ -161,7 +161,7 @@ Browser tab: 6, Title: "本命剑：八荒五行", URL: "http://127.0.0.1:5064/"
 			33 text 挑战与支路
 		34 text 首次胜利必得对应元素各宫的核心/纹路/心法；后续补未有变式。重复珠+5珠经验，满级改+2修为。胜利12修为，每个支路祭坛另+4；只冻结出战有效珠获20经验。
 		35 container
-			36 text 秘境 
+			36 text 秘境
 			37 pop up button (collapsed, settable) 秘境, Value: 火境, ID: journey-realm, Secondary Actions: Expand
 				38 menu
 					39 (selected) 火境
@@ -170,7 +170,7 @@ Browser tab: 6, Title: "本命剑：八荒五行", URL: "http://127.0.0.1:5064/"
 					42 金境
 					43 水境
 		44 container
-			45 text 地图 
+			45 text 地图
 			46 pop up button (collapsed, settable) 地图, Value: 高径 · 上行祭坛, ID: journey-map, Secondary Actions: Expand
 				47 menu
 					48 (selected) 高径 · 上行祭坛
