@@ -11,6 +11,9 @@
     $("lab-save").disabled=!state||busy||blocked||active;
     $("lab-practice").disabled=!state||busy||blocked||dirty||revision===0;
     for(const id of ["lab-equip","lab-detach","lab-focus-preset","lab-burst-preset"]) $(id).disabled=!state||busy||blocked||active;
+    $("lab-cycle-preset").disabled=!state||busy||blocked||active||state.stage<2;
+    $("lab-research").disabled=!state||busy||blocked||active||dirty||state.stage>=2||state.progress.victories<1||state.progress.spirit<12;
+    $("lab-research").textContent=state?.stage>=2?"回火研习完成":"研习回火 · 12修为";
     $("lab-reload").disabled=busy;
     $("lab-challenge").disabled=!state||busy||blocked||dirty||!revision||active||!rules?.compile(state).skill.enabled;
     $("lab-resume").disabled=!active||busy||blocked;
@@ -26,17 +29,17 @@
     $("lab-capacity").textContent=`已装 ${compiled.used} / ${compiled.capacity} 珠`;
     $("lab-nodes").innerHTML=cfg.nodes.map(n=>{
       const bead=state.beads.find(b=>b.id===state.nodes[n.id]);
-      return `<button type="button" data-lab-node="${n.id}" aria-pressed="${n.id===selected}" class="lab-node node-${n.role} ${compiled.effective.includes(n.id)?"connected":""} ${n.id===selected?"selected":""}"><small>${n.parent?"← "+cfg.nodes.find(p=>p.id===n.parent).label:"起点"}</small><b>${n.label}</b><span>${n.min_stage>state.stage?"阶段二开放":bead?text(bead.name):"空节点"}</span></button>`;
+      return `<button type="button" data-lab-node="${n.id}" aria-pressed="${n.id===selected}" class="lab-node node-${n.role} ${compiled.effective.includes(n.id)?"connected":""} ${n.id===selected?"selected":""}"><small>${n.parent?"← "+cfg.nodes.find(p=>p.id===n.parent).label:"起点"}</small><b>${n.label}</b><span>${n.min_stage>state.stage?"通关后研习回火开放":bead?text(bead.name):"空节点"}</span></button>`;
     }).join("");
     $("lab-nodes").querySelectorAll("[data-lab-node]").forEach(button=>button.addEventListener("click",()=>{selected=button.dataset.labNode;$("lab-error").textContent="";render();}));
     $("lab-node-title").textContent=node.label;
-    $("lab-node-description").textContent=node.min_stage>state.stage?"尚未开放。此节点需要阶段二；本轮仅验证阶段一。":
+    $("lab-node-description").textContent=node.min_stage>state.stage?"通关一次后，可用12修为研习回火；不改变全局3珠容量。":
       `${node.parent?"需连接"+cfg.nodes.find(n=>n.id===node.parent).label:"决定本宫技能火行属性"}。${compiled.inactive[node.id]||"只接受对应功能的火行珠。"}`;
     $("lab-bead").innerHTML=state.beads.map(b=>`<option value="${b.id}">${text(b.name)} · Lv${b.level} / XP${b.xp}${Object.values(state.nodes).includes(b.id)?" · 已装配":" · 珠匣"}</option>`).join("");
     if(state.nodes[selected]) $("lab-bead").value=state.nodes[selected];
     const skill=compiled.skill;
-    $("lab-compiled").innerHTML=`<h3>${skill.enabled?(skill.focus?"聚焰 · 持续压制":skill.burst?"留痕 · 蓄势引爆":"离火 · 基础剑式"):"技能已停用"}</h3><p>${!skill.enabled?"核心未连接。装回离火核心可恢复技能，无需重新学习。":
-      skill.focus?`Q：短距${skill.focus_range}，直伤${skill.focus_damage}并持续灼烧。放弃远距与引爆。`:skill.burst?`Q：火行剑式留下火痕，上限${skill.max_marks}层。E：消耗火痕，每层${skill.burst_per_mark}额外伤害；冷却${skill.burst_cooldown}秒。`:`Q：火行剑式，范围${skill.range}、直伤${skill.damage}。连接留痕后可积累火痕。`}</p><small>基础面板保持中性；只编译当前有效连线。${Object.keys(compiled.inactive).length?"存在未连接节点，不提供效果。":""}</small>`;
+    $("lab-compiled").innerHTML=`<h3>${skill.enabled?(skill.cycle?"回火 · 资源周转":skill.focus?"聚焰 · 持续压制":skill.burst?"留痕 · 蓄势引爆":"离火 · 基础剑式"):"技能已停用"}</h3><p>${!skill.enabled?"核心未连接。装回离火核心可恢复技能，无需重新学习。":
+      skill.cycle?`Q：伤害${skill.cycle_damage}，较低伤害换续航。E：收回前方火痕，最多回复${skill.cycle_max_qi}剑意与${skill.cycle_max_shield}护盾，持续${skill.cycle_shield_seconds}秒；无爆发伤害。`:skill.focus?`Q：短距${skill.focus_range}，直伤${skill.focus_damage}并持续灼烧。放弃远距与引爆。`:skill.burst?`Q：火行剑式留下火痕，上限${skill.max_marks}层。E：消耗火痕，每层${skill.burst_per_mark}额外伤害；冷却${skill.burst_cooldown}秒。`:`Q：火行剑式，范围${skill.range}、直伤${skill.damage}。连接留痕后可积累火痕。`}</p><small>基础面板保持中性；只编译当前有效连线。${Object.keys(compiled.inactive).length?"存在未连接节点，不提供效果。":""}</small>`;
     $("lab-growth").textContent=`试验成长 · 闯关${state.progress.runs} / 胜利${state.progress.victories} / 修为${state.progress.spirit}；珠子等级上限${cfg.growth.max_level}`;
     buttons();
   }
@@ -119,12 +122,13 @@
   function reset() {epoch++;queue=Promise.resolve();state=null;rules=null;saved="";revision=0;busy=false;blocked=false;buttons();for(const id of ["lab-palaces","lab-nodes","lab-compiled"]) $(id).textContent="";selected="li.core";status("账号状态已更新，请进入阵盘试验读取");}
   $("lab-equip").addEventListener("click",()=>edit(()=>rules.equip(state,selected,$("lab-bead").value)));
   $("lab-detach").addEventListener("click",()=>edit(()=>rules.equip(state,selected,null)));
-  for(const variant of ["focus","burst"]) $("lab-"+variant+"-preset").addEventListener("click",()=>edit(()=>{
+  for(const variant of ["focus","burst","cycle"]) $("lab-"+variant+"-preset").addEventListener("click",()=>edit(()=>{
     const next=JSON.parse(JSON.stringify(state));for(const id of Object.keys(next.nodes))next.nodes[id]=null;
     for(const role of ["core","mark",variant])next.nodes["li."+role]="lab-"+role;rules.validate(next);return next;
   }));
   $("lab-save").addEventListener("click",save);$("lab-reload").addEventListener("click",()=>load(true));
   $("lab-practice").addEventListener("click",()=>{if(!busy&&!blocked&&revision&&saved===fingerprint())root.DaoBladeStartArrayLab(rules.compile(state));});
+  $("lab-research").addEventListener("click",()=>{if(!$("lab-research").disabled)handle(trialAction("research"));});
   $("lab-challenge").addEventListener("click",()=>handle(startTrial()));
   $("lab-resume").addEventListener("click",()=>handle(resumeTrial()));
   $("lab-abandon").addEventListener("click",()=>handle(abandonTrial()));

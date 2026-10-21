@@ -622,7 +622,7 @@ class BattleGame {
     $("#leave-run").textContent=this.labRun?"返回阵盘（保留剑碑）":"放弃闯关";
     $("#return-sanctuary").textContent=this.labRun?"返回阵盘":"返回洞府";
     $("#realm-name").textContent = this.labRun ? "阵盘挑战 · 离火境" : this.lab ? "阵盘试验 · 离火试招" : this.practice ? "练功场 · 临时试招" : `${this.element.zh} · ${this.element.realm}`;
-    $("#objective-text").textContent = this.labRun ? "冻结配珠挑战 · 清除六敌胜利成长；剑碑保存后可续关" : this.lab ? "只读已保存配置 · Q留痕/聚焰，E引爆；无奖励，退出回阵盘" : this.practice ? "木桩会恢复，不结算战利品" : `击败 ${this.realm.enemies.join("、")}与${this.realm.boss}`;
+    $("#objective-text").textContent = this.labRun ? "冻结配珠挑战 · 清除六敌胜利成长；剑碑保存后可续关" : this.lab ? "只读已保存配置 · Q施招，E按方案引爆/回火；无奖励，退出回阵盘" : this.practice ? "木桩会恢复，不结算战利品" : `击败 ${this.realm.enemies.join("、")}与${this.realm.boss}`;
     if (!this.practice && !this.labRun && !this.resuming) { saveData.active_trial = null; saveData.progress.runs += 1; void saveState(""); }
     renderCheckpointRecovery();
     $("#pause-overlay").classList.add("hidden");
@@ -822,28 +822,35 @@ class BattleGame {
   arrayLabSkill(slot) {
     const skill = this.lab.skill, p = this.player;
     if (!skill.enabled) return showToast("离火核心未连接，技能暂时停用", true);
-    if (slot !== 0 && !skill.burst) return showToast("当前方案没有引爆变式", true);
+    if (slot !== 0 && !skill.burst && !skill.cycle) return showToast("当前方案未启用E变式", true);
     if (this.pause || this.finished || this.disposed || this.labPending || this.labError || p.hurt > 0 || p.slash > 0 || p.qiCast > 0 || p.dash > 0 || p.blocking || p.skillCooldowns[slot] > 0) return;
     const reach = skill.focus ? skill.focus_range : skill.range;
     const targets = this.enemies.filter(e => !e.dead && (e.x + e.w / 2 - p.x - p.w / 2) * p.face >= 0 && (e.x + e.w / 2 - p.x - p.w / 2) * p.face <= reach && Math.abs(e.y + e.h / 2 - p.y - p.h / 2) < 105);
-    if (slot === 1 && !targets.some(e => e.labMarks > 0)) return showToast("范围内没有可引爆火痕；先用Q留痕", true);
-    const cost = slot ? skill.burst_qi : skill.qi;
+    if (slot === 1 && !targets.some(e => e.labMarks > 0)) return showToast("前方没有可消耗火痕；先用Q留痕", true);
+    const cost = slot ? (skill.cycle ? 0 : skill.burst_qi) : skill.qi;
     if (p.qi < cost) return showToast("剑意不足", true);
-    p.qi -= cost; p.skillCooldowns[slot] = slot ? skill.burst_cooldown : skill.cooldown;
+    p.qi -= cost; p.skillCooldowns[slot] = slot ? (skill.cycle ? skill.cycle_cooldown : skill.burst_cooldown) : skill.cooldown;
     p.qiCast = .22; p.skillPose = "li";
+    let returnedMarks=0;
     for (const enemy of targets) {
       if (slot) {
         const marks = enemy.labMarks || 0; if (!marks) continue;
         enemy.labMarks = 0;
+        if(skill.cycle){returnedMarks+=marks;continue;}
         this.hitEnemy(enemy, marks * skill.burst_per_mark, false, false, "lab_burst", "fire");
       } else {
-        this.hitEnemy(enemy, skill.focus ? skill.focus_damage : skill.damage, false, false, "lab_fire", "fire");
+        this.hitEnemy(enemy, skill.focus ? skill.focus_damage : skill.cycle ? skill.cycle_damage : skill.damage, false, false, "lab_fire", "fire");
         if (skill.mark) enemy.labMarks = Math.min(skill.max_marks, (enemy.labMarks || 0) + 1);
         if (skill.focus) { enemy.labBurn = skill.burn_seconds; enemy.labBurnTick = 1; }
       }
     }
+    if(slot&&skill.cycle){
+      p.qi=Math.min(this.stats.qiMax,p.qi+Math.min(skill.cycle_max_qi,returnedMarks*skill.cycle_qi_per_mark));
+      p.shield=Math.max(p.shield,Math.min(skill.cycle_max_shield,returnedMarks*skill.cycle_shield_per_mark));
+      p.shieldTime=Math.max(p.shieldTime,skill.cycle_shield_seconds);
+    }
     this.skillEffects.push({x:p.x+p.w/2+p.face*reach/2,y:p.y+p.h/2,radius:reach/2,kind:"line",color:ELEMENTS.fire.color,life:.38});
-    showToast(slot ? "离火 · 消耗火痕引爆" : skill.focus ? "离火 · 聚焰持续灼烧" : "离火 · 留痕剑式");
+    showToast(slot ? (skill.cycle ? "回火 · 收痕回剑意，短时护体" : "离火 · 消耗火痕引爆") : skill.focus ? "离火 · 聚焰持续灼烧" : "离火 · 留痕剑式");
   }
 
   daoSkill(slot = 0) {
@@ -1417,7 +1424,7 @@ class BattleGame {
     $("#hud-enemies").textContent = this.enemies.filter(enemy => !enemy.dead).length;
     $("#skill-hud").textContent = this.stats.loadout.active.map((key, index) => `${index ? "E" : "Q"} ${key ? TRIGRAMS[key].skill : "未装备"}${this.player.skillCooldowns[index] > 0 ? ` ${this.player.skillCooldowns[index].toFixed(1)}s` : ""}`).join(" · ");
     const markedTarget=this.enemies.filter(e=>!e.dead).sort((a,b)=>Math.abs(a.x-this.player.x)-Math.abs(b.x-this.player.x))[0];
-    if (this.lab) $("#skill-hud").textContent = `${this.lab.skill.enabled ? "Q " + (this.lab.skill.focus ? "聚焰" : "离火留痕") + (this.lab.skill.burst ? " · E引爆" : "") : "核心未连接 · 技能停用"} · Q ${this.player.skillCooldowns[0].toFixed(1)}s${this.lab.skill.burst?" / E "+this.player.skillCooldowns[1].toFixed(1)+"s":""} · 近敌火痕 ${markedTarget?.labMarks || 0}/3 · 直伤${Math.round(this.labMetrics.direct)} / 灼烧${this.labMetrics.burn} / 引爆${this.labMetrics.burst}`;
+    if (this.lab) $("#skill-hud").textContent = `${this.lab.skill.enabled ? "Q " + (this.lab.skill.focus ? "聚焰" : "离火留痕") + (this.lab.skill.burst ? " · E引爆" : this.lab.skill.cycle ? " · E回火" : "") : "核心未连接 · 技能停用"} · Q ${this.player.skillCooldowns[0].toFixed(1)}s${(this.lab.skill.burst||this.lab.skill.cycle)?" / E "+this.player.skillCooldowns[1].toFixed(1)+"s":""} · 护盾${Math.ceil(this.player.shield)} · 近敌火痕 ${markedTarget?.labMarks || 0}/3 · 直伤${Math.round(this.labMetrics.direct)} / 灼烧${this.labMetrics.burn} / 引爆${this.labMetrics.burst}`;
   }
 
   draw() {

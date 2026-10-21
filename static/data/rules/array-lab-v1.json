@@ -168,7 +168,14 @@
     "burn_damage": 4,
     "burst_per_mark": 14,
     "burst_qi": 24,
-    "burst_cooldown": 6
+    "burst_cooldown": 6,
+    "cycle_damage": 8,
+    "cycle_qi_per_mark": 8,
+    "cycle_max_qi": 24,
+    "cycle_shield_per_mark": 3,
+    "cycle_max_shield": 9,
+    "cycle_shield_seconds": 3,
+    "cycle_cooldown": 6
   },
   "growth": {
     "max_level": 3,
@@ -178,6 +185,12 @@
     "core_damage_per_level": 2,
     "focus_burn_per_level": 1,
     "burst_per_level": 2,
-    "mark_qi_reduction_per_level": 1
+    "mark_qi_reduction_per_level": 1,
+    "cycle_shield_per_level": 1
+  },
+  "research": {
+    "cost": 12,
+    "min_victories": 1,
+    "max_stage": 2
   }
 }

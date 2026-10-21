@@ -512,10 +512,10 @@ test("014 续关保持构筑和祭坛，前三敌不复活，后段敌人重置�
   assert.equal(new api.BattleGame("wood").trial,null);
 });
 
-function labConfiguration(roles) {
+function labConfiguration(roles,stage=1) {
   const config=require("../static/data/rules/array-lab-v1.json");
   const rules=require("../static/js/array-lab-rules.js").createRuntime(config);
-  const state={ruleset_id:config.ruleset_id,schema_version:2,rules_version:2,progress:{runs:0,victories:0,spirit:0},active_trial:null,stage:1,beads:structuredClone(config.beads),nodes:Object.fromEntries(config.nodes.map(n=>[n.id,null]))};
+  const state={ruleset_id:config.ruleset_id,schema_version:2,rules_version:2,progress:{runs:0,victories:0,spirit:0},active_trial:null,stage,beads:structuredClone(config.beads),nodes:Object.fromEntries(config.nodes.map(n=>[n.id,null]))};
   for(const role of roles)state.nodes["li."+role]="lab-"+role;
   return rules.compile(state);
 }
@@ -580,4 +580,28 @@ test("019 交战敌人进入原范围仍先前摇，剑碑续关不继承上次�
   g.trial.activated=true;const resumed=new api.BattleGame("fire",{trial:g.trial});
   assert.equal(resumed.resuming,true);assert.equal(resumed.enemies.filter(e=>e.dead).length,3);
   assert.equal(resumed.enemies.some(e=>e.engaged),false);
+});
+
+
+test("020 回火低伤害留痕，E单次有界回气护体且不伤敌、不叠护盾",()=>{
+  const api=gameContext(),g=new api.BattleGame("fire",{practice:true,labCompiled:labConfiguration(["core","mark","cycle"],2)}),target=g.enemies[0];
+  const hp=target.hp;g.daoSkill(0);assert.equal(target.hp,hp-8);assert.equal(target.labMarks,1);
+  const extra=g.enemy("dummy","extra",340,99999,"dummy");g.enemies.push(extra);extra.labMarks=3;target.labMarks=3;
+  g.player.qiCast=0;g.player.qi=1;const before=target.hp;g.daoSkill(1);
+  assert.equal(g.player.qi,25);assert.equal(g.player.shield,9);assert.equal(g.player.shieldTime,3);
+  assert.equal(target.hp,before);assert.equal(target.labMarks,0);assert.equal(extra.labMarks,0);
+  g.player.qiCast=0;g.player.skillCooldowns[1]=0;const qi=g.player.qi;g.daoSkill(1);assert.equal(g.player.qi,qi);assert.equal(g.player.skillCooldowns[1],0);
+  target.labMarks=1;g.player.shield=9;g.daoSkill(1);assert.equal(g.player.shield,9);
+  g.player.qiCast=0;g.player.skillCooldowns[1]=0;g.player.face=-1;target.labMarks=3;g.daoSkill(1);assert.equal(target.labMarks,3);
+});
+
+
+test("020 回火珠成长只改本分支护盾，时间到失效且停用连线",()=>{
+  const cfg=structuredClone(require("../static/data/rules/array-lab-v1.json")),rules=require("../static/js/array-lab-rules.js").createRuntime(cfg);
+  const state={ruleset_id:cfg.ruleset_id,schema_version:2,rules_version:2,stage:2,beads:structuredClone(cfg.beads),nodes:Object.fromEntries(cfg.nodes.map(n=>[n.id,["core","mark","cycle"].includes(n.role)?"lab-"+n.role:null])),progress:{runs:1,victories:1,spirit:0},active_trial:null};
+  state.beads.find(b=>b.role==="cycle").level=3;
+  const compiled=rules.compile(state);assert.equal(compiled.skill.cycle_max_shield,11);assert.equal(compiled.skill.cycle_shield_per_mark,5);
+  const api=gameContext(),g=new api.BattleGame("fire",{practice:true,labCompiled:compiled});g.enemies[0].labMarks=3;g.daoSkill(1);assert.equal(g.player.shield,11);
+  for(let i=0;i<100;i++)g.update(.034);assert.equal(g.player.shield,0);
+  state.nodes["li.core"]=null;assert.equal(rules.compile(state).skill.cycle,false);
 });

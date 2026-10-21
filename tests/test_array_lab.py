@@ -102,3 +102,17 @@ def test_relogin_restores_own_lab_and_legacy_remains_untouched(client):
     client.post("/api/auth/login", json={"username": "lab_login", "password": "test-secret-123"})
     assert client.get("/api/lab/state").get_json()["state"] == state
     assert client.get("/api/state").get_json()["state"] == old
+
+
+def test_cycle_growth_and_stage_type():
+    state=default_lab_state()
+    state["stage"]=2
+    for role in ("core","mark","cycle"):
+        state["nodes"]["li."+role]="lab-"+role
+    state["beads"][4]["level"]=3
+    result=compile_lab(state)
+    assert result["skill"]["cycle_max_shield"]==11
+    assert result["skill"]["cycle_shield_per_mark"]==5
+    state["stage"]=True
+    with pytest.raises(ValueError):
+        validate_lab_state(state)

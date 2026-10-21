@@ -10,7 +10,7 @@
     const cfg = freeze(copy(config));
     function validate(state) {
       if (!state || Object.keys(state).sort().join(",") !== "active_trial,beads,nodes,progress,rules_version,ruleset_id,schema_version,stage"
-        || state.ruleset_id !== cfg.ruleset_id || state.schema_version !== 2 || state.rules_version !== 2 || state.stage !== cfg.stage)
+        || state.ruleset_id !== cfg.ruleset_id || state.schema_version !== 2 || state.rules_version !== 2 || ![1,2].includes(state.stage))
         throw new Error("阵盘试验规则或阶段不受支持");
       if (!Array.isArray(state.beads)||state.beads.length!==cfg.beads.length) throw new Error("试验珠目录无效");
       for(let i=0;i<state.beads.length;i++) {
@@ -44,13 +44,13 @@
       }
       const levels=Object.fromEntries(effective.map(id=>[id,state.beads.find(bead=>bead.id===state.nodes[id]).level]));
       const growth=cfg.growth,skill=copy(cfg.skill),bonus=((levels["li.core"]||1)-1)*growth.core_damage_per_level;
-      skill.damage+=bonus;skill.focus_damage+=bonus;
+      const cycleBonus=((levels["li.cycle"]||1)-1)*growth.cycle_shield_per_level;skill.cycle_max_shield+=cycleBonus;skill.cycle_shield_per_mark+=cycleBonus;skill.cycle_damage+=bonus;skill.damage+=bonus;skill.focus_damage+=bonus;
       skill.burn_damage+=((levels["li.focus"]||1)-1)*growth.focus_burn_per_level;
       skill.burst_per_mark+=((levels["li.burst"]||1)-1)*growth.burst_per_level;
       skill.qi-=((levels["li.mark"]||1)-1)*growth.mark_qi_reduction_per_level;
       const enabled=effective.includes("li.core");
       return freeze({ruleset_id:cfg.ruleset_id,rules_version:cfg.rules_version,schema_version:cfg.schema_version,used:Object.values(state.nodes).filter(Boolean).length,capacity:cfg.capacity,effective,inactive,
-        skill:{enabled,element:enabled?"fire":null,mark:effective.includes("li.mark"),focus:effective.includes("li.focus"),burst:effective.includes("li.burst"),...skill}});
+        skill:{enabled,element:enabled?"fire":null,mark:effective.includes("li.mark"),focus:effective.includes("li.focus"),burst:effective.includes("li.burst"),cycle:effective.includes("li.cycle"),...skill}});
     }
     function equip(state,nodeId,beadId) {
       const next=copy(state); if(!Object.hasOwn(next.nodes,nodeId)) throw new Error("阵盘节点无效");

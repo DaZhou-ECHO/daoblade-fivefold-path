@@ -32,11 +32,11 @@ def transition_trial(slot, revision, payload):
         state = validate_lab_state(record["state"] if record else default_lab_state())
         current_revision = record["revision"] if record else 0
         action = payload.get("action")
-        if action not in ("start", "checkpoint", "altar", "settle", "abandon"):
+        if action not in ("start", "checkpoint", "altar", "settle", "abandon", "research"):
             raise ValueError("试炼操作无效")
         if action == "settle" and type(payload.get("win")) is not bool:
             raise ValueError("胜负报告无效")
-        if action != "start":
+        if action not in ("start", "research"):
             trial_id = payload.get("trial_id")
             if not isinstance(trial_id, str) or not 1 <= len(trial_id) <= 80:
                 raise ValueError("试炼编号无效")
@@ -51,7 +51,17 @@ def transition_trial(slot, revision, payload):
         if revision != current_revision:
             raise ValueError("试验档已被其他窗口更新，请重新读取")
         receipt = None
-        if action == "start":
+        if action == "research":
+            if state["active_trial"]:
+                raise ValueError("请先结束试炼再研习")
+            research = CONFIG["research"]
+            if state["stage"] >= research["max_stage"]:
+                raise ValueError("回火已经研习，不会再次扣费")
+            if state["progress"]["victories"] < research["min_victories"] or state["progress"]["spirit"] < research["cost"]:
+                raise ValueError("需通关一次并拥有12修为")
+            state["progress"]["spirit"] -= research["cost"]
+            state["stage"] = 2
+        elif action == "start":
             if state["active_trial"]:
                 raise ValueError("已有进行中试炼，请恢复或先放弃")
             compiled = compile_lab(state)

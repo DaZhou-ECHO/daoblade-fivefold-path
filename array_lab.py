@@ -27,7 +27,7 @@ def normalize_lab_state(raw):
 
 def validate_lab_edit(raw, previous):
     state, old = validate_lab_state(raw), validate_lab_state(previous)
-    if any(state[key] != old[key] for key in ("beads", "progress", "active_trial")):
+    if any(state[key] != old[key] for key in ("stage", "beads", "progress", "active_trial")):
         raise ValueError("珠子经验、试炼与成长记录只能通过结算改变")
     if old["active_trial"] and state["nodes"] != old["nodes"]:
         raise ValueError("试炼进行中，请先结束试炼再调整构筑")
@@ -39,9 +39,11 @@ def validate_lab_state(raw):
     default = default_lab_state()
     if not isinstance(raw, dict) or set(raw) != set(default):
         raise ValueError("阵盘试验档字段无效")
-    for key in ("ruleset_id", "schema_version", "rules_version", "stage"):
+    for key in ("ruleset_id", "schema_version", "rules_version"):
         if type(raw[key]) is not type(default[key]) or raw[key] != default[key]:
             raise ValueError("阵盘试验规则或阶段不受支持")
+    if type(raw["stage"]) is not int or raw["stage"] not in (1, 2):
+        raise ValueError("试验研习阶段无效")
     if not isinstance(raw["beads"], list) or len(raw["beads"]) != len(default["beads"]):
         raise ValueError("试验珠目录无效")
     for bead, seed in zip(raw["beads"], default["beads"]):
@@ -121,6 +123,10 @@ def compile_lab(raw):
     core_bonus = max(0, levels.get("li.core", 1) - 1) * growth["core_damage_per_level"]
     skill["damage"] += core_bonus
     skill["focus_damage"] += core_bonus
+    skill["cycle_damage"] += core_bonus
+    cycle_bonus = max(0, levels.get("li.cycle", 1) - 1) * growth["cycle_shield_per_level"]
+    skill["cycle_max_shield"] += cycle_bonus
+    skill["cycle_shield_per_mark"] += cycle_bonus
     skill["burn_damage"] += max(0, levels.get("li.focus", 1) - 1) * growth["focus_burn_per_level"]
     skill["burst_per_mark"] += max(0, levels.get("li.burst", 1) - 1) * growth["burst_per_level"]
     skill["qi"] -= max(0, levels.get("li.mark", 1) - 1) * growth["mark_qi_reduction_per_level"]
@@ -128,4 +134,4 @@ def compile_lab(raw):
             "capacity": CONFIG["capacity"], "effective": effective, "inactive": inactive,
             "skill": {"enabled": enabled, "element": "fire" if enabled else None,
                       "mark": "li.mark" in effective, "focus": "li.focus" in effective,
-                      "burst": "li.burst" in effective, **skill}}
+                      "burst": "li.burst" in effective, "cycle": "li.cycle" in effective, **skill}}

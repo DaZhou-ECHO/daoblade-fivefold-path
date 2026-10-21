@@ -163,3 +163,30 @@ def test_trial_account_csrf_and_cross_account_id(app):
     attempt = {"action": "settle", "win": True, "defeated_ids": ALL, "trial_id": started["state"]["active_trial"]["id"], "revision": 0, "owner_id": other["user"]["id"]}
     assert second.post("/api/lab/trial", json=attempt, headers={"X-CSRF-Token": other["csrf_token"]}).status_code == 409
     assert second.get("/api/lab/state").get_json()["state"]["progress"]["victories"] == 0
+
+
+def test_research_unlock_once_and_protect_stage(client):
+    record = ready(client)
+    assert action(client, record, "research").status_code == 400
+    forged = deepcopy(record["state"])
+    forged["stage"] = 2
+    assert client.post("/api/lab/state", json={"state": forged, "revision": record["revision"], "owner_id": None}).status_code == 400
+    started = action(client, record, "start").get_json()
+    assert action(client, started, "research").status_code == 400
+    won = action(client, started, "settle", win=True, defeated_ids=ALL).get_json()
+    learned = action(client, won, "research")
+    assert learned.status_code == 200
+    learned = learned.get_json()
+    assert learned["state"]["stage"] == 2
+    assert learned["state"]["progress"]["spirit"] == 0
+    assert action(client, won, "research").status_code == 409
+    assert action(client, learned, "research").status_code == 400
+    current = client.get("/api/lab/state").get_json()
+    assert current["revision"] == learned["revision"]
+    current["state"]["nodes"]["li.burst"] = None
+    current["state"]["nodes"]["li.cycle"] = "lab-cycle"
+    saved = client.post("/api/lab/state", json={"state": current["state"], "revision": current["revision"], "owner_id": None}).get_json()
+    assert saved["compiled"]["skill"]["cycle"] is True
+    frozen = action(client, saved, "start").get_json()
+    assert frozen["state"]["active_trial"]["build"]["stage"] == 2
+    assert frozen["trial_compiled"]["skill"]["cycle_damage"] == 10
