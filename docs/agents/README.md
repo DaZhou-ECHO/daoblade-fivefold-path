@@ -2,6 +2,7 @@
 
 | 任务ID | 任务目标 | 状态 | 当前接续Agent | 分支/基线 | 最新交接链接 | 依赖或阻塞 |
 |---|---|---|---|---|---|---|
+| 019-d05-ranged-engagement | 修复警戒外受击不追击漏洞 | 已完成 | agent-20261021-0031-c8e4 | work/019-d05-ranged-engagement-local / fb3ac2e | [交接](019-d05-ranged-engagement/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 修前失败/修后3条回归及真实追击通过；平衡继续，仅本地 |
 | 018-d03-playable-trial | 新阵盘真实火境与成长闭环 | 已完成 | agent-20261021-0031-c8e4 | work/018-d03-playable-trial-local / def7e07 | [交接](018-d03-playable-trial/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 真实六敌/剑碑刷新/失败续关/胜利成长/拆换重登通过；首领远距漏洞待修；仅本地 |
 | 017-d03-trial-growth | 新规则试炼与成长结算服务 | 已完成 | agent-20261021-0031-c8e4 | work/017-d03-trial-growth-local / 55d0c8d | [交接](017-d03-trial-growth/agents/agent-20261021-0031-c8e4/HANDOFF.md) | Python88/Node117及API事务/成长试招通过；018须接真实挑战；仅本地 |
 | 016-d03-array-lab | 独立测试档与离宫可拆换组合 | 已完成 | agent-20261021-0031-c8e4 | work/016-d03-array-lab-local / bce6616 | [交接](016-d03-array-lab/agents/agent-20261021-0031-c8e4/HANDOFF.md) | Python75/Node115与实际两方案/拆装/刷新/重登/冲突通过；仅本地 |

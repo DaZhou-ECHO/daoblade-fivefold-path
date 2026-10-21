@@ -545,3 +545,39 @@ test("016 拆核心停技、远距/背后不命中，试验不改旧档与奖励
   focus.player.face=1;focus.player.qiCast=0;focus.player.skillCooldowns[0]=0;focus.player.x=120;focus.daoSkill(0);assert.equal(focus.enemies[0].hp,hp);
   focus.start();focus.quit();assert.equal(JSON.stringify(api.getProgress()),progress);
 });
+
+
+test("019 真实远距剑气命中后首领追击，警戒外未受击敌人不跟随且不隔空出招",()=>{
+  for(const realm of ["metal","wood","water","fire","earth"]){
+    const api=gameContext(),g=new api.BattleGame(realm),boss=g.enemies.at(-1),other=g.enemies[0];
+    g.enemies=[boss,other];g.player.x=1200;boss.x=2200;other.x=3000;boss.attackCd=0;other.attackCd=0;
+    g.updateEnemies(.1);assert.equal(boss.x,2200);assert.equal(other.x,3000);
+    g.swordQi();const hp=boss.hp;g.updateProjectiles(1.5);assert.ok(boss.hp<hp,realm+" actual qi impact");
+    g.updateEnemies(.1);assert.ok(boss.x<2200,realm+" hit boss must pursue outside old range");
+    assert.equal(other.x,3000);assert.equal(boss.attackState,"idle");assert.equal(g.projectiles.filter(p=>p.owner==="enemy").length,0);
+    const fresh=new api.BattleGame(realm);fresh.player.x=1200;const next=fresh.enemies.at(-1);next.x=2200;fresh.updateEnemies(.1);assert.equal(next.x,2200);
+    boss.dead=true;const at=boss.x;g.updateEnemies(.5);assert.equal(boss.x,at);
+  }
+});
+
+test("019 实际受击的远程与近战也追近原射程，空挥与零伤害不拉怪",()=>{
+  const api=gameContext();
+  for(const realm of ["fire","metal"]){
+    const g=new api.BattleGame(realm);g.player.x=1200;
+    const ranged=g.enemies.find(e=>e.kind==="ranged"),melee=g.enemies[0];g.enemies=[ranged,melee];ranged.x=2200;melee.x=2600;
+    g.hitEnemy(ranged,0);g.updateEnemies(.1);assert.equal(ranged.x,2200);
+    g.hitEnemy(ranged,1);g.hitEnemy(melee,1);g.updateEnemies(.1);assert.ok(ranged.x<2200);assert.ok(melee.x<2600);
+    assert.equal(ranged.attackState,"idle");assert.equal(melee.attackState,"idle");
+  }
+});
+
+
+test("019 交战敌人进入原范围仍先前摇，剑碑续关不继承上次仇恨",()=>{
+  const api=gameContext(),g=new api.BattleGame("fire"),boss=g.enemies.at(-1);g.enemies=[boss];
+  boss.engaged=true;g.player.x=1200;boss.x=1400;boss.attackCd=0;
+  const hp=g.player.hp;g.updateEnemies(.01);assert.equal(boss.attackState,"windup");assert.equal(g.player.hp,hp);assert.equal(g.projectiles.length,0);
+  g.updateEnemies(.1);assert.equal(boss.attackState,"windup");assert.equal(g.player.hp,hp);assert.equal(g.projectiles.length,0);
+  g.trial.activated=true;const resumed=new api.BattleGame("fire",{trial:g.trial});
+  assert.equal(resumed.resuming,true);assert.equal(resumed.enemies.filter(e=>e.dead).length,3);
+  assert.equal(resumed.enemies.some(e=>e.engaged),false);
+});

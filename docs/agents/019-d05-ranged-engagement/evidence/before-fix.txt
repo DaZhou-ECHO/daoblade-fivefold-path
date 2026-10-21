@@ -1,0 +1,7 @@
+2026-10-21 11:32 Asia/Shanghai
+Baseline fb3ac2e + new regression tests, game.js unchanged.
+Command: node --test --test-name-pattern=019 tests/combat.test.cjs
+Result: 2 tests, 0 pass, 2 fail.
+First: metal hit boss must pursue outside old range (combat.test.cjs:556).
+Second: ranged.x < 2200 false (combat.test.cjs:569).
+Actual swordQi/updateProjectiles reduced boss HP; old updateEnemies left it stationary.

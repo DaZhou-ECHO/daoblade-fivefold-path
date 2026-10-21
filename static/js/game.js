@@ -615,7 +615,7 @@ class BattleGame {
     const boss = kind === "boss";
     const height = boss ? 100 : variant === "caster" ? 64 : 62;
     const width = boss ? 66 : variant === "charger" ? 48 : 42;
-    return { id: `enemy-${this.nextEnemyId++}`, kind, variant, name, x, y: this.floorY - height, w: width, h: height, hp, maxHp: hp, vx: 0, face: -1, attackCd: .8 + Math.random(), attackState: "idle", attackTimer: 0, attackType: "", attackHit: false, attackDirection: -1, comboStep: 0, hurt: 0, burn: 0, burnTick: 0, slow: 0, chill: 0, seeds: 0, dead: false, lastHit: -1 };
+    return { id: `enemy-${this.nextEnemyId++}`, kind, variant, name, x, y: this.floorY - height, w: width, h: height, hp, maxHp: hp, vx: 0, face: -1, attackCd: .8 + Math.random(), attackState: "idle", attackTimer: 0, attackType: "", attackHit: false, attackDirection: -1, comboStep: 0, hurt: 0, burn: 0, burnTick: 0, slow: 0, chill: 0, seeds: 0, engaged: false, dead: false, lastHit: -1 };
   }
 
   start() {
@@ -1074,10 +1074,10 @@ class BattleGame {
         } else if (enemy.attackState === "recover" && enemy.attackTimer <= 0) enemy.attackState = "idle";
       } else if (enemy.kind === "ranged") {
         if (distance < 190) enemy.x -= direction * speed * dt;
-        else if (distance > 380 && distance < 660) enemy.x += direction * speed * dt;
+        else if (distance > 380 && (distance < 660 || enemy.engaged)) enemy.x += direction * speed * dt;
         if (distance < 660 && enemy.attackCd <= 0) this.beginEnemyAttack(enemy, "bolt", .55);
       } else {
-        if (distance > 65 && distance < 525) enemy.x += direction * speed * dt;
+        if (distance > 65 && (distance < 525 || enemy.engaged)) enemy.x += direction * speed * dt;
         if (distance < (enemy.kind === "boss" ? 160 : 115) && enemy.attackCd <= 0) {
           const rangedBoss = enemy.kind === "boss" && distance > 110;
           this.beginEnemyAttack(enemy, rangedBoss ? "bolt" : "slash", enemy.variant === "crusher" ? .7 : enemy.kind === "boss" ? .55 : .38);
@@ -1124,10 +1124,10 @@ class BattleGame {
 
     if (enemy.kind === "ranged") {
       if (distance < 230) enemy.x -= direction * speed * dt;
-      else if (distance > 430 && distance < 720) enemy.x += direction * speed * .65 * dt;
+      else if (distance > 430 && (distance < 720 || enemy.engaged)) enemy.x += direction * speed * .65 * dt;
       if (!attackBusy && distance < 720 && enemy.attackCd <= 0) this.beginEnemyAttack(enemy, "fireball", .58);
     } else if (enemy.kind === "boss") {
-      if (distance > 115 && distance < 650) enemy.x += direction * speed * dt;
+      if (distance > 115 && (distance < 650 || enemy.engaged)) enemy.x += direction * speed * dt;
       if (!attackBusy && enemy.attackCd <= 0 && distance < 650) {
         enemy.comboStep += 1;
         if (distance < 135) this.beginEnemyAttack(enemy, enemy.comboStep % 3 === 0 ? "dash" : "slash", .38);
@@ -1135,7 +1135,7 @@ class BattleGame {
       }
     } else {
       const preferred = enemy.variant === "charger" ? 150 : 62;
-      if (distance > preferred && distance < 560) enemy.x += direction * speed * (enemy.variant === "charger" ? 1.18 : 1) * dt;
+      if (distance > preferred && (distance < 560 || enemy.engaged)) enemy.x += direction * speed * (enemy.variant === "charger" ? 1.18 : 1) * dt;
       if (!attackBusy && enemy.attackCd <= 0 && distance < (enemy.variant === "charger" ? 245 : 76)) {
         this.beginEnemyAttack(enemy, enemy.variant === "charger" ? "dash" : "slash", enemy.variant === "charger" ? .46 : .3);
       }
@@ -1232,6 +1232,8 @@ class BattleGame {
     if (!dot && enemy.variant === "guard") damage *= .82;
     if ((this.stats.affixes.burst || 0) && enemy.hp / enemy.maxHp < .3) damage *= 1 + this.stats.affixes.burst / 100;
     if (this.lab) this.labMetrics[kind === "lab_burn" ? "burn" : kind === "lab_burst" ? "burst" : "direct"] += damage;
+    // Actual damage starts local engagement; an unhit encounter keeps its original notice range.
+    if(damage>0&&enemy.kind!=="dummy")enemy.engaged=true;
     enemy.hp -= damage; enemy.hurt = .16; this.burst(enemy.x + enemy.w / 2, enemy.y + enemy.h / 2, crit ? "#fff0a5" : this.element.color, crit ? 12 : 6);
     this.emitBattleEvent("enemy_hit", { element: skillElement || this.stats.primary, target_id: enemy.id, action_id: kind, attack_id: kind === "slash" ? p.attackId : 0,
       phase: "impact", position: [enemy.x + enemy.w / 2, enemy.y + enemy.h / 2], amount: damage, critical: crit, periodic: dot, combo: kind === "slash" ? p.combo : 0 });
