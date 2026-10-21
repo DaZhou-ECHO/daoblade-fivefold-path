@@ -1443,6 +1443,29 @@ class BattleGame {
     try {if(this.labError)await ui.load(true);await ui.restartTrial(this.labTrialId);}catch(error){showToast(error.message,true);}
   }
 
+  nearestEnemy() {
+    const p=this.player,cx=p.x+p.w/2,cy=p.y+p.h/2;
+    let nearest=null,best=Infinity;
+    for(const enemy of this.enemies){
+      if(enemy.dead)continue;
+      const distance=Math.hypot(enemy.x+enemy.w/2-cx,enemy.y+enemy.h/2-cy);
+      if(distance<best){nearest=enemy;best=distance;}
+    }
+    return nearest;
+  }
+
+  enemyReadout() {
+    const enemy=this.nearestEnemy();if(!enemy)return "敌人已肃清";
+    const p=this.player,dx=enemy.x+enemy.w/2-p.x-p.w/2,dy=enemy.y+enemy.h/2-p.y-p.h/2;
+    const side=Math.abs(dx)<8?"贴身":dx<0?"左侧":"右侧";
+    if(Math.hypot(dx,dy)>600)return `${side}远处有敌人，靠近后观察`;
+    const behind=dx*p.face < -8?" · 身后，请转身":"";
+    const warnings={dash:"蓄力突进",slash:"准备挥击",fireball:"准备火球",wave:"准备剑波",bolt:"准备远程攻击"};
+    const phase=enemy.attackState==="windup"?(warnings[enemy.attackType]||"准备攻击"):
+      enemy.attackState==="strike"?"正在出招":enemy.attackState==="recover"?"收招中":enemy.hurt>0?"受击中":"观察中";
+    return `近敌 ${enemy.name} · ${side}${behind} · 气血 ${Math.ceil(clamp(enemy.hp,0,enemy.maxHp))}/${enemy.maxHp} · ${phase}`;
+  }
+
   updateHud() {
     if (!this.practice) {
       const objective = globalThis.DaoBladeLevelProgress?.objective(this.realmKey, this.player.x, this.enemies);
@@ -1454,7 +1477,8 @@ class BattleGame {
     $("#hud-qi").textContent = `${Math.floor(this.player.qi)} / ${this.stats.qiMax}`;
     $("#hud-enemies").textContent = this.enemies.filter(enemy => !enemy.dead).length;
     $("#skill-hud").textContent = this.stats.loadout.active.map((key, index) => `${index ? "E" : "Q"} ${key ? TRIGRAMS[key].skill : "未装备"}${this.player.skillCooldowns[index] > 0 ? ` ${this.player.skillCooldowns[index].toFixed(1)}s` : ""}`).join(" · ");
-    const markedTarget=this.enemies.filter(e=>!e.dead).sort((a,b)=>Math.abs(a.x-this.player.x)-Math.abs(b.x-this.player.x))[0];
+    $("#enemy-readout").textContent=this.enemyReadout();
+    const markedTarget=this.nearestEnemy();
     if (this.lab) $("#skill-hud").textContent = `${this.lab.skill.enabled ? "Q " + (this.lab.skill.focus ? "聚焰" : "离火留痕") + (this.lab.skill.burst ? " · E引爆" : this.lab.skill.cycle ? " · E回火" : "") : "核心未连接 · 技能停用"} · Q ${this.player.skillCooldowns[0].toFixed(1)}s${(this.lab.skill.burst||this.lab.skill.cycle)?" / E "+this.player.skillCooldowns[1].toFixed(1)+"s":""} · 护盾${Math.ceil(this.player.shield)} · 近敌火痕 ${markedTarget?.labMarks || 0}/3 · 直伤${Math.round(this.labMetrics.direct)} / 灼烧${this.labMetrics.burn} / 引爆${this.labMetrics.burst}`;
   }
 

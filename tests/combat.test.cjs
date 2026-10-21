@@ -655,3 +655,16 @@ test("023 旧永久档主动技能同样经过缓冲，不提前扣30剑意",()=
   const g=new api.BattleGame("fire",{practice:true,state});g.player.slash=.09;const qi=g.player.qi;g.performAction("dao");assert.equal(g.player.qi,qi);
   bufferSteps(g,4);assert.ok(g.player.skillCooldowns[0]>0);assert.ok(g.player.qi<qi-25);assert.equal(g.skillInput,null);
 });
+
+
+test("024 近敌战况只读真实方位/气血/预警，转身后取消身后提示",()=>{
+  const g=bufferGame(),enemy=g.enemies[0];enemy.name="训练敌人";enemy.hp=37.2;enemy.maxHp=100;enemy.attackState="windup";enemy.attackType="dash";
+  const before=JSON.stringify({player:g.player,enemies:g.enemies});assert.match(g.enemyReadout(),/训练敌人.*右侧.*38\/100.*蓄力突进/);assert.equal(JSON.stringify({player:g.player,enemies:g.enemies}),before);
+  g.player.face=-1;assert.match(g.enemyReadout(),/身后，请转身/);enemy.attackState="recover";assert.match(g.enemyReadout(),/收招中/);
+  g.player.face=1;assert.doesNotMatch(g.enemyReadout(),/身后/);enemy.attackState="strike";assert.match(g.enemyReadout(),/正在出招/);
+});
+test("024 死敌不抢信息，远处只提示方向，清场与贴身无虚构左右",()=>{
+  const g=bufferGame(),enemy=g.enemies[0];enemy.x=1200;assert.match(g.enemyReadout(),/右侧远处/);assert.doesNotMatch(g.enemyReadout(),/气血/);
+  enemy.dead=true;assert.equal(g.enemyReadout(),"敌人已肃清");const next=g.enemy("melee","后方敌人",180,70);g.enemies.push(next);assert.match(g.enemyReadout(),/后方敌人.*左侧.*身后/);
+  next.x=g.player.x+(g.player.w-next.w)/2;assert.match(g.enemyReadout(),/贴身/);assert.doesNotMatch(g.enemyReadout(),/左侧|右侧|身后/);
+});
