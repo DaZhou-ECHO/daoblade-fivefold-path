@@ -28,10 +28,12 @@
     <button class="nav-button" data-panel="realms">五行秘境</button>
     <button class="nav-button" data-panel="inventory">灵珠匣 <span id="inventory-count">0</span></button>
     <button class="nav-button" data-panel="cultivation">八卦修行</button>
+    <button class="nav-button" data-panel="journey">正式征程</button>
     <button class="nav-button" data-panel="arraylab">阵盘试验</button>
     <button class="nav-button" data-panel="manual">剑诀</button>
   </nav>
 
+  <p id="runtime-error" role="alert" hidden></p>
   <main class="shell">
     <section id="panel-sanctuary" class="panel active">
       <div class="hero-copy">
@@ -72,6 +74,23 @@
       <div class="canvas-wrap"><canvas id="game-canvas" width="960" height="540" aria-label="横版战斗画面"></canvas><div id="game-message" class="game-message hidden"></div><div id="pause-overlay" class="pause-overlay hidden"><h2>暂歇剑锋</h2><p>按 Esc 或继续按钮返回战斗</p><div><button id="resume-run" class="pixel-button primary">继续</button><button id="retry-run" class="pixel-button">重新挑战</button><button id="settings-run" class="pixel-button">按键设置</button><button id="quit-run" class="pixel-button">退出</button></div></div></div>
       <div class="control-bar"><span><kbd data-control="left">A</kbd><kbd data-control="right">D</kbd> 移动</span><span><kbd data-control="jump">Space</kbd> 跳跃</span><span><kbd data-control="slash">J</kbd> 劈砍</span><span><kbd data-control="block">K</kbd> 格挡</span><span><kbd data-control="qi">L</kbd> 剑气</span><span><kbd data-control="dash">Shift</kbd> 闪避</span><span><kbd data-control="dao">Q</kbd> 技能一</span><span><kbd data-control="dao2">E</kbd> 技能二</span><span><kbd data-control="pause">Esc</kbd> 暂停</span></div>
       <div class="touch-controls" aria-label="触屏操作"><div><button data-touch="left">◀</button><button data-touch="right">▶</button><button data-touch="jump">跃</button><button data-touch="dash">闪</button></div><div><button data-touch="slash">斩</button><button data-touch="block">御</button><button data-touch="qi">气</button><button data-touch="dao">一</button><button data-touch="dao2">二</button></div></div>
+    </section>
+
+    <section id="panel-journey" class="panel lab-panel">
+      <h2>八宫征程 · 独立正式档</h2>
+      <p>旧永久档与离宫试验档保留。J/K/L中性；Q/E各用自己的本宫元素；只生效两项主动与两项心法。先用赠珠挑战，取得各行新珠后拆换。</p>
+      <p id="journey-status" role="status">进入后读取</p><p id="journey-error" role="alert"></p>
+      <div class="lab-palaces" id="journey-palaces" aria-label="后天八卦阵盘，上南下北左东右西"></div>
+      <h3 id="journey-palace-title"></h3><p id="journey-effect"></p>
+      <div id="journey-nodes" class="dialog-actions"></div>
+      <div class="dialog-actions"><button id="journey-equip" class="pixel-button">保存本宫装配</button><button id="journey-clear" class="pixel-button">拆下全盘珠子</button></div>
+      <h3>出战栏 · 两主动＋两心法</h3><div id="journey-loadout" class="dialog-actions"></div>
+      <button id="journey-save" class="pixel-button">保存出战栏</button><button id="journey-reload" class="pixel-button">重新读取服务存档</button>
+      <p id="journey-compiled"></p><p id="journey-owned"></p>
+      <h3>挑战与支路</h3><p>首次胜利必得对应元素各宫的核心/纹路/心法；后续补未有变式。重复珠+5珠经验，满级改+2修为。胜利12修为，每个支路祭坛另+4；只冻结出战有效珠获20经验。</p>
+      <div class="dialog-actions"><label>秘境 <select id="journey-realm"><option value="fire">火境</option><option value="wood">木境</option><option value="earth">土境</option><option value="metal">金境</option><option value="water">水境</option></select></label><label>地图 <select id="journey-map"><option value="ridge">高径 · 上行祭坛</option><option value="hollow">回廊 · 折返祭坛</option></select></label></div>
+      <p id="journey-route"></p><div class="dialog-actions"><button id="journey-start" class="pixel-button primary">进入秘境</button><button id="journey-resume" class="pixel-button">恢复未完成挑战</button><button id="journey-abandon" class="pixel-button">放弃当前挑战</button><button id="journey-break" class="pixel-button">筑基突破 · 24修为</button></div>
+      <p>练气容量6 → 筑基容量10。突破须独立击败离火剑魁，失败不扣修为、不毁珠，不发普通掉落；成功才扣24修为。研习阶段与正式境界分开。</p>
     </section>
 
     <section id="panel-arraylab" class="panel lab-panel">
@@ -129,5 +148,6 @@
   <script src="{{ url_for('static', filename='js/rules.js') }}"></script>
   <script src="{{ url_for('static', filename='js/game.js') }}"></script>
   <script src="{{ url_for('static', filename='js/array-lab-ui.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/journey-ui.js') }}"></script>
 </body>
 </html>

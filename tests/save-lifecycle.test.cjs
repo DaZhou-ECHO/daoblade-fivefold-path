@@ -9,7 +9,7 @@ function harness(fetcher, storage = {}) {
     return nodes.get(id);
   };
   const context = vm.createContext({ document: { querySelector: node, querySelectorAll: () => [] },
-    window: { scrollTo() {} }, localStorage: { getItem: () => null, setItem() {}, ...storage },
+    window: { scrollTo() {}, addEventListener() {} }, localStorage: { getItem: () => null, setItem() {}, ...storage },
     setTimeout: () => 0, clearTimeout() {}, console, fetch: fetcher });
   require("./helpers/load-rules.cjs")(context);
   const source = fs.readFileSync(path.join(__dirname, "../static/js/game.js"), "utf8")

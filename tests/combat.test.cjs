@@ -898,3 +898,87 @@ test("031 五境基础单跳通过危险段后落地，不需要巽卦或技能"
     assert.equal(g.player.jumpCount,0);assert.equal(g.player.onGround,true);
   }
 });
+
+
+test("032 八宫选中技能进入真实引擎，各自元素/机制，拆核心停用",()=>{
+  const builds=require('./helpers/journey-builds.json');
+  for(const compiled of builds){
+    const api=gameContext(),trial={id:'unit-032',realm_id:'wood',map_id:'ridge',checkpoint:null,claimed_altars:[]};
+    const g=new api.BattleGame('wood',{labTrial:trial,labCompiled:compiled}),p=g.player;
+    g.enemies=[g.enemy('melee','隔离目标',p.x+95,10000,'melee')];const e=g.enemies[0];e.y=g.floorY-e.h;
+    const events=[];g.events.subscribe(v=>events.push(v));const hp=e.hp,qi=p.qi;
+    g.daoSkill(0);assert.ok(e.hp<hp,compiled.skills[0].id+' 实际伤害');
+    const hit=events.find(v=>v.type==='enemy_hit');
+    assert.equal(hit?.element,compiled.skills[0].element);
+    const id=compiled.skills[0].id;
+    if(id==='li')assert.equal(e.labBurn,3);
+    if(id==='kan')assert.equal(e.slow,2);
+    if(id==='gen')assert.equal(p.shield,12);
+    if(id==='xun')assert.equal(p.x,300);
+    if(id==='dui')assert.equal(p.qi,qi-4);
+    if(id==='kun')assert.ok(e.x>215);
+    if(id==='qian'){const base=new api.BattleGame('fire',{practice:true});assert.equal(g.stats.attack,base.stats.attack+2);}
+    const empty=JSON.parse(JSON.stringify(compiled));empty.skills=[null,null];
+    const off=new api.BattleGame('wood',{labTrial:trial,labCompiled:empty});const before=off.player.qi;off.daoSkill(0);assert.equal(off.player.qi,before);
+  }
+});
+
+
+test("032 十张地图两条支路基础单跳到达并双向返回主路",()=>{
+  const levels=require('../static/js/level-definitions.js'),compiled=require('./helpers/journey-builds.json').find(b=>b.skills[0].id==='li');
+  for(const realm of levels.realm_ids)for(const map of ['ridge','hollow'])for(const fps of [30,60,120]){
+    const api=gameContext(),trial={id:'route-032',realm_id:realm,map_id:map,checkpoint:null,claimed_altars:[]};
+    const g=new api.BattleGame(realm,{labTrial:trial,labCompiled:compiled});
+    // 隔离地形，不伪造正式战果；保留一个远处靶避免触发胜利。
+    g.enemies=[g.enemy('dummy','远处靶',3100,99999,'dummy')];g.hazards=[];g.altars=[];g.labRun=false;g.trial=null;
+    const step=()=>g.update(1/fps), key=(code,down)=>g[down?'keyDown':'keyUp']({code,preventDefault(){}});
+    function walk(target){
+      key('KeyD',false);key('KeyA',false);
+      for(let i=0;i<fps*20;i++){
+        const d=target-g.player.x;
+        if(Math.abs(d)<8){key('KeyD',false);key('KeyA',false);for(let n=0;n<fps/3;n++)step();return;}
+        key(d>0?'KeyA':'KeyD',false);key(d>0?'KeyD':'KeyA',true);step();
+      }
+      assert.fail(`${realm}/${map}/${fps} walk ${target} at ${g.player.x}`);
+    }
+    function land(platform,dir){
+      walk(dir>0?platform.x-50:platform.x+platform.w+5);
+      key('Space',true);key('Space',false);key(dir>0?'KeyD':'KeyA',true);
+      const target=dir>0?platform.x+60:platform.x+platform.w-90;
+      let stopped=false,landed=false;
+      for(let i=0;i<fps*2;i++){
+        if(!stopped&&((dir>0&&g.player.x>=target)||(dir<0&&g.player.x<=target))){key('KeyD',false);key('KeyA',false);stopped=true;}
+        step();
+        if(i>fps*.2&&g.player.onGround&&Math.abs(g.player.y+g.player.h-platform.y)<1){landed=true;break;}
+      }
+      key('KeyD',false);key('KeyA',false);
+      assert.ok(landed,`${realm}/${map}/${fps} landing ${platform.id} from ${g.player.x}/${g.player.y+g.player.h}`);
+    }
+    for(let branch=0;branch<2;branch++){
+      const altar=levels.getJourneyDefinition(realm,map).anchors['altar-'+(branch+1)];
+      const group=g.platforms.slice(1).filter(p=>branch===0?p.x<1200:p.x>1500);
+      const route=group.slice().sort((a,b)=>b.y-a.y);
+      for(const platform of route)land(platform,map==='ridge'?1:(platform===route[0]?1:-1));
+      walk(altar.x);
+      assert.ok(Math.abs(g.player.y+g.player.h-altar.y)<1,`${realm}/${map}/${fps} altar height`);
+      // 从高台左端退回主路，再向前返回，不能依赖特定配珠穿墙。
+      walk(group.reduce((x,p)=>Math.min(x,p.x),9999)-100);
+      for(let i=0;i<fps;i++)step();assert.equal(g.player.y+g.player.h,g.floorY);
+    }
+    walk(2800);assert.equal(g.player.y+g.player.h,g.floorY);
+  }
+});
+
+
+test("032 低帧率小步补算保留可玩速度，长停顿有上限，暂停不追赶",()=>{
+  for(const fps of [10,15,30,60]){
+    const api=gameContext(),g=new api.BattleGame('wood',{practice:true});g.draw=()=>{};
+    g.keyDown({code:'KeyD',preventDefault(){}});
+    for(let i=1;i<=fps;i++)g.loop(i*1000/fps);
+    assert.ok(Math.abs(g.elapsed-1)<.0001,`${fps}fps elapsed ${g.elapsed}`);
+    assert.ok(g.player.x>290,`${fps}fps 基础移动`);
+    const before=g.elapsed;g.loop(10000);assert.ok(g.elapsed-before<=.25001);
+    g.setPause(true);const stopped=g.elapsed;g.loop(20000);assert.equal(g.elapsed,stopped);
+    g.setPause(false);g.loop(20016);assert.ok(g.elapsed-stopped<=.25001);
+  }
+});

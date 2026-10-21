@@ -102,8 +102,38 @@
     definitions[realm].anchors.swordstone={x:1640,y:474};
     definitions[realm].lab_checkpoint={id:"swordstone",anchor_id:"swordstone",cleared_ids:["enemy-1","enemy-2","enemy-3"]};
   }
+  // 正式征程双地图灰盒：主地面贯通，支路由基础单跳阶台组成。
+  const JOURNEY_TERRAIN = {
+    wood: { steps: [[470,410,240],[700,350,260],[1740,410,240],[1970,350,260]], altars: [[790,350],[2040,350]], label: "林根高径 · 连续登台" },
+    fire: { steps: [[450,414,270],[710,358,250],[1700,414,270],[1960,358,250]], altars: [[800,358],[2050,358]], label: "炉台高径 · 观察地火窗口" },
+    earth: { steps: [[420,424,330],[730,374,300],[1720,424,330],[2030,374,300]], altars: [[830,374],[2150,374]], label: "石庭高径 · 宽台折层" },
+    metal: { steps: [[490,430,200],[680,386,180],[850,342,180],[1740,430,200],[1930,386,180],[2100,342,180]], altars: [[910,342],[2160,342]], label: "剑廊高径 · 三阶侧移" },
+    water: { steps: [[460,418,290],[730,362,260],[1710,418,290],[1980,362,260]], altars: [[820,362],[2070,362]], label: "寒潭高径 · 栈桥避潮" },
+  };
+  const journeyDefinitions = {};
+  for(const realm of Object.keys(REALMS))for(const map of ["ridge","hollow"]){
+    const base=JSON.parse(JSON.stringify(definitions[realm])),terrain=JOURNEY_TERRAIN[realm];
+    base.id=`journey-v1:${realm}:${map}`;base.map_id=map;
+    let steps=terrain.steps,altars=terrain.altars;
+    if(map==="hollow"){
+      // 先从右侧矮台登高，再向左折返上层祭坛；可从两端落回贯通主路。
+      const low=realm==="earth"?424:realm==="metal"?420:412,high=low-58;
+      steps=[[470,high,290],[740,low,230],[1770,high,290],[2040,low,230]];
+      altars=[[510,high],[1810,high]];
+    }
+    base.route_label=map==="ridge"?terrain.label:({wood:"根桥回廊",fire:"炉后回廊",earth:"遗迹回廊",metal:"剑冢回廊",water:"折水栈道"})[realm]+" · 右侧登台后折返";
+    base.platforms=[base.platforms[0],...steps.map(([x,y,w],i)=>({id:`branch-step-${i+1}`,x,y,w,h:22}))];
+    base.altars=altars.map(([x,y],i)=>{const id=`altar-${i+1}`;base.anchors[id]={x,y};return{id,anchor_id:id};});
+    journeyDefinitions[realm+":"+map]=base;
+  }
+  freeze(journeyDefinitions);
   freeze(definitions);
   const api = freeze({
+    getJourneyDefinition(realm,map="ridge"){
+      const value=journeyDefinitions[realm+":"+map];
+      if(!value)throw new Error("未知正式秘境地图");
+      return value;
+    },
     hazardState, realms: REALMS, realm_ids: Object.keys(REALMS),
     getDefinition(realm) {
       if (!Object.hasOwn(definitions, realm)) throw new Error("未知秘境配置");
