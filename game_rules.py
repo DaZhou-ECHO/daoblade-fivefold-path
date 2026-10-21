@@ -18,6 +18,45 @@ MAX_INVENTORY = LIMITS["inventory"]
 LOADOUT_SIZE = LIMITS["loadout"]
 
 
+def _validate_trial(trial: Any, state: dict[str, Any], previous: dict[str, Any] | None) -> None:
+    if trial is None:
+        return
+    fields = {"version", "id", "ruleset_id", "rules_version", "realm_id", "checkpoint_id", "build", "claimed_altars"}
+    if not isinstance(trial, dict) or set(trial) != fields:
+        raise ValueError("试炼记录字段无效")
+    if (type(trial["version"]) is not int or trial["version"] != 1
+            or type(trial["rules_version"]) is not int or trial["rules_version"] != 1
+            or trial["ruleset_id"] != "legacy-v1" or trial["realm_id"] != "fire"
+            or trial["checkpoint_id"] != "swordstone"):
+        raise ValueError("试炼记录版本或检查点不受支持")
+    if not isinstance(trial["id"], str) or not 1 <= len(trial["id"]) <= 80:
+        raise ValueError("试炼编号无效")
+    claimed = trial["claimed_altars"]
+    if (not isinstance(claimed, list) or len(claimed) > 2
+            or any(type(item) is not str or item not in ("altar-1", "altar-2") for item in claimed)
+            or len(set(claimed)) != len(claimed)):
+        raise ValueError("试炼祭坛记录无效")
+    build = trial["build"]
+    if not isinstance(build, dict) or set(build) != {"player", "cultivation", "loadout"}:
+        raise ValueError("试炼构筑字段无效")
+    # 重建标准状态再复用原校验，禁止把递归试炼或任意stats藏进构筑。
+    source = default_state()
+    source.update(deepcopy(build))
+    validate_state(source, source)
+    for key in TRIGRAMS:
+        for index, bead in enumerate(build["cultivation"][key]):
+            if bead is None:
+                continue
+            current = state["cultivation"][key][index]
+            if (current is None or any(bead[field] != current[field] for field in ("id", "element", "quality"))
+                    or bead["level"] > current["level"]):
+                raise ValueError("试炼构筑与角色灵珠不一致")
+    old = previous.get("active_trial") if previous else None
+    if isinstance(old, dict) and set(old) == fields and old.get("id") == trial["id"]:
+        if old["build"] != build or not set(old["claimed_altars"]).issubset(claimed):
+            raise ValueError("进行中试炼的构筑与奖励记录不能倒退或改写")
+
+
 def _validate_bead(bead: Any) -> None:
     if not isinstance(bead, dict):
         raise ValueError("灵珠数据格式错误")
@@ -136,5 +175,6 @@ def validate_state(raw: Any, previous: dict[str, Any] | None = None) -> dict[str
                 if new_bead["level"] < old_bead["level"] or new_bead["xp"] < 0:
                     raise ValueError("灵珠修为不能倒退")
 
+    _validate_trial(state.get("active_trial"), state, previous)
     return state
 

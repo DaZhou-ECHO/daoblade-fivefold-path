@@ -485,7 +485,7 @@ test("五境布局各异且支路祭坛位置可达，非火关敌人有攻击�
 });
 
 test("014 剑碑仅前段清场且在附近地面激活一次", () => {
-  const api=gameContext(), game=new api.BattleGame("fire");
+  const api=gameContext(), game=new api.BattleGame("fire");api.mockSave(()=>Promise.resolve(true));
   game.player.x=1640;game.player.hp=1;game.updateCheckpoint();assert.equal(game.trial.activated,false);
   game.enemies.slice(0,3).forEach(e=>e.dead=true);
   game.player.onGround=false;game.updateCheckpoint();assert.equal(game.trial.activated,false);

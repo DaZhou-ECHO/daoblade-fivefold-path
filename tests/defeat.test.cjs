@@ -39,7 +39,7 @@ function harness({ practice = false, deferredSave = false } = {}) {
     showPanel = name => recordPanel(name);
     saveState = () => recordSave(saveData);
     this.api = { BattleGame, state: () => saveData, active: () => activeGame,
-      setActive: game => { activeGame = game; }, setSyncBlocked: value => { saveBlocked = value; }, bindUi, showRealPanel: actualShowPanel };
+      setActive: game => { activeGame = game; }, setSyncBlocked: value => { saveBlocked = value; }, restoreCheckpoint, replaceState: value => { saveData = value; }, bindUi, showRealPanel: actualShowPanel };
   `, context);
   const game = new context.api.BattleGame("fire", { practice });
   context.api.setActive(game);
@@ -229,4 +229,42 @@ test("014 保存失同步时续关入口保留结果和原试炼，不假装开�
   assert.equal(h.api.active(),h.game);assert.equal(h.game.disposed,false);assert.equal(h.calls.close,0);
   h.api.setSyncBlocked(false);h.nodes.get("#continue-checkpoint").handlers.click();
   assert.notEqual(h.api.active(),h.game);assert.equal(h.calls.close,1);
+});
+
+test("015 刷新式JSON重载由洞府按钮恢复原试炼，放弃删除记录", () => {
+  const h=harness();h.api.bindUi();h.game.trial.activated=true;
+  h.game.trial.claimedAltars.add("altar-2");h.game.persistCheckpoint();
+  const raw=JSON.parse(JSON.stringify(h.api.state()));
+  h.game.destroy();h.api.setActive(null);h.api.replaceState(raw);
+  h.nodes.get("#restore-checkpoint").handlers.click();
+  const restored=h.api.active();
+  assert.equal(restored.player.x,1640);assert.equal(restored.player.hp,restored.stats.hpMax);
+  assert.equal(restored.altars[1].taken,true);assert.equal(restored.enemies.filter(e=>!e.dead).length,3);
+  assert.equal(h.api.state().progress.runs,0);
+  restored.quit();assert.equal(h.api.state().active_trial,null);
+  assert.equal(h.calls.saves.at(-1).active_trial,null);
+});
+
+test("015 胜利奖励和试炼清除一起保存，失同步时不恢复旧局", async () => {
+  const h=harness();h.game.trial.activated=true;h.game.persistCheckpoint();
+  await h.game.finish(true);
+  const saved=h.calls.saves.at(-1);
+  assert.equal(saved.active_trial,null);assert.equal(saved.progress.victories,1);
+  h.api.setActive(null);h.api.setSyncBlocked(true);h.api.restoreCheckpoint();
+  assert.equal(h.api.active(),null);
+});
+
+test("015 Esc不能静默关掉结果并把玩家困在死亡画面", () => {
+  const h=harness();h.api.bindUi();let prevented=false;
+  h.nodes.get("#result-dialog").handlers.cancel({preventDefault(){prevented=true;}});
+  assert.equal(prevented,true);
+});
+
+test("015 失败后返回洞府保留剑碑，明确放弃或重开才清除", async () => {
+  const h=harness();h.api.bindUi();h.game.trial.activated=true;h.game.persistCheckpoint();
+  const failed=h.game.finish(false);h.complete();await failed;
+  h.nodes.get("#return-sanctuary").handlers.click({preventDefault(){}});
+  assert.equal(h.api.active(),null);assert.equal(h.api.state().active_trial.id,h.game.trial.id);
+  h.api.restoreCheckpoint();assert.equal(h.api.active().trial.id,h.game.trial.id);
+  h.api.active().quit();assert.equal(h.api.state().active_trial,null);
 });

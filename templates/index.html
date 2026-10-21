@@ -37,6 +37,7 @@
           <p class="eyebrow">五行剑术试玩版</p>
           <h2>同修一套剑术，各走一条大道</h2>
           <p class="lead">进入五行秘境，以劈砍、格挡和剑气战胜守境者。获得灵珠后，将它永久镶入本命剑的八卦修行图。每一次选择都会改变后续战斗。</p>
+          <p id="checkpoint-status" hidden></p><button id="restore-checkpoint" type="button" class="pixel-button" hidden>继续火境剑碑试炼</button>
           <div class="hero-actions"><button class="pixel-button primary" data-go="realms">进入秘境</button><button class="pixel-button" data-go="cultivation">查看本命剑</button></div>
         </div>
         <div class="sword-altar" aria-hidden="true">
@@ -110,6 +111,7 @@
   <script src="{{ url_for('static', filename='js/combat-feedback.js') }}"></script>
   <script src="{{ url_for('static', filename='js/level-definitions.js') }}"></script>
   <script src="{{ url_for('static', filename='js/level-progress.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/trial-state.js') }}"></script>
   <script src="{{ url_for('static', filename='js/character-art.js') }}"></script>
   <script>globalThis.DaoBladeRuleset = {{ ruleset | tojson }};</script>
   <script src="{{ url_for('static', filename='js/rules.js') }}"></script>

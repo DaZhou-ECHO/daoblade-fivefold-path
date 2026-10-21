@@ -5,6 +5,7 @@ const { elements: ELEMENTS, trigrams: TRIGRAMS, affixes: AFFIXES, qualities: QUA
 
 const LEVELS = globalThis.DaoBladeLevels;
 const REALMS = LEVELS.realms;
+const TRIALS = globalThis.DaoBladeTrialState;
 
 const DEFAULT_STATE = () => RULES.defaultState();
 
@@ -108,18 +109,19 @@ async function loadState() {
     saveData = payload.state;
     saveRevision = payload.revision;
     saveBlocked = false;
-    localStorage.setItem(backupKey(), JSON.stringify(saveData));
+    writeBackup();
     $("#save-status").textContent = "SQLite 已连接";
   } catch (error) {
-    const backup = localStorage.getItem(backupKey());
+    const backup = readBackup();
     try { saveData = backup ? JSON.parse(backup) : DEFAULT_STATE(); }
     catch (_) { saveData = DEFAULT_STATE(); }
-    saveBlocked = Boolean(currentUser);
+    saveBlocked = true;
     $("#save-status").textContent = "本地备用存档";
     showToast("服务器存档不可用，已切换到浏览器备用存档", true);
   }
   normalizeState();
   renderAll();
+  renderCheckpointRecovery();
 }
 
 function normalizeState() {
@@ -133,11 +135,11 @@ function normalizeState() {
 }
 
 async function saveState(message = "进度已保存") {
-  localStorage.setItem(backupKey(), JSON.stringify(saveData));
-  if (saveBlocked) return showToast("存档尚未同步，请重新登录或刷新后检查", true);
+  writeBackup();
+  if (saveBlocked) { showToast("存档尚未同步，请重新登录或刷新后检查", true); return false; }
   const accountId = currentUser?.id || null;
   saveQueue = saveQueue.then(async () => {
-    if (saveBlocked || accountId !== (currentUser?.id || null)) return;
+    if (saveBlocked || accountId !== (currentUser?.id || null)) return false;
     try {
       const requestBody = currentUser ? { state: saveData, revision: saveRevision } : saveData;
       const response = await fetch("/api/state", { method: "POST", headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken }, body: JSON.stringify(requestBody) });
@@ -146,13 +148,24 @@ async function saveState(message = "进度已保存") {
       saveRevision = payload.revision;
       $("#save-status").textContent = "进度已保存";
       if (message) showToast(message);
+      return true;
     } catch (error) {
-      saveBlocked = Boolean(currentUser);
+      saveBlocked = true;
       $("#save-status").textContent = "存档未同步";
       showToast(`存档未同步：${error.message}。请检查后刷新。`, true);
+      return false;
     }
   });
   return saveQueue;
+}
+
+function readBackup() {
+  try { return localStorage.getItem(backupKey()); } catch (_) { return null; }
+}
+
+function writeBackup() {
+  // 浏览器空间不足或禁用存储不能阻止SQLite主存档保存。
+  try { localStorage.setItem(backupKey(), JSON.stringify(saveData)); } catch (_) { /* 主存档状态仍由服务器响应决定。 */ }
 }
 
 function backupKey() { return currentUser ? `daoblade-backup-user-${currentUser.id}` : "daoblade-backup"; }
@@ -209,6 +222,7 @@ function showPanel(name) {
   if (name === "inventory") renderInventory();
   if (name === "cultivation") renderCultivation();
   if (name === "realms") renderRealms();
+  renderCheckpointRecovery();
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -472,6 +486,29 @@ function startRealm(key, options = {}) {
   activeGame.start();
 }
 
+function renderCheckpointRecovery() {
+  const available = Boolean(saveData.active_trial && (!activeGame || activeGame.finished));
+  $("#restore-checkpoint").hidden = !available;
+  $("#checkpoint-status").hidden = !available;
+  $("#checkpoint-status").textContent = available ? "有未完成的火境剑碑试炼，将按原构筑恢复；重新开战会替换它。" : "";
+}
+
+function restoreCheckpoint() {
+  if (saveBlocked) return showToast("存档未同步，请刷新后确认剑碑记录", true);
+  if (activeGame && !activeGame.finished) return showToast("请先结束当前试炼", true);
+  try {
+    const trial = TRIALS.restore(saveData.active_trial, RULES);
+    startRealm("fire", { trial });
+  } catch (error) { showToast(error.message, true); }
+}
+
+function abandonCheckpoint(game) {
+  if (game?.practice || !saveData.active_trial || saveData.active_trial.id !== game?.trial?.id) return;
+  saveData.active_trial = null;
+  renderCheckpointRecovery();
+  void saveState("");
+}
+
 function continueCheckpoint() {
   if (saveBlocked) return showToast("存档未同步，暂不能继续正式试炼", true);
   const game = activeGame;
@@ -516,10 +553,9 @@ class BattleGame {
     this.particles = [];
     this.skillEffects = [];
     this.resuming = Boolean(!this.practice && this.level.checkpoint && options.trial?.activated && !options.trial.settled);
-    this.snapshot = this.resuming ? options.trial.snapshot : RULES.createCombatSnapshot(options.state || saveData);
-    this.trial = !this.practice && this.level.checkpoint ? (this.resuming ? options.trial : {
-      snapshot: this.snapshot, activated: false, claimedAltars: new Set(), settled: false,
-    }) : null;
+    this.trial = !this.practice && this.level.checkpoint
+      ? (this.resuming ? options.trial : TRIALS.create(options.state || saveData, RULES)) : null;
+    this.snapshot = this.trial?.snapshot || RULES.createCombatSnapshot(options.state || saveData);
     this.stats = this.snapshot.stats;
     this.characterArt = globalThis.DaoBladeCharacterArt?.renderer || null;
     if (this.characterArt) void this.characterArt.load();
@@ -571,7 +607,8 @@ class BattleGame {
   start() {
     $("#realm-name").textContent = this.practice ? "练功场 · 临时试招" : `${this.element.zh} · ${this.element.realm}`;
     $("#objective-text").textContent = this.practice ? "木桩会恢复，不结算战利品" : `击败 ${this.realm.enemies.join("、")}与${this.realm.boss}`;
-    if (!this.practice && !this.resuming) { saveData.progress.runs += 1; void saveState(""); }
+    if (!this.practice && !this.resuming) { saveData.active_trial = null; saveData.progress.runs += 1; void saveState(""); }
+    renderCheckpointRecovery();
     $("#pause-overlay").classList.add("hidden");
     window.addEventListener("keydown", this.boundKeyDown);
     window.addEventListener("keyup", this.boundKeyUp);
@@ -640,7 +677,7 @@ class BattleGame {
     this.releaseTouchCapture(button, id);
   }
 
-  quit() { const target = this.practice ? "cultivation" : "realms"; this.destroy(); activeGame = null; showPanel(target); }
+  quit() { const target = this.practice ? "cultivation" : "realms"; abandonCheckpoint(this); this.destroy(); activeGame = null; showPanel(target); }
 
   setPause(value) {
     if (this.finished) return;
@@ -909,6 +946,7 @@ class BattleGame {
       if (!altar.taken && this.overlap(p.x, p.y, p.w, p.h, altar.x, altar.y, 28, 28)) {
         altar.taken = true;
         this.trial?.claimedAltars.add(altar.id);
+        if (this.trial?.activated) this.persistCheckpoint();
         p.hp = Math.min(this.stats.hpMax, p.hp + 12);
         p.qi = Math.min(this.stats.qiMax, p.qi + 18);
         this.burst(altar.x + 14, altar.y + 14, "#dfad4c", 16);
@@ -1197,7 +1235,14 @@ class BattleGame {
     if (!p.onGround || Math.abs(p.x - anchor.x) > 70 || Math.abs(p.y + p.h - anchor.y) > 2) return;
     this.trial.activated = true;
     p.hp = this.stats.hpMax; p.qi = this.stats.qiMax;
-    showToast("剑碑已激活：恢复气血与剑意。战败可续关；当前刷新会结束试炼");
+    this.persistCheckpoint();
+    showToast("剑碑已激活：恢复气血与剑意。刷新后可从洞府继续；保存状态见顶部");
+  }
+
+  persistCheckpoint() {
+    saveData.active_trial = TRIALS.encode(this.trial);
+    renderCheckpointRecovery();
+    void saveState("");
   }
 
   canContinueCheckpoint() {
@@ -1222,6 +1267,7 @@ class BattleGame {
     $("#continue-checkpoint").hidden = !this.canContinueCheckpoint();
     const rewards = [];
     if (win) {
+      saveData.active_trial = null;
       saveData.progress.victories += 1; saveData.progress.clears[this.realmKey] += 1; saveData.player.spirit += 12;
       const count = 2 + (Math.random() < .35 ? 1 : 0) + this.altars.filter(altar => altar.taken).length;
       for (let i = 0; i < count && saveData.inventory.length < RULES.config.limits.inventory; i++) {
@@ -1235,12 +1281,13 @@ class BattleGame {
       grantBeadExperience(5);
       $("#result-title").textContent = "道心未折";
       $("#result-message").textContent = this.canContinueCheckpoint()
-        ? "剑碑仍在：续关保留原构筑与已领祭坛，后段敌人重置。当前刷新会结束试炼。也可重新挑战整关。"
+        ? "剑碑仍在：续关保留原构筑与已领祭坛，后段敌人重置。刷新后可从洞府继续，请确认顶部保存状态。"
         : "本次未能击败守境者，已镶灵珠仍获得少量修为。调整路线后可以再次挑战。";
     }
     $("#reward-list").innerHTML = rewards.length ? rewards.map(bead => `<div class="reward-item" style="${beadStyle(bead)}"><b>${esc(bead.name)}</b><small>${QUALITY[bead.quality].zh} · ${bead.affixes.length}词条</small></div>`).join("") : '<div class="empty-message">本次没有获得新灵珠</div>';
     // 原有奖励和保存仍只执行一次；延迟的仅是结果窗口。
     renderAll();
+    renderCheckpointRecovery();
     const [, present] = await Promise.all([saveState(""), visual]);
     if (present && !this.disposed) $("#result-dialog").showModal();
   }
@@ -1249,7 +1296,7 @@ class BattleGame {
     if (!this.practice) {
       const objective = globalThis.DaoBladeLevelProgress?.objective(this.realmKey, this.player.x, this.enemies);
       if (objective) $("#objective-text").textContent = objective + (this.trial
-        ? this.trial.activated ? " · 剑碑已激活（仅本次会话）" : " · 前段清场后前往剑碑恢复"
+        ? this.trial.activated ? " · 剑碑已激活" : " · 前段清场后前往剑碑恢复"
         : "");
     }
     $("#hud-hp").textContent = `${Math.ceil(Math.max(0, this.player.hp))} / ${this.stats.hpMax}`;
@@ -1501,12 +1548,14 @@ class BattleGame {
 }
 
 function bindUi() {
+  $("#result-dialog").addEventListener("cancel", event => event.preventDefault());
+  $("#restore-checkpoint").addEventListener("click", restoreCheckpoint);
   $("#account-login").addEventListener("click", () => $("#account-dialog").showModal());
   $("#close-account").addEventListener("click", () => $("#account-dialog").close());
   $("#submit-login").addEventListener("click", () => submitAccount("login"));
   $("#submit-register").addEventListener("click", () => submitAccount("register"));
   $("#account-logout").addEventListener("click", async () => {
-    if (activeGame && !activeGame.finished) activeGame.quit();
+    if (activeGame) { activeGame.destroy(); activeGame = null; }
     await saveQueue;
     try {
       const response = await fetch("/api/auth/logout", { method: "POST", headers: { "X-CSRF-Token": csrfToken } });

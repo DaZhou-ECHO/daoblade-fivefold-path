@@ -90,6 +90,8 @@ static/js/battle-events.js 每局只读战斗事实事件、有限历史与反�
 static/js/battle-audio.js  事件驱动短合成音、并发预算及静音清理
 static/js/combat-feedback.js 真实命中/防守文字，数量寿命预算与关闭支持
 static/js/level-definitions.js 冻结旧五境布局/敌人配置与稳定位置引用
+static/js/level-progress.js 火境分段目标投影
+static/js/trial-state.js 剑碑试炼构筑快照序列化与恢复
 database.py                SQLite 初始化、迁移、按账号存档和版本检查
 game_rules.py              灵珠、八卦、出战配置与不可逆选择校验
 templates/index.html       主界面和对话框
