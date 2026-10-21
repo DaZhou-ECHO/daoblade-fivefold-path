@@ -2,6 +2,7 @@
 
 | 任务ID | 任务目标 | 状态 | 当前接续Agent | 分支/基线 | 最新交接链接 | 依赖或阻塞 |
 |---|---|---|---|---|---|---|
+| 017-d03-trial-growth | 新规则试炼与成长结算服务 | 已完成 | agent-20261021-0031-c8e4 | work/017-d03-trial-growth-local / 55d0c8d | [交接](017-d03-trial-growth/agents/agent-20261021-0031-c8e4/HANDOFF.md) | Python88/Node117及API事务/成长试招通过；018须接真实挑战；仅本地 |
 | 016-d03-array-lab | 独立测试档与离宫可拆换组合 | 已完成 | agent-20261021-0031-c8e4 | work/016-d03-array-lab-local / bce6616 | [交接](016-d03-array-lab/agents/agent-20261021-0031-c8e4/HANDOFF.md) | Python75/Node115与实际两方案/拆装/刷新/重登/冲突通过；仅本地 |
 | 015-d10-checkpoint-save | 剑碑持久化与刷新恢复 | 已完成 | agent-20261021-0031-c8e4 | work/015-d10-checkpoint-save-local / 041c697 | [交接](015-d10-checkpoint-save/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 依赖014；Python61/Node105与真实刷新恢复通过；完整通关继续；仅本地 |
 | 014-d06-fire-checkpoint | 火境剑碑会话内续关 | 已完成 | agent-20261021-0031-c8e4 | work/014-d06-fire-checkpoint-local / ba82f57 | [交接](014-d06-fire-checkpoint/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 依赖013；Python48/Node96及真实战败续关通过；刷新恢复后续；仅本地 |

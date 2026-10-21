@@ -60,5 +60,61 @@
     "focus": false,
     "burst": false,
     "mark": false
+  },
+  {
+    "id": "grown-focus",
+    "roles": [
+      "core",
+      "mark",
+      "focus"
+    ],
+    "levels": {
+      "core": 2,
+      "mark": 2,
+      "focus": 2
+    },
+    "effective": [
+      "li.core",
+      "li.mark",
+      "li.focus"
+    ],
+    "inactive": {},
+    "enabled": true,
+    "focus": true,
+    "burst": false,
+    "mark": true,
+    "numbers": {
+      "damage": 14,
+      "focus_damage": 18,
+      "burn_damage": 5,
+      "qi": 11
+    }
+  },
+  {
+    "id": "grown-burst",
+    "roles": [
+      "core",
+      "mark",
+      "burst"
+    ],
+    "levels": {
+      "core": 2,
+      "burst": 3
+    },
+    "effective": [
+      "li.core",
+      "li.mark",
+      "li.burst"
+    ],
+    "inactive": {},
+    "enabled": true,
+    "focus": false,
+    "burst": true,
+    "mark": true,
+    "numbers": {
+      "damage": 14,
+      "burst_per_mark": 18,
+      "qi": 12
+    }
   }
 ]

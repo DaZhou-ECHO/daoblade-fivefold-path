@@ -56,6 +56,10 @@ def init_db() -> None:
     database.execute("""CREATE TABLE IF NOT EXISTS array_lab_saves (
         slot TEXT PRIMARY KEY, state_json TEXT NOT NULL, revision INTEGER NOT NULL
     )""")
+    database.execute("""CREATE TABLE IF NOT EXISTS array_lab_results (
+        trial_id TEXT NOT NULL, slot TEXT NOT NULL, receipt_json TEXT NOT NULL,
+        PRIMARY KEY(trial_id, slot)
+    )""")
     database.commit()
 
 

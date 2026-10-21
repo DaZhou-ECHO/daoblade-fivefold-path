@@ -32,6 +32,7 @@
     const skill=compiled.skill;
     $("lab-compiled").innerHTML=`<h3>${skill.enabled?(skill.focus?"聚焰 · 持续压制":skill.burst?"留痕 · 蓄势引爆":"离火 · 基础剑式"):"技能已停用"}</h3><p>${!skill.enabled?"核心未连接。装回离火核心可恢复技能，无需重新学习。":
       skill.focus?`Q：短距${skill.focus_range}，直伤${skill.focus_damage}并持续灼烧。放弃远距与引爆。`:skill.burst?`Q：火行剑式留下火痕，上限${skill.max_marks}层。E：消耗火痕，每层${skill.burst_per_mark}额外伤害；冷却${skill.burst_cooldown}秒。`:`Q：火行剑式，范围${skill.range}、直伤${skill.damage}。连接留痕后可积累火痕。`}</p><small>基础面板保持中性；只编译当前有效连线。${Object.keys(compiled.inactive).length?"存在未连接节点，不提供效果。":""}</small>`;
+    $("lab-growth").textContent=`试验成长 · 闯关${state.progress.runs} / 胜利${state.progress.victories} / 修为${state.progress.spirit}；珠子等级上限${cfg.growth.max_level}`;
     buttons();
   }
   function edit(change) {

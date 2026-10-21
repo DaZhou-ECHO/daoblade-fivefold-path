@@ -561,7 +561,7 @@ class BattleGame {
     this.resuming = Boolean(!this.practice && this.level.checkpoint && options.trial?.activated && !options.trial.settled);
     this.trial = !this.practice && this.level.checkpoint
       ? (this.resuming ? options.trial : TRIALS.create(options.state || saveData, RULES)) : null;
-    this.snapshot = this.lab ? Object.freeze({ruleset_id: "array-lab-v1", stats: RULES.createCombatSnapshot(DEFAULT_STATE()).stats, skill: this.lab.skill}) : this.trial?.snapshot || RULES.createCombatSnapshot(options.state || saveData);
+    this.snapshot = this.lab ? Object.freeze({ruleset_id: "array-lab-v1", rules_version: this.lab.rules_version, stats: RULES.createCombatSnapshot(DEFAULT_STATE()).stats, skill: this.lab.skill}) : this.trial?.snapshot || RULES.createCombatSnapshot(options.state || saveData);
     this.stats = this.snapshot.stats;
     this.characterArt = globalThis.DaoBladeCharacterArt?.renderer || null;
     if (this.characterArt) void this.characterArt.load();

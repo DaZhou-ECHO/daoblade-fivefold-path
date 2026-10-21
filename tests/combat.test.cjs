@@ -515,7 +515,7 @@ test("014 续关保持构筑和祭坛，前三敌不复活，后段敌人重置�
 function labConfiguration(roles) {
   const config=require("../static/data/rules/array-lab-v1.json");
   const rules=require("../static/js/array-lab-rules.js").createRuntime(config);
-  const state={ruleset_id:config.ruleset_id,schema_version:1,rules_version:1,stage:1,beads:structuredClone(config.beads),nodes:Object.fromEntries(config.nodes.map(n=>[n.id,null]))};
+  const state={ruleset_id:config.ruleset_id,schema_version:2,rules_version:2,progress:{runs:0,victories:0,spirit:0},active_trial:null,stage:1,beads:structuredClone(config.beads),nodes:Object.fromEntries(config.nodes.map(n=>[n.id,null]))};
   for(const role of roles)state.nodes["li."+role]="lab-"+role;
   return rules.compile(state);
 }

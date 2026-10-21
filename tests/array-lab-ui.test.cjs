@@ -1,6 +1,6 @@
 const test=require("node:test"),assert=require("node:assert/strict"),vm=require("node:vm"),fs=require("node:fs"),path=require("node:path");
 const config=require("../static/data/rules/array-lab-v1.json");
-const initial=()=>({ruleset_id:config.ruleset_id,schema_version:1,rules_version:1,stage:1,beads:structuredClone(config.beads),nodes:Object.fromEntries(config.nodes.map(n=>[n.id,null]))});
+const initial=()=>({ruleset_id:config.ruleset_id,schema_version:2,rules_version:2,progress:{runs:0,victories:0,spirit:0},active_trial:null,stage:1,beads:structuredClone(config.beads),nodes:Object.fromEntries(config.nodes.map(n=>[n.id,null]))});
 function harness({deferred=false}={}) {
   const nodes=new Map();
   const node=id=>{if(!nodes.has(id))nodes.set(id,{textContent:"",innerHTML:"",disabled:false,value:"",handlers:{},addEventListener(t,fn){this.handlers[t]=fn;},querySelectorAll(){return [];}});return nodes.get(id);};

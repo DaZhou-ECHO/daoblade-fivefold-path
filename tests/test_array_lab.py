@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from array_lab import CONFIG, default_lab_state, validate_lab_state, compile_lab
+from array_lab import CONFIG, default_lab_state, validate_lab_state, validate_lab_edit, compile_lab
 from game_rules import default_state
 
 CASES = json.loads((Path(__file__).parent / "fixtures/array-lab-cases.json").read_text(encoding="utf-8"))
@@ -15,6 +15,8 @@ def test_compiler_shared_cases(case):
     state = default_lab_state()
     for role in case["roles"]:
         state["nodes"]["li." + role] = "lab-" + role
+    for bead in state["beads"]:
+        bead["level"] = case.get("levels", {}).get(bead["role"], 1)
     result = compile_lab(state)
     assert result["effective"] == case["effective"]
     assert result["inactive"] == case["inactive"]
@@ -22,6 +24,8 @@ def test_compiler_shared_cases(case):
     for key in ("enabled", "focus", "burst", "mark"):
         assert result["skill"][key] == case[key]
     assert result["skill"]["element"] == ("fire" if case["enabled"] else None)
+    for key, value in case.get("numbers", {}).items():
+        assert result["skill"][key] == value
 
 
 @pytest.mark.parametrize("nodes", [
@@ -41,7 +45,7 @@ def test_catalog_identity_cannot_duplicate_or_change_experience():
     state = default_lab_state()
     state["beads"][0]["xp"] = 1
     with pytest.raises(ValueError):
-        validate_lab_state(state)
+        validate_lab_edit(state, default_lab_state())
     state = default_lab_state()
     state["beads"][0]["level"] = True
     with pytest.raises(ValueError):
