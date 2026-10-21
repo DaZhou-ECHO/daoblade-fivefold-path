@@ -668,3 +668,40 @@ test("024 死敌不抢信息，远处只提示方向，清场与贴身无虚构�
   enemy.dead=true;assert.equal(g.enemyReadout(),"敌人已肃清");const next=g.enemy("melee","后方敌人",180,70);g.enemies.push(next);assert.match(g.enemyReadout(),/后方敌人.*左侧.*身后/);
   next.x=g.player.x+(g.player.w-next.w)/2;assert.match(g.enemyReadout(),/贴身/);assert.doesNotMatch(g.enemyReadout(),/左侧|右侧|身后/);
 });
+
+
+function closeAttack(realm,kind,mode){
+  const api=gameContext(),g=new api.BattleGame(realm),enemy=kind==="boss"?g.enemies.at(-1):g.enemies[0];
+  g.enemies=[enemy];g.player.x=600;g.player.face=1;g.player.blocking=mode!=="hurt";g.player.parryArmed=mode==="parry"?.22:0;
+  enemy.x=g.player.x+(kind==="boss"?-4:5);enemy.attackDirection=-1;enemy.attackType="slash";enemy.attackHit=false;
+  enemy.attackState=realm==="fire"?"strike":"windup";enemy.attackTimer=realm==="fire"?.2:.001;
+  return {g,enemy};
+}
+test("025 实际贴身近战中心在前，五境普通挡与弹反有效，不按敌人左边缘错判",()=>{
+  for(const realm of ["fire","wood","metal","water","earth"])for(const kind of ["boss","melee"])for(const mode of ["block","parry"]){
+    const {g}=closeAttack(realm,kind,mode),hp=g.player.hp;g.updateEnemies(.01);
+    assert.ok(g.events.recent.some(e=>e.type===(mode==="parry"?"player_parried":"player_blocked")),`${realm}/${kind}/${mode}`);
+    if(mode==="parry")assert.equal(g.player.hp,hp);else {const raw=kind==="boss"?(realm==="fire"?24:23):(realm==="earth"?17:12);assert.ok(Math.abs(g.player.hp-(hp-Math.max(1,raw*(1-g.stats.block)-g.stats.defense)))<.00001); }
+  }
+});
+test("025 中心在后不能格挡，受伤后向远离攻击来源的方向击退",()=>{
+  for(const realm of ["fire","wood"]){
+    const front=closeAttack(realm,"boss","hurt");front.g.updateEnemies(.01);assert.ok(front.g.player.vx<0,realm+" front recoil");
+    const {g,enemy}=closeAttack(realm,"boss","block");enemy.x=g.player.x+g.player.w/2-enemy.w/2-10;enemy.attackDirection=1;
+    g.updateEnemies(.01);assert.equal(g.events.recent.some(e=>e.type==="player_blocked"),false);assert.ok(g.player.vx>0,realm+" back recoil");
+  }
+});
+test("025 敌方投射物中心在前可挡，中心在后不可挡且击退一致",()=>{
+  for(const side of [1,-1]){
+    const g=bufferGame();g.player.blocking=true;g.player.parryArmed=0;
+    g.projectiles=[{type:"bolt",owner:"enemy",source_id:"test-source",x:g.player.x+g.player.w/2+side*5-10,y:g.player.y+20,w:20,h:18,vx:0,vy:0,life:1,damage:12}];
+    g.updateProjectiles(.01);assert.equal(g.events.recent.some(e=>e.type==="player_blocked"),side===1);assert.equal(Math.sign(g.player.vx),-side);
+  }
+});
+
+
+test("025 旧金行弹反反击也按中心识别贴身前敌",()=>{
+  const api=gameContext(),g=new api.BattleGame("wood",{state:trainedState(api,"metal")}),enemy=g.enemies.at(-1);g.enemies=[enemy];g.player.x=600;enemy.x=596;
+  const hp=enemy.hp;g.beginBlock();g.damagePlayer(23,enemy.x+enemy.w/2,enemy.id,"slash");
+  assert.equal(g.events.recent.some(e=>e.type==="player_parried"),true);assert.ok(enemy.hp<hp);
+});

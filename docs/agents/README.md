@@ -2,6 +2,7 @@
 
 | 任务ID | 任务目标 | 状态 | 当前接续Agent | 分支/基线 | 最新交接链接 | 依赖或阻塞 |
 |---|---|---|---|---|---|---|
+| 025-d02-defense-origin | 贴身格挡与击退方向修正 | 已完成 | agent-20261021-0031-c8e4 | work/025-d02-defense-origin-local / 470dca3 | [交接](025-d02-defense-origin/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 99/146通过；同夹具旧代码4失败，新代码通过；持续K另转026，仅本地 |
 | 024-d05-enemy-readout | 近敌方位血量与出招信息 | 已完成 | agent-20261021-0031-c8e4 | work/024-d05-enemy-readout-local / 8e0ed74 | [交接](024-d05-enemy-readout/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 99/142通过；真实绕背/水鬼预警文字验证；方向来源疑点转025，仅本地 |
 | 023-d02-skill-input-buffer | Q/E短输入缓冲与操作衔接 | 已完成 | agent-20261021-0031-c8e4 | work/023-d02-skill-input-buffer-local / 3259b41 | [交接](023-d02-skill-input-buffer/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 99/140通过；实际J接Q/格挡取消验证通过，仅本地 |
 | 022-d06-five-realm-array | 新阵盘土金水与五境流程 | 待验收 | agent-20261021-0031-c8e4 | work/022-d06-five-realm-array-local / 0c30a29 | [交接](022-d06-five-realm-array/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 五境接入99/133通过，土金水实际首敌/刷新恢复通过；完整胜利待验收，仅本地 |
