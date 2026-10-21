@@ -756,9 +756,9 @@ test("028 收招末尾持有K在窗口内恢复普通挡，不提前打断且不
 });
 
 
-test("028 普通挡缓冲过期不延迟举盾，新攻击/受击/暂停取消",()=>{
-  const long=bufferGame();long.player.hurt=.3;long.keyDown({code:"KeyK",preventDefault(){}});bufferSteps(long,15);assert.equal(long.player.blocking,false);assert.equal(long.guardInput,0);
-  for(const cancel of [g=>g.keyUp({code:"KeyK"}),g=>g.setPause(true),g=>g.destroy(),g=>g.damagePlayer(12,g.player.x-100),...['slash','qi','dao','dao2','dash'].map(a=>g=>g.performAction(a))]){
+test("030 持有普通挡不因等待过期而丢失，新攻击/暂停仍取消",()=>{
+  const long=bufferGame();long.player.hurt=.3;long.keyDown({code:"KeyK",preventDefault(){}});bufferSteps(long,15);assert.equal(long.player.blocking,true);assert.equal(long.guardInput,0);
+  for(const cancel of [g=>g.keyUp({code:"KeyK"}),g=>g.setPause(true),g=>g.destroy(),...['slash','qi','dao','dao2','dash'].map(a=>g=>g.performAction(a))]){
     const g=bufferGame();g.player.qiCast=.09;g.keyDown({code:"KeyK",preventDefault(){}});assert.ok(g.guardInput);cancel(g);assert.equal(g.guardInput,0);
     if(!g.disposed){bufferSteps(g,12);assert.equal(g.player.blocking,false);}
   }
@@ -841,4 +841,20 @@ test("029 四境首领远距主动使用第二招并追击，高台目标记录�
     g.updateEnemies(.01);assert.equal(boss.attackState,"windup");assert.equal(boss.attackType,g.level.boss_moves[1].id);assert.equal(boss.attackTarget.y,g.player.y+g.player.h/2);
     const type=boss.attackType;g.player.x=boss.x+400;g.updateEnemies(.1);assert.equal(boss.attackType,type);assert.equal(boss.attackDirection,-1);
   }
+});
+
+
+test("030 近敌水平距离为只读中心距离，帮助判断短射程与绕背",()=>{
+  const g=bufferGame(),e=g.enemies[0];const before=JSON.stringify({player:g.player,enemies:g.enemies});
+  const distance=Math.round(Math.abs(e.x+e.w/2-g.player.x-g.player.w/2));assert.match(g.enemyReadout(),new RegExp('相距'+distance));assert.equal(JSON.stringify({player:g.player,enemies:g.enemies}),before);
+  e.x=g.player.x+(g.player.w-e.w)/2;assert.match(g.enemyReadout(),/贴身.*相距0/);
+});
+
+
+test("030 持续K跨长动作/新受击仍待普通防守，松开后绝不自动举盾",()=>{
+  for(const field of ['hurt','qiCast','slash','dash']){
+    const g=bufferGame();g.player[field]=.35;g.player.combo=3;g.keyDown({code:'KeyK',preventDefault(){}});bufferSteps(g,6);assert.equal(g.player.blocking,false);bufferSteps(g,8);assert.equal(g.player.blocking,true,field);assert.equal(g.player.parryArmed,0);
+  }
+  const h=bufferGame();h.player.qiCast=.3;h.keyDown({code:'KeyK',preventDefault(){}});h.damagePlayer(12,h.player.x+100);bufferSteps(h,8);assert.equal(h.player.blocking,true);assert.equal(h.player.parryArmed,0);
+  const released=bufferGame();released.player.hurt=.4;released.keyDown({code:'KeyK',preventDefault(){}});bufferSteps(released,8);released.keyUp({code:'KeyK'});bufferSteps(released,10);assert.equal(released.player.blocking,false);
 });

@@ -813,7 +813,7 @@ class BattleGame {
   beginBlock(ordinary = false) {
     const p = this.player;
     if (this.blockInputBlocked()) {
-      if (!ordinary && this.keys.has("block")) this.guardInput = .18;
+      if (!ordinary && this.keys.has("block")) this.guardInput = 1;
       return;
     }
     this.guardInput = 0;
@@ -822,9 +822,9 @@ class BattleGame {
     if (!ordinary) p.parryLock = .5;
   }
 
-  flushGuardInput(dt) {
+  flushGuardInput() {
     if (!this.guardInput) return;
-    this.guardInput = Math.max(0, this.guardInput - dt);
+    // A held guard is current intent, not a delayed one-shot skill request.
     if (!this.keys.has("block")) { this.guardInput = 0; return; }
     if (this.guardInput && !this.blockInputBlocked()) this.beginBlock(true);
   }
@@ -1020,7 +1020,7 @@ class BattleGame {
       p.guardRecovery = false;
       if (this.keys.has("block") && p.slash <= 0 && p.dash <= 0 && p.qiCast <= 0) { p.blocking = true; p.parryArmed = 0; }
     }
-    this.flushGuardInput(dt);
+    this.flushGuardInput();
     p.shieldTime = Math.max(0, p.shieldTime - dt); if (!p.shieldTime) { p.shield = 0; p.skillShieldCounter = false; }
     p.flameBuff = Math.max(0, p.flameBuff - dt); p.healCooldown = Math.max(0, p.healCooldown - dt);
     p.slowTime = Math.max(0, (p.slowTime || 0) - dt);
@@ -1422,8 +1422,9 @@ class BattleGame {
     if (amount <= 0) return;
     p.hp -= amount; p.invuln = .65; p.vx = sourceX < p.x + p.w / 2 ? 180 : -180; this.burst(p.x + p.w / 2, p.y + 30, "#ef5c45", 10);
     this.screenShake = Math.max(this.screenShake, .2);
+    const heldGuard = (p.blocking || this.guardInput) && this.keys.has("block");
     this.skillInput=null; this.guardInput=0;
-    p.guardRecovery = p.blocking && this.keys.has("block"); p.parryArmed = 0;
+    p.guardRecovery = Boolean(heldGuard); p.parryArmed = 0;
     p.hurt = .2; p.queuedSlash = 0; p.jumpBuffer = 0; p.slash = 0; p.dash = 0; p.qiCast = 0; p.blocking = false; p.skillGuard = 0; p.skillParry = false;
     this.emitBattleEvent("player_hurt", { source_id: sourceId, target_id: "player", action_id: actionId, element: this.realmKey, phase: "impact", amount });
     if (p.hp <= 0) this.finish(false);
@@ -1580,7 +1581,7 @@ class BattleGame {
     const zone = this.enemyZones.find(z => Math.abs(z.x + z.w / 2 - p.x - p.w / 2) < z.w / 2 + 100);
     const danger = zone ? ` · 缠根阵${zone.warning > 0 ? ` ${zone.warning.toFixed(1)}秒后生效` : "生效中"}：离开标记或跳起` : "";
     const guard = enemy.kind === "boss" && this.realmKey === "earth" && ["idle", "windup"].includes(enemy.attackState) ? " · 正面守势，绕背或等收招" : "";
-    return `近敌 ${enemy.name} · ${side}${behind} · 气血 ${Math.ceil(clamp(enemy.hp,0,enemy.maxHp))}/${enemy.maxHp} · ${phase}${guard}${danger}`;
+    return `近敌 ${enemy.name} · ${side}${behind} · 相距${Math.round(Math.abs(dx))} · 气血 ${Math.ceil(clamp(enemy.hp,0,enemy.maxHp))}/${enemy.maxHp} · ${phase}${guard}${danger}`;
   }
 
   updateHud() {

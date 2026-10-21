@@ -1,0 +1,30 @@
+✖ 030 持续K跨长动作/新受击仍待普通防守，松开后绝不自动举盾 (27.1442ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 129.8061
+
+✖ failing tests:
+
+test at tests\combat.test.cjs:854:1
+✖ 030 持续K跨长动作/新受击仍待普通防守，松开后绝不自动举盾 (27.1442ms)
+  AssertionError [ERR_ASSERTION]: hurt
+  
+  false !== true
+  
+      at TestContext.<anonymous> (D:\desktop\研\gpt\学习与训练\.reading\daoblade-fivefold-path\tests\combat.test.cjs:856:186)
+      at Test.runInAsyncScope (node:async_hooks:228:14)
+      at Test.run (node:internal/test_runner/test:1118:25)
+      at Test.start (node:internal/test_runner/test:1015:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
