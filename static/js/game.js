@@ -600,7 +600,7 @@ class BattleGame {
 
   makePlayer() {
     const spawn = this.level.anchors.spawn;
-    return { x: spawn.x, y: spawn.y - 70, w: 38, h: 70, vx: 0, vy: 0, face: 1, onGround: true, hp: this.stats.hpMax, qi: this.stats.qiMax, invuln: 0, slash: 0, slashDuration: .28, slashCooldown: 0, qiCast: 0, qiCooldown: 0, skillCooldowns: [0, 0], attackId: 0, combo: 0, lastSlashAt: -10, blocking: false, blockStarted: -10, parryArmed: 0, parryLock: 0, counterWindow: 0, counterAttack: false, blockFlash: 0, dash: 0, dashCooldown: 0, dashDirection: 1, jumpCount: 0, jumpBuffer: 0, coyote: .1, queuedSlash: 0, hurt: 0, shield: 0, shieldTime: 0, flameBuff: 0, healCooldown: 0, animTime: 0 };
+    return { x: spawn.x, y: spawn.y - 70, w: 38, h: 70, vx: 0, vy: 0, face: 1, onGround: true, hp: this.stats.hpMax, qi: this.stats.qiMax, invuln: 0, slash: 0, slashDuration: .28, slashCooldown: 0, qiCast: 0, qiCooldown: 0, skillCooldowns: [0, 0], attackId: 0, combo: 0, lastSlashAt: -10, blocking: false, guardRecovery: false, blockStarted: -10, parryArmed: 0, parryLock: 0, counterWindow: 0, counterAttack: false, blockFlash: 0, dash: 0, dashCooldown: 0, dashDirection: 1, jumpCount: 0, jumpBuffer: 0, coyote: .1, queuedSlash: 0, hurt: 0, shield: 0, shieldTime: 0, flameBuff: 0, healCooldown: 0, animTime: 0 };
   }
 
   makeEnemies() {
@@ -679,7 +679,7 @@ class BattleGame {
     const pointers = [...this.touchPointers];
     this.touchPointers.clear(); this.keyboardKeys.clear(); this.keys.clear();
     for (const [id, { button }] of pointers) this.releaseTouchCapture(button, id);
-    this.player.blocking = false; this.player.parryArmed = 0; this.player.queuedSlash = 0; this.player.jumpBuffer = 0;
+    this.player.guardRecovery = false; this.player.blocking = false; this.player.parryArmed = 0; this.player.queuedSlash = 0; this.player.jumpBuffer = 0;
   }
 
   releaseTouchCapture(button, id) {
@@ -693,7 +693,7 @@ class BattleGame {
     this.touchPointers.delete(id);
     const { action, button } = pointer;
     if (!this.keyboardKeys.has(action) && ![...this.touchPointers.values()].some(item => item.action === action)) this.keys.delete(action);
-    if (action === "block" && !this.keys.has("block")) this.player.blocking = false;
+    if (action === "block" && !this.keys.has("block")) { this.player.blocking = false; this.player.guardRecovery = false; }
     this.releaseTouchCapture(button, id);
   }
 
@@ -725,12 +725,13 @@ class BattleGame {
       this.keyboardKeys.delete(action);
       if (![...this.touchPointers.values()].some(pointer => pointer.action === action)) this.keys.delete(action);
     }
-    if (action === "block" && !this.keys.has("block")) this.player.blocking = false;
+    if (action === "block" && !this.keys.has("block")) { this.player.blocking = false; this.player.guardRecovery = false; }
   }
 
   performAction(action) {
     if (this.disposed || this.finished || this.pause || this.labPending || this.labError) return;
     if(["slash","qi","block","dash"].includes(action))this.skillInput=null;
+    if(["slash","qi","dao","dao2","dash"].includes(action))this.player.guardRecovery=false;
     if (action === "jump") this.jump();
     else if (action === "slash") this.slash();
     else if (action === "block") this.beginBlock();
@@ -798,7 +799,7 @@ class BattleGame {
     const p = this.player;
     if (p.dash > 0 || p.hurt > 0 || p.qiCast > 0 || (p.slash > .12)) return;
     if (p.slash > 0 && p.combo === 3) return;
-    p.slash = 0; p.queuedSlash = 0; p.blocking = true; p.blockStarted = this.elapsed;
+    p.guardRecovery = false; p.slash = 0; p.queuedSlash = 0; p.blocking = true; p.blockStarted = this.elapsed;
     p.parryArmed = p.parryLock <= 0 ? .22 : 0;
     p.parryLock = .5;
   }
@@ -989,6 +990,11 @@ class BattleGame {
     p.counterWindow = Math.max(0, p.counterWindow - dt); p.queuedSlash = Math.max(0, p.queuedSlash - dt);
     p.jumpBuffer = Math.max(0, p.jumpBuffer - dt); p.dashCooldown = Math.max(0, p.dashCooldown - dt);
     p.dash = Math.max(0, p.dash - dt); p.hurt = Math.max(0, p.hurt - dt);
+    // Only resume a held guard interrupted by damage; never re-arm perfect parry.
+    if (p.guardRecovery && p.hurt <= 0) {
+      p.guardRecovery = false;
+      if (this.keys.has("block") && p.slash <= 0 && p.dash <= 0 && p.qiCast <= 0) { p.blocking = true; p.parryArmed = 0; }
+    }
     p.shieldTime = Math.max(0, p.shieldTime - dt); if (!p.shieldTime) { p.shield = 0; p.skillShieldCounter = false; }
     p.flameBuff = Math.max(0, p.flameBuff - dt); p.healCooldown = Math.max(0, p.healCooldown - dt);
     p.slowTime = Math.max(0, (p.slowTime || 0) - dt);
@@ -1319,6 +1325,7 @@ class BattleGame {
     p.hp -= amount; p.invuln = .65; p.vx = sourceX < p.x + p.w / 2 ? 180 : -180; this.burst(p.x + p.w / 2, p.y + 30, "#ef5c45", 10);
     this.screenShake = Math.max(this.screenShake, .2);
     this.skillInput=null;
+    p.guardRecovery = p.blocking && this.keys.has("block"); p.parryArmed = 0;
     p.hurt = .2; p.queuedSlash = 0; p.jumpBuffer = 0; p.slash = 0; p.dash = 0; p.qiCast = 0; p.blocking = false; p.skillGuard = 0; p.skillParry = false;
     this.emitBattleEvent("player_hurt", { source_id: sourceId, target_id: "player", action_id: actionId, element: this.realmKey, phase: "impact", amount });
     if (p.hp <= 0) this.finish(false);

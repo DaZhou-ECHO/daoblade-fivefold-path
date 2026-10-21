@@ -705,3 +705,43 @@ test("025 旧金行弹反反击也按中心识别贴身前敌",()=>{
   const hp=enemy.hp;g.beginBlock();g.damagePlayer(23,enemy.x+enemy.w/2,enemy.id,"slash");
   assert.equal(g.events.recent.some(e=>e.type==="player_parried"),true);assert.ok(enemy.hp<hp);
 });
+
+
+test("026 按住K格挡受击后恢复普通挡，不自动重开弹反",()=>{
+  const g=bufferGame();g.keyDown({code:"KeyK",preventDefault(){}});bufferSteps(g,8);
+  assert.equal(g.player.parryArmed,0);const hp=g.player.hp;
+  g.damagePlayer(12,g.player.x+100);const chip=hp-g.player.hp;
+  assert.equal(g.player.blocking,false);assert.ok(g.player.hurt>0);bufferSteps(g,7);
+  assert.equal(g.player.blocking,true);assert.equal(g.player.parryArmed,0);
+  bufferSteps(g,16);g.damagePlayer(12,g.player.x+100);
+  assert.ok(Math.abs(hp-g.player.hp-chip*2)<.00001);
+  assert.equal(g.events.recent.filter(e=>e.type==="player_blocked").length,2);
+  assert.equal(g.events.recent.some(e=>e.type==="player_parried"),false);
+});
+
+
+function interruptedGuard(g){
+  g.keyDown({code:"KeyK",preventDefault(){}});g.player.parryArmed=0;
+  g.damagePlayer(12,g.player.x+100);assert.equal(g.player.guardRecovery,true);
+}
+test("026 松手、暂停、销毁与新攻击意图取消受击后的防守恢复",()=>{
+  for(const cancel of [g=>g.keyUp({code:"KeyK"}),g=>g.setPause(true),g=>g.destroy(),...['slash','qi','dao','dao2','dash'].map(a=>g=>g.performAction(a))]){
+    const g=bufferGame();interruptedGuard(g);cancel(g);assert.equal(g.player.guardRecovery,false);
+    if(!g.disposed){bufferSteps(g,8);assert.equal(g.player.blocking,false);}
+  }
+});
+test("026 混合持有来源独立释放，最后一个松开才取消恢复",()=>{
+  for(const releaseKeyboardFirst of [true,false]){
+    const button=touchButton("block"),api=gameContext([button]),g=new api.BattleGame("fire",{practice:true});g.bindTouch();
+    g.keyDown({code:"KeyK",preventDefault(){}});button.onpointerdown(pointer(9));g.player.parryArmed=0;g.damagePlayer(12,g.player.x+100);
+    if(releaseKeyboardFirst)g.keyUp({code:"KeyK"});else button.onpointercancel(pointer(9));
+    assert.equal(g.player.guardRecovery,true);bufferSteps(g,8);assert.equal(g.player.blocking,true);assert.equal(g.player.parryArmed,0);
+    if(releaseKeyboardFirst)button.onpointercancel(pointer(9));else g.keyUp({code:"KeyK"});
+    assert.equal(g.player.blocking,false);assert.equal(g.player.guardRecovery,false);
+  }
+});
+test("026 未持有输入的技能格挡不延续，背击只恢复普通挡且死亡不残留",()=>{
+  const skill=bufferGame();skill.beginBlock();skill.player.parryArmed=0;skill.damagePlayer(12,skill.player.x+100);bufferSteps(skill,8);assert.equal(skill.player.blocking,false);
+  const back=bufferGame();back.keyDown({code:"KeyK",preventDefault(){}});back.damagePlayer(12,back.player.x-100);assert.equal(back.player.parryArmed,0);bufferSteps(back,8);assert.equal(back.player.blocking,true);assert.equal(back.player.parryArmed,0);
+  const dead=bufferGame();dead.keyDown({code:"KeyK",preventDefault(){}});dead.damagePlayer(999,dead.player.x-100);assert.equal(dead.finished,true);assert.equal(dead.player.guardRecovery,false);
+});
