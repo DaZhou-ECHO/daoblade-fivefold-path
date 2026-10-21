@@ -1,0 +1,875 @@
+{
+  "config": {
+    "ruleset_id": "journey-v1",
+    "schema_version": 1,
+    "palaces": [
+      {
+        "id": "xun",
+        "name": "巽",
+        "element": "wood",
+        "direction": "东南",
+        "symbol": "☴",
+        "skill": "贯风",
+        "mind": "身法：速度+12"
+      },
+      {
+        "id": "li",
+        "name": "离",
+        "element": "fire",
+        "direction": "南",
+        "symbol": "☲",
+        "skill": "离火",
+        "mind": "炽心：技能伤害+2"
+      },
+      {
+        "id": "kun",
+        "name": "坤",
+        "element": "earth",
+        "direction": "西南",
+        "symbol": "☷",
+        "skill": "承岳",
+        "mind": "厚土：生命+15"
+      },
+      {
+        "id": "zhen",
+        "name": "震",
+        "element": "wood",
+        "direction": "东",
+        "symbol": "☳",
+        "skill": "震荡",
+        "mind": "震势：基础劈砍击退10，首领2"
+      },
+      {
+        "id": "dui",
+        "name": "兑",
+        "element": "metal",
+        "direction": "西",
+        "symbol": "☱",
+        "skill": "回锋",
+        "mind": "调息：回气+1/秒"
+      },
+      {
+        "id": "gen",
+        "name": "艮",
+        "element": "earth",
+        "direction": "东北",
+        "symbol": "☶",
+        "skill": "止戈",
+        "mind": "稳固：防御+2"
+      },
+      {
+        "id": "kan",
+        "name": "坎",
+        "element": "water",
+        "direction": "北",
+        "symbol": "☵",
+        "skill": "寒流",
+        "mind": "回流：技能冷却×0.9"
+      },
+      {
+        "id": "qian",
+        "name": "乾",
+        "element": "metal",
+        "direction": "西北",
+        "symbol": "☰",
+        "skill": "贯剑",
+        "mind": "剑锋：基础攻击+2"
+      }
+    ],
+    "realms": [
+      "fire",
+      "wood",
+      "earth",
+      "metal",
+      "water"
+    ],
+    "ranks": [
+      {
+        "name": "练气",
+        "capacity": 6
+      },
+      {
+        "name": "筑基",
+        "capacity": 10
+      }
+    ],
+    "maps": [
+      {
+        "id": "ridge",
+        "name": "高径"
+      },
+      {
+        "id": "hollow",
+        "name": "回廊"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "xun.core",
+        "palace": "xun",
+        "element": "wood",
+        "role": "core",
+        "label": "巽·核心",
+        "parent": null
+      },
+      {
+        "id": "xun.trace",
+        "palace": "xun",
+        "element": "wood",
+        "role": "trace",
+        "label": "巽·纹路",
+        "parent": "xun.core"
+      },
+      {
+        "id": "xun.edge",
+        "palace": "xun",
+        "element": "wood",
+        "role": "edge",
+        "label": "巽·锐式",
+        "parent": "xun.trace"
+      },
+      {
+        "id": "xun.flow",
+        "palace": "xun",
+        "element": "wood",
+        "role": "flow",
+        "label": "巽·流式",
+        "parent": "xun.trace"
+      },
+      {
+        "id": "xun.mind",
+        "palace": "xun",
+        "element": "wood",
+        "role": "mind",
+        "label": "巽·心法",
+        "parent": "xun.core"
+      },
+      {
+        "id": "li.core",
+        "palace": "li",
+        "element": "fire",
+        "role": "core",
+        "label": "离·核心",
+        "parent": null
+      },
+      {
+        "id": "li.trace",
+        "palace": "li",
+        "element": "fire",
+        "role": "trace",
+        "label": "离·纹路",
+        "parent": "li.core"
+      },
+      {
+        "id": "li.edge",
+        "palace": "li",
+        "element": "fire",
+        "role": "edge",
+        "label": "离·锐式",
+        "parent": "li.trace"
+      },
+      {
+        "id": "li.flow",
+        "palace": "li",
+        "element": "fire",
+        "role": "flow",
+        "label": "离·流式",
+        "parent": "li.trace"
+      },
+      {
+        "id": "li.mind",
+        "palace": "li",
+        "element": "fire",
+        "role": "mind",
+        "label": "离·心法",
+        "parent": "li.core"
+      },
+      {
+        "id": "kun.core",
+        "palace": "kun",
+        "element": "earth",
+        "role": "core",
+        "label": "坤·核心",
+        "parent": null
+      },
+      {
+        "id": "kun.trace",
+        "palace": "kun",
+        "element": "earth",
+        "role": "trace",
+        "label": "坤·纹路",
+        "parent": "kun.core"
+      },
+      {
+        "id": "kun.edge",
+        "palace": "kun",
+        "element": "earth",
+        "role": "edge",
+        "label": "坤·锐式",
+        "parent": "kun.trace"
+      },
+      {
+        "id": "kun.flow",
+        "palace": "kun",
+        "element": "earth",
+        "role": "flow",
+        "label": "坤·流式",
+        "parent": "kun.trace"
+      },
+      {
+        "id": "kun.mind",
+        "palace": "kun",
+        "element": "earth",
+        "role": "mind",
+        "label": "坤·心法",
+        "parent": "kun.core"
+      },
+      {
+        "id": "zhen.core",
+        "palace": "zhen",
+        "element": "wood",
+        "role": "core",
+        "label": "震·核心",
+        "parent": null
+      },
+      {
+        "id": "zhen.trace",
+        "palace": "zhen",
+        "element": "wood",
+        "role": "trace",
+        "label": "震·纹路",
+        "parent": "zhen.core"
+      },
+      {
+        "id": "zhen.edge",
+        "palace": "zhen",
+        "element": "wood",
+        "role": "edge",
+        "label": "震·锐式",
+        "parent": "zhen.trace"
+      },
+      {
+        "id": "zhen.flow",
+        "palace": "zhen",
+        "element": "wood",
+        "role": "flow",
+        "label": "震·流式",
+        "parent": "zhen.trace"
+      },
+      {
+        "id": "zhen.mind",
+        "palace": "zhen",
+        "element": "wood",
+        "role": "mind",
+        "label": "震·心法",
+        "parent": "zhen.core"
+      },
+      {
+        "id": "dui.core",
+        "palace": "dui",
+        "element": "metal",
+        "role": "core",
+        "label": "兑·核心",
+        "parent": null
+      },
+      {
+        "id": "dui.trace",
+        "palace": "dui",
+        "element": "metal",
+        "role": "trace",
+        "label": "兑·纹路",
+        "parent": "dui.core"
+      },
+      {
+        "id": "dui.edge",
+        "palace": "dui",
+        "element": "metal",
+        "role": "edge",
+        "label": "兑·锐式",
+        "parent": "dui.trace"
+      },
+      {
+        "id": "dui.flow",
+        "palace": "dui",
+        "element": "metal",
+        "role": "flow",
+        "label": "兑·流式",
+        "parent": "dui.trace"
+      },
+      {
+        "id": "dui.mind",
+        "palace": "dui",
+        "element": "metal",
+        "role": "mind",
+        "label": "兑·心法",
+        "parent": "dui.core"
+      },
+      {
+        "id": "gen.core",
+        "palace": "gen",
+        "element": "earth",
+        "role": "core",
+        "label": "艮·核心",
+        "parent": null
+      },
+      {
+        "id": "gen.trace",
+        "palace": "gen",
+        "element": "earth",
+        "role": "trace",
+        "label": "艮·纹路",
+        "parent": "gen.core"
+      },
+      {
+        "id": "gen.edge",
+        "palace": "gen",
+        "element": "earth",
+        "role": "edge",
+        "label": "艮·锐式",
+        "parent": "gen.trace"
+      },
+      {
+        "id": "gen.flow",
+        "palace": "gen",
+        "element": "earth",
+        "role": "flow",
+        "label": "艮·流式",
+        "parent": "gen.trace"
+      },
+      {
+        "id": "gen.mind",
+        "palace": "gen",
+        "element": "earth",
+        "role": "mind",
+        "label": "艮·心法",
+        "parent": "gen.core"
+      },
+      {
+        "id": "kan.core",
+        "palace": "kan",
+        "element": "water",
+        "role": "core",
+        "label": "坎·核心",
+        "parent": null
+      },
+      {
+        "id": "kan.trace",
+        "palace": "kan",
+        "element": "water",
+        "role": "trace",
+        "label": "坎·纹路",
+        "parent": "kan.core"
+      },
+      {
+        "id": "kan.edge",
+        "palace": "kan",
+        "element": "water",
+        "role": "edge",
+        "label": "坎·锐式",
+        "parent": "kan.trace"
+      },
+      {
+        "id": "kan.flow",
+        "palace": "kan",
+        "element": "water",
+        "role": "flow",
+        "label": "坎·流式",
+        "parent": "kan.trace"
+      },
+      {
+        "id": "kan.mind",
+        "palace": "kan",
+        "element": "water",
+        "role": "mind",
+        "label": "坎·心法",
+        "parent": "kan.core"
+      },
+      {
+        "id": "qian.core",
+        "palace": "qian",
+        "element": "metal",
+        "role": "core",
+        "label": "乾·核心",
+        "parent": null
+      },
+      {
+        "id": "qian.trace",
+        "palace": "qian",
+        "element": "metal",
+        "role": "trace",
+        "label": "乾·纹路",
+        "parent": "qian.core"
+      },
+      {
+        "id": "qian.edge",
+        "palace": "qian",
+        "element": "metal",
+        "role": "edge",
+        "label": "乾·锐式",
+        "parent": "qian.trace"
+      },
+      {
+        "id": "qian.flow",
+        "palace": "qian",
+        "element": "metal",
+        "role": "flow",
+        "label": "乾·流式",
+        "parent": "qian.trace"
+      },
+      {
+        "id": "qian.mind",
+        "palace": "qian",
+        "element": "metal",
+        "role": "mind",
+        "label": "乾·心法",
+        "parent": "qian.core"
+      }
+    ],
+    "catalog": [
+      {
+        "id": "xun.core",
+        "name": "巽·核心珠",
+        "element": "wood",
+        "role": "core",
+        "palace": "xun"
+      },
+      {
+        "id": "xun.trace",
+        "name": "巽·纹路珠",
+        "element": "wood",
+        "role": "trace",
+        "palace": "xun"
+      },
+      {
+        "id": "xun.edge",
+        "name": "巽·锐式珠",
+        "element": "wood",
+        "role": "edge",
+        "palace": "xun"
+      },
+      {
+        "id": "xun.flow",
+        "name": "巽·流式珠",
+        "element": "wood",
+        "role": "flow",
+        "palace": "xun"
+      },
+      {
+        "id": "xun.mind",
+        "name": "巽·心法珠",
+        "element": "wood",
+        "role": "mind",
+        "palace": "xun"
+      },
+      {
+        "id": "li.core",
+        "name": "离·核心珠",
+        "element": "fire",
+        "role": "core",
+        "palace": "li"
+      },
+      {
+        "id": "li.trace",
+        "name": "离·纹路珠",
+        "element": "fire",
+        "role": "trace",
+        "palace": "li"
+      },
+      {
+        "id": "li.edge",
+        "name": "离·锐式珠",
+        "element": "fire",
+        "role": "edge",
+        "palace": "li"
+      },
+      {
+        "id": "li.flow",
+        "name": "离·流式珠",
+        "element": "fire",
+        "role": "flow",
+        "palace": "li"
+      },
+      {
+        "id": "li.mind",
+        "name": "离·心法珠",
+        "element": "fire",
+        "role": "mind",
+        "palace": "li"
+      },
+      {
+        "id": "kun.core",
+        "name": "坤·核心珠",
+        "element": "earth",
+        "role": "core",
+        "palace": "kun"
+      },
+      {
+        "id": "kun.trace",
+        "name": "坤·纹路珠",
+        "element": "earth",
+        "role": "trace",
+        "palace": "kun"
+      },
+      {
+        "id": "kun.edge",
+        "name": "坤·锐式珠",
+        "element": "earth",
+        "role": "edge",
+        "palace": "kun"
+      },
+      {
+        "id": "kun.flow",
+        "name": "坤·流式珠",
+        "element": "earth",
+        "role": "flow",
+        "palace": "kun"
+      },
+      {
+        "id": "kun.mind",
+        "name": "坤·心法珠",
+        "element": "earth",
+        "role": "mind",
+        "palace": "kun"
+      },
+      {
+        "id": "zhen.core",
+        "name": "震·核心珠",
+        "element": "wood",
+        "role": "core",
+        "palace": "zhen"
+      },
+      {
+        "id": "zhen.trace",
+        "name": "震·纹路珠",
+        "element": "wood",
+        "role": "trace",
+        "palace": "zhen"
+      },
+      {
+        "id": "zhen.edge",
+        "name": "震·锐式珠",
+        "element": "wood",
+        "role": "edge",
+        "palace": "zhen"
+      },
+      {
+        "id": "zhen.flow",
+        "name": "震·流式珠",
+        "element": "wood",
+        "role": "flow",
+        "palace": "zhen"
+      },
+      {
+        "id": "zhen.mind",
+        "name": "震·心法珠",
+        "element": "wood",
+        "role": "mind",
+        "palace": "zhen"
+      },
+      {
+        "id": "dui.core",
+        "name": "兑·核心珠",
+        "element": "metal",
+        "role": "core",
+        "palace": "dui"
+      },
+      {
+        "id": "dui.trace",
+        "name": "兑·纹路珠",
+        "element": "metal",
+        "role": "trace",
+        "palace": "dui"
+      },
+      {
+        "id": "dui.edge",
+        "name": "兑·锐式珠",
+        "element": "metal",
+        "role": "edge",
+        "palace": "dui"
+      },
+      {
+        "id": "dui.flow",
+        "name": "兑·流式珠",
+        "element": "metal",
+        "role": "flow",
+        "palace": "dui"
+      },
+      {
+        "id": "dui.mind",
+        "name": "兑·心法珠",
+        "element": "metal",
+        "role": "mind",
+        "palace": "dui"
+      },
+      {
+        "id": "gen.core",
+        "name": "艮·核心珠",
+        "element": "earth",
+        "role": "core",
+        "palace": "gen"
+      },
+      {
+        "id": "gen.trace",
+        "name": "艮·纹路珠",
+        "element": "earth",
+        "role": "trace",
+        "palace": "gen"
+      },
+      {
+        "id": "gen.edge",
+        "name": "艮·锐式珠",
+        "element": "earth",
+        "role": "edge",
+        "palace": "gen"
+      },
+      {
+        "id": "gen.flow",
+        "name": "艮·流式珠",
+        "element": "earth",
+        "role": "flow",
+        "palace": "gen"
+      },
+      {
+        "id": "gen.mind",
+        "name": "艮·心法珠",
+        "element": "earth",
+        "role": "mind",
+        "palace": "gen"
+      },
+      {
+        "id": "kan.core",
+        "name": "坎·核心珠",
+        "element": "water",
+        "role": "core",
+        "palace": "kan"
+      },
+      {
+        "id": "kan.trace",
+        "name": "坎·纹路珠",
+        "element": "water",
+        "role": "trace",
+        "palace": "kan"
+      },
+      {
+        "id": "kan.edge",
+        "name": "坎·锐式珠",
+        "element": "water",
+        "role": "edge",
+        "palace": "kan"
+      },
+      {
+        "id": "kan.flow",
+        "name": "坎·流式珠",
+        "element": "water",
+        "role": "flow",
+        "palace": "kan"
+      },
+      {
+        "id": "kan.mind",
+        "name": "坎·心法珠",
+        "element": "water",
+        "role": "mind",
+        "palace": "kan"
+      },
+      {
+        "id": "qian.core",
+        "name": "乾·核心珠",
+        "element": "metal",
+        "role": "core",
+        "palace": "qian"
+      },
+      {
+        "id": "qian.trace",
+        "name": "乾·纹路珠",
+        "element": "metal",
+        "role": "trace",
+        "palace": "qian"
+      },
+      {
+        "id": "qian.edge",
+        "name": "乾·锐式珠",
+        "element": "metal",
+        "role": "edge",
+        "palace": "qian"
+      },
+      {
+        "id": "qian.flow",
+        "name": "乾·流式珠",
+        "element": "metal",
+        "role": "flow",
+        "palace": "qian"
+      },
+      {
+        "id": "qian.mind",
+        "name": "乾·心法珠",
+        "element": "metal",
+        "role": "mind",
+        "palace": "qian"
+      }
+    ]
+  },
+  "state": {
+    "ruleset_id": "journey-v1",
+    "schema_version": 1,
+    "rank": 0,
+    "beads": [
+      {
+        "id": "li.core",
+        "name": "离·核心珠",
+        "element": "fire",
+        "role": "core",
+        "palace": "li",
+        "level": 1,
+        "xp": 0
+      },
+      {
+        "id": "li.trace",
+        "name": "离·纹路珠",
+        "element": "fire",
+        "role": "trace",
+        "palace": "li",
+        "level": 1,
+        "xp": 0
+      },
+      {
+        "id": "li.edge",
+        "name": "离·锐式珠",
+        "element": "fire",
+        "role": "edge",
+        "palace": "li",
+        "level": 1,
+        "xp": 0
+      },
+      {
+        "id": "gen.core",
+        "name": "艮·核心珠",
+        "element": "earth",
+        "role": "core",
+        "palace": "gen",
+        "level": 1,
+        "xp": 0
+      },
+      {
+        "id": "gen.mind",
+        "name": "艮·心法珠",
+        "element": "earth",
+        "role": "mind",
+        "palace": "gen",
+        "level": 1,
+        "xp": 0
+      }
+    ],
+    "nodes": {
+      "xun.core": null,
+      "xun.trace": null,
+      "xun.edge": null,
+      "xun.flow": null,
+      "xun.mind": null,
+      "li.core": "li.core",
+      "li.trace": "li.trace",
+      "li.edge": "li.edge",
+      "li.flow": null,
+      "li.mind": null,
+      "kun.core": null,
+      "kun.trace": null,
+      "kun.edge": null,
+      "kun.flow": null,
+      "kun.mind": null,
+      "zhen.core": null,
+      "zhen.trace": null,
+      "zhen.edge": null,
+      "zhen.flow": null,
+      "zhen.mind": null,
+      "dui.core": null,
+      "dui.trace": null,
+      "dui.edge": null,
+      "dui.flow": null,
+      "dui.mind": null,
+      "gen.core": "gen.core",
+      "gen.trace": null,
+      "gen.edge": null,
+      "gen.flow": null,
+      "gen.mind": "gen.mind",
+      "kan.core": null,
+      "kan.trace": null,
+      "kan.edge": null,
+      "kan.flow": null,
+      "kan.mind": null,
+      "qian.core": null,
+      "qian.trace": null,
+      "qian.edge": null,
+      "qian.flow": null,
+      "qian.mind": null
+    },
+    "loadout": {
+      "active": [
+        "li",
+        null
+      ],
+      "passive": [
+        "gen",
+        null
+      ]
+    },
+    "progress": {
+      "runs": 0,
+      "victories": 0,
+      "spirit": 0,
+      "clears": {
+        "fire": 0,
+        "wood": 0,
+        "earth": 0,
+        "metal": 0,
+        "water": 0
+      }
+    },
+    "active_trial": null
+  },
+  "revision": 0,
+  "compiled": {
+    "campaign": true,
+    "ruleset_id": "journey-v1",
+    "used": 5,
+    "capacity": 6,
+    "rank": 0,
+    "connected": [
+      "li.core",
+      "li.trace",
+      "li.edge",
+      "gen.core",
+      "gen.mind"
+    ],
+    "inactive": {},
+    "skills": [
+      {
+        "id": "li",
+        "name": "离火",
+        "element": "fire",
+        "damage": 28,
+        "cost": 16,
+        "cooldown": 1.5,
+        "range": 170,
+        "variant": "锐式"
+      },
+      null
+    ],
+    "minds": [
+      "gen"
+    ],
+    "effective_bead_ids": [
+      "gen.core",
+      "gen.mind",
+      "li.core",
+      "li.edge",
+      "li.trace"
+    ],
+    "skill": {
+      "enabled": true,
+      "burn_damage": 4
+    }
+  },
+  "receipt": null,
+  "replayed": false,
+  "trial_compiled": null,
+  "owner_id": null
+}

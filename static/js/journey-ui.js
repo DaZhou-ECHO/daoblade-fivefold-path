@@ -22,8 +22,10 @@
     for(const id of ['journey-equip','journey-clear','journey-save','journey-start','journey-break'])$(id).disabled=busy||blocked||!!active;
     $("journey-start").disabled ||= !c.skills.some(Boolean);
     $("journey-break").disabled ||= s.rank!==0||s.progress.spirit<24||!c.skills.some(Boolean);
+    $("journey-break").textContent=s.rank===1?"筑基已达 · 首版境界终点":"筑基突破 · 24修为";
     $("journey-resume").disabled=busy||blocked||!active;$("journey-abandon").disabled=busy||blocked||!active;
     $("journey-reload").disabled=busy;
+    document.querySelectorAll('#journey-nodes select, #journey-loadout select').forEach(control=>control.disabled=busy||blocked||!!active);
     for(const id of ['journey-realm','journey-map'])$(id).disabled=busy||!!active;
     if(active){$("journey-realm").value=active.realm_id;$("journey-map").value=active.map_id;}
 
@@ -53,7 +55,7 @@
   async function startTrial(breakthrough=false){await action('start',{realm_id:breakthrough?'fire':$("journey-realm").value,map_id:$("journey-map").value,breakthrough});launch();}
   async function resumeTrial(){await load();if(blocked)throw Error('重读失败');launch();}
   async function abandonTrial(){if(data?.state.active_trial)await action('abandon',{trial_id:data.state.active_trial.id});}
-  async function restartTrial(expected){const t=data?.state.active_trial;if(t&&t.id!==expected)throw Error('已有另一试炼，先核对');const breakthrough=!!t?.breakthrough;const realm=t?.realm_id,map=t?.map_id;await abandonTrial();if(realm){$("journey-realm").value=realm;$("journey-map").value=map;}await startTrial(breakthrough);}
+  async function restartTrial(expected,previous={}){const t=data?.state.active_trial;if(t&&t.id!==expected)throw Error('已有另一试炼，先核对');const breakthrough=!!(t?.breakthrough??previous.breakthrough);const realm=t?.realm_id??previous.realm_id,map=t?.map_id??previous.map_id;await abandonTrial();if(realm){$("journey-realm").value=realm;$("journey-map").value=map;}await startTrial(breakthrough);}
   const run=fn=>()=>Promise.resolve().then(fn).catch(e=>{$("journey-error").textContent=e.message;});
   $("journey-equip").onclick=run(()=>{const nodes={...data.state.nodes};$("journey-nodes").querySelectorAll('[data-node]').forEach(s=>nodes[s.dataset.node]=s.value||null);return action('build',{nodes,loadout:data.state.loadout});});
   $("journey-save").onclick=run(()=>{const loadout=JSON.parse(JSON.stringify(data.state.loadout));$("journey-loadout").querySelectorAll('[data-slot]').forEach(s=>{const[k,i]=s.dataset.slot.split(':');loadout[k][Number(i)]=s.value||null;});return action('build',{nodes:data.state.nodes,loadout});});

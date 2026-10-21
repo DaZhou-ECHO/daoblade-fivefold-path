@@ -982,3 +982,24 @@ test("032 低帧率小步补算保留可玩速度，长停顿有上限，暂停�
     g.setPause(false);g.loop(20016);assert.ok(g.elapsed-stopped<=.25001);
   }
 });
+
+
+test("032 震心法实际改变中性基础劈砍击退，未选与非劈砍无效",()=>{
+  const compiled=require('./helpers/journey-builds.json').find(b=>b.skills[0].id==='zhen');
+  for(const selected of [true,false])for(const kind of ['slash','qi'])for(const boss of [true,false]){
+    const api=gameContext(),build=JSON.parse(JSON.stringify(compiled));if(!selected)build.minds=[];
+    const g=new api.BattleGame('wood',{labTrial:{id:'mind-032',realm_id:'wood',map_id:'ridge',checkpoint:null,claimed_altars:[]},labCompiled:build});
+    const e=g.enemies.find(e=>boss?e.kind==='boss':e.kind==='melee'),before=e.x;
+    g.hitEnemy(e,1,false,false,kind);
+    assert.equal(e.x-before,selected&&kind==='slash'?(boss?2:10):0);
+  }
+});
+
+
+test("032 支路导航只读位置与领取，说明方向/高度/奖励，不改变世界",()=>{
+  const api=gameContext(),compiled=require('./helpers/journey-builds.json')[1];
+  const g=new api.BattleGame('fire',{labTrial:{id:'nav-032',realm_id:'fire',map_id:'hollow',checkpoint:null,claimed_altars:[]},labCompiled:compiled});
+  const before=JSON.stringify(g.player);assert.match(g.journeyRouteReadout(),/右侧相距.*上层.*12血\/18气.*4修为/);assert.equal(JSON.stringify(g.player),before);
+  g.altars[0].taken=true;assert.match(g.journeyRouteReadout(),/已领1\/2/);
+  g.player.x=g.altars[1].x+120;assert.match(g.journeyRouteReadout(),/左侧相距/);
+});

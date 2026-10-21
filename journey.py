@@ -8,7 +8,7 @@ PALACES = [
     ("xun", "巽", "wood", "东南", "☴", "贯风", "身法：速度+12"),
     ("li", "离", "fire", "南", "☲", "离火", "炽心：技能伤害+2"),
     ("kun", "坤", "earth", "西南", "☷", "承岳", "厚土：生命+15"),
-    ("zhen", "震", "wood", "东", "☳", "震荡", "震势：击退系数+0.15"),
+    ("zhen", "震", "wood", "东", "☳", "震荡", "震势：基础劈砍击退10，首领2"),
     ("dui", "兑", "metal", "西", "☱", "回锋", "调息：回气+1/秒"),
     ("gen", "艮", "earth", "东北", "☶", "止戈", "稳固：防御+2"),
     ("kan", "坎", "water", "北", "☵", "寒流", "回流：技能冷却×0.9"),
@@ -212,7 +212,7 @@ def transition(slot, revision, payload):
                         return response(state, current)
                 win = action == "settle" and win
                 receipt = {"trial_id": trial_id, "realm_id": trial["realm_id"], "map_id": trial["map_id"], "breakthrough": trial["breakthrough"],
-                           "outcome": "victory" if win else "abandoned" if action == "abandon" else "defeat", "spirit": 0, "xp_awards": [], "drops": []}
+                           "outcome": "victory" if win else "abandoned" if action == "abandon" else "defeat", "spirit": 0, "base_spirit": 0, "branch_spirit": 0, "duplicate_spirit": 0, "xp_awards": [], "drops": []}
                 if win and trial["breakthrough"]:
                     state["rank"] = 1
                     state["progress"]["spirit"] -= 24
@@ -236,7 +236,8 @@ def transition(slot, revision, payload):
                         else:
                             state["beads"].append(new_bead(key))
                             receipt["drops"].append({"id": key, "name": CATALOG[key]["name"], "duplicate": False})
-                    receipt["spirit"] = 12 + 4*len(trial["claimed_altars"]) + bonus
+                    receipt.update(base_spirit=12, branch_spirit=4*len(trial["claimed_altars"]), duplicate_spirit=bonus)
+                    receipt["spirit"] = receipt["base_spirit"] + receipt["branch_spirit"] + bonus
                     state["progress"]["spirit"] += receipt["spirit"]
                     state["progress"]["victories"] += 1
                     state["progress"]["clears"][realm] += 1

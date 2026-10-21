@@ -588,7 +588,6 @@ class BattleGame {
       const minds=this.lab.minds;
       if(minds.includes("qian"))this.stats.attack+=2;
       if(minds.includes("dui"))this.stats.qiRegen+=1;
-      if(minds.includes("zhen"))this.stats.stagger+=.15;
       if(minds.includes("xun"))this.stats.speed+=12;
       if(minds.includes("gen"))this.stats.defense+=2;
       if(minds.includes("kun"))this.stats.hpMax+=15;
@@ -645,9 +644,10 @@ class BattleGame {
   }
 
   start() {
+    $("#retry-result").hidden=false;
     $("#leave-run").textContent=this.labRun?"返回阵盘（保留剑碑）":"放弃闯关";
     $("#return-sanctuary").textContent=this.labRun?"返回阵盘":"返回洞府";
-    $("#realm-name").textContent = this.labRun ? `阵盘挑战 · ${this.element.realm}` : this.lab ? "阵盘试验 · 离火试招" : this.practice ? "练功场 · 临时试招" : `${this.element.zh} · ${this.element.realm}`;
+    $("#realm-name").textContent = this.journey ? `${this.breakthrough?"筑基突破":"正式征程"} · ${this.element.realm}` : this.labRun ? `阵盘挑战 · ${this.element.realm}` : this.lab ? "阵盘试验 · 离火试招" : this.practice ? "练功场 · 临时试招" : `${this.element.zh} · ${this.element.realm}`;
     $("#objective-text").textContent = this.labRun ? "冻结配珠挑战 · 清除六敌胜利成长；剑碑保存后可续关" : this.lab ? "只读已保存配置 · Q施招，E按方案引爆/回火；无奖励，退出回阵盘" : this.practice ? "木桩会恢复，不结算战利品" : `击败 ${this.realm.enemies.join("、")}与${this.realm.boss}`;
     if (this.bossPractice) {
       $("#realm-name").textContent = `首领演练 · ${this.realm.boss}`;
@@ -1419,6 +1419,7 @@ class BattleGame {
       if ((this.stats.affixes.seed || 0) && Math.random() < .16) damage += this.stats.affixes.seed;
       if (kind === "slash" && p.flameBuff > 0) { enemy.burn = Math.max(enemy.burn, 2.5); p.flameBuff = 0; }
     }
+    if(this.journey&&!dot&&kind==="slash"&&this.lab.minds.includes("zhen"))enemy.x=clamp(enemy.x+p.face*(enemy.kind==="boss"?2:10),40,this.worldWidth-80);
     if (!dot && enemy.variant === "guard") damage *= .82;
     if (!dot && enemy.kind === "boss" && this.realmKey === "earth" && ["idle", "windup"].includes(enemy.attackState) && Math.sign(p.x + p.w / 2 - enemy.x - enemy.w / 2) === enemy.face) damage *= .7;
     if ((this.stats.affixes.burst || 0) && enemy.hp / enemy.maxHp < .3) damage *= 1 + this.stats.affixes.burst / 100;
@@ -1593,7 +1594,7 @@ class BattleGame {
       $("#result-message").textContent=win?`胜利已保存：修为 +${payload.receipt.spirit}，仅有效出战珠成长。返回阵盘可拆换并再次挑战。`:this.labTrial?.checkpoint?"剑碑已保存，原配珠与已领祭坛保留；续关重置后段敌人。失败不发经验。":"本次失败已保存，无经验奖励。返回阵盘调整，或重新挑战。";
       if(this.journey){
         $("#result-title").textContent=this.breakthrough?(win?"筑基突破成功 · 容量6→10":"突破未成 · 修为未扣"):win?`${this.element.realm} · 正式征程胜利`:"正式征程 · 道心未折";
-        $("#result-message").textContent=win?`已保存 · 修为${payload.receipt.spirit>=0?"+":""}${payload.receipt.spirit} · ${this.breakthrough?"新容量已开放，可装更多宫位":"支路奖励已计入；新珠可返回征程装配"}`:this.labTrial?.checkpoint?"剑碑已保留，可按原构筑续关，无失败奖励":"失败无奖励，可返回调整后重试";
+        $("#result-message").textContent=win?`已保存 · 修为${payload.receipt.spirit>=0?"+":""}${payload.receipt.spirit} · ${this.breakthrough?"新容量已开放，可装更多宫位":`基础${payload.receipt.base_spirit??12} / 支路${payload.receipt.branch_spirit??0} / 重复珠${payload.receipt.duplicate_spirit??0}；新珠已入匣`}`:this.labTrial?.checkpoint?"剑碑已保留，可按原构筑续关，无失败奖励":"失败无奖励，可返回调整后重试";
       }
       $("#reward-list").innerHTML=win?payload.receipt.xp_awards.map(a=>`<div class="reward-item"><b>${esc(payload.state.beads?.find(b=>b.id===a.id)?.name||a.id)}</b><small>经验 +${a.amount} → Lv${a.level}</small></div>`).join(""):'<div class="empty-message">未获得奖励</div>';
       if(win&&this.journey)$("#reward-list").innerHTML+=payload.receipt.drops.map(d=>`<div class="reward-item"><b>${esc(d.name)}</b><small>${d.duplicate?`重复转经验+${d.xp} / 修为+${d.spirit}`:"新珠已入匣"}</small></div>`).join("");
@@ -1604,14 +1605,14 @@ class BattleGame {
       $("#result-message").textContent=error.message+"；重新挑战按钮会先重读并重试本次结算，服务器按试炼编号去重。也可返回阵盘核对。";
       $("#reward-list").textContent="尚未确认奖励，未在客户端发奖";
     }
-    if(await visual&&!this.disposed){$("#continue-checkpoint").hidden=!this.canContinueCheckpoint();$("#result-dialog").showModal();}
+    if(await visual&&!this.disposed){$("#retry-result").hidden=Boolean(this.journey&&this.breakthrough&&win&&!this.labError);$("#continue-checkpoint").hidden=!this.canContinueCheckpoint();$("#result-dialog").showModal();}
   }
 
   async restartLab() {
     if(this.labPending||this.disposed)return;
     if(this.labError&&this.finished){await this.finishLab(this.lastOutcome==="victory");return;}
     const ui=this.runUI;
-    try {if(this.labError)await ui.load(true);await ui.restartTrial(this.labTrialId);}catch(error){showToast(error.message,true);}
+    try {if(this.labError)await ui.load(true);await ui.restartTrial(this.labTrialId,this.journey?{realm_id:this.realmKey,map_id:this.level.map_id,breakthrough:this.breakthrough}:undefined);}catch(error){showToast(error.message,true);}
   }
 
   nearestEnemy() {
@@ -1640,6 +1641,16 @@ class BattleGame {
     return `近敌 ${enemy.name} · ${side}${behind} · 相距${Math.round(Math.abs(dx))} · 气血 ${Math.ceil(clamp(enemy.hp,0,enemy.maxHp))}/${enemy.maxHp} · ${phase}${guard}${danger}`;
   }
 
+  journeyRouteReadout(){
+    if(this.breakthrough)return "筑基心劫无支路、不发普通掉落，成功才扣24修为。";
+    const center=this.player.x+this.player.w/2;
+    const altar=this.altars.filter(a=>!a.taken).sort((a,b)=>Math.abs(a.x+14-center)-Math.abs(b.x+14-center))[0];
+    const count=this.altars.filter(a=>a.taken).length;
+    if(!altar||Math.abs(altar.x+14-center)>700)return `可选祭坛已领${count}/2 · 主路无需特定配珠；支路可返回。`;
+    const dx=altar.x+14-center,above=this.player.y+this.player.h>altar.y+32;
+    return `可选祭坛 · ${dx<0?"左侧":"右侧"}相距${Math.round(Math.abs(dx))} · ${above?"上层，沿阶台单跳":"已到高台，可步行靠近"} · 回复12血/18气，胜利另+4修为 · 已领${count}/2`;
+  }
+
   terrainReadout() {
     const center = this.player.x + this.player.w / 2;
     const hazard = this.hazards.filter(h => center >= h.x - 200 && center <= h.x + h.w + 120)
@@ -1666,6 +1677,7 @@ class BattleGame {
       $("#objective-text").textContent=(this.breakthrough?"筑基心劫 · 击败离火剑魁，成功后扣24修为，容量升至10":$("#objective-text").textContent+" · "+this.level.route_label);
     }
     $("#enemy-readout").textContent=this.enemyReadout();
+    const route=$("#route-readout");if(route){route.hidden=!this.journey;route.textContent=this.journey?this.journeyRouteReadout():"";}
     const markedTarget=this.nearestEnemy();
     if (this.lab) $("#skill-hud").textContent = `${this.lab.skill.enabled ? "Q " + (this.lab.skill.focus ? "聚焰" : "离火留痕") + (this.lab.skill.burst ? " · E引爆" : this.lab.skill.cycle ? " · E回火" : "") : "核心未连接 · 技能停用"} · Q ${this.player.skillCooldowns[0].toFixed(1)}s${(this.lab.skill.burst||this.lab.skill.cycle)?" / E "+this.player.skillCooldowns[1].toFixed(1)+"s":""} · 护盾${Math.ceil(this.player.shield)} · 近敌火痕 ${markedTarget?.labMarks || 0}/3 · 直伤${Math.round(this.labMetrics.direct)} / 灼烧${this.labMetrics.burn} / 引爆${this.labMetrics.burst}`;
     if(this.journey)$("#skill-hud").textContent=this.lab.skills.map((s,i)=>s?`${i?"E":"Q"} ${s.name}(${s.element}) ${this.player.skillCooldowns[i].toFixed(1)}s`:`${i?"E":"Q"}停用`).join(" · ")+` · 心法${this.lab.minds.join("/")||"无"} · 护盾${Math.ceil(this.player.shield)}`;
@@ -1690,6 +1702,7 @@ class BattleGame {
       ctx.fillStyle = "#6b5436"; ctx.fillRect(altar.x + 4, altar.y + 17, 20, 11);
       ctx.fillStyle = "#dfad4c"; ctx.fillRect(altar.x + 10, altar.y + 2, 8, 15);
       ctx.fillStyle = "#fff0b5"; ctx.fillRect(altar.x + 13, altar.y - 3, 2, 8);
+      if(this.journey){ctx.font="12px sans-serif";ctx.fillText("可选祭坛 · 补给 / 修为",altar.x-45,altar.y-12);}
     });
     if (!this.breakthrough&&(this.trial||this.labRun)) {
       const activated=this.labRun?Boolean(this.labTrial?.checkpoint):this.trial.activated;

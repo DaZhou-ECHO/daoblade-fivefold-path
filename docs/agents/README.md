@@ -2,7 +2,7 @@
 
 | 任务ID | 任务目标 | 状态 | 当前接续Agent | 分支/基线 | 最新交接链接 | 依赖或阻塞 |
 |---|---|---|---|---|---|---|
-| 032-eight-palace-journey | 正式八宫、突破掉落、五境双图支路与新档验收 | 进行中 | agent-20261021-0031-c8e4 | work/032-eight-palace-journey-local / 61c2786 | [交接](032-eight-palace-journey/agents/agent-20261021-0031-c8e4/HANDOFF.md) | A/B已可玩，108/172检查；C新档火木土实胜，金水/突破扩容待验，仅本地 |
+| 032-eight-palace-journey | 正式八宫、突破掉落、五境双图支路与新档验收 | 已完成 | agent-20261021-0031-c8e4 | work/032-eight-palace-journey-local / 61c2786→f8afac5及后续本地提交 | [交接](032-eight-palace-journey/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 109/177通过；新档五境→突破→8珠双心法→另一图支路/胜利→重登v36；局限详交接，仅本地 |
 | 031-d07-hazard-rhythm | 五境机关预警与高台避险 | 已完成 | agent-20261021-0031-c8e4 | work/031-d07-hazard-rhythm-local / 85f8d7e | [交接](031-d07-hazard-rhythm/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 104/169全检；五境三帧率单跳/高台安全；火境浏览器提示；支路另续，仅本地 |
 | 030-d06-five-realm-browser | 五境正式浏览器通关与成长 | 已完成 | agent-20261021-0031-c8e4 | work/030-d06-five-realm-browser-local / 5e697f4 | [交接](030-d06-five-realm-browser/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 104/166全检；五境正式浏览器胜利/成长/重登全部通过；本地未上传 |
 | 029-d05-five-realm-encounters | 五境首轮独有首领与完整流程验证 | 已完成 | agent-20261021-0031-c8e4 | work/029-d05-five-realm-encounters-local / 1023f11 | [交接](029-d05-five-realm-encounters/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 104/164全检；15路引擎+真实SQLite；五境浏览器演练胜利；030后续正式五境通关已通过，仅本地 |

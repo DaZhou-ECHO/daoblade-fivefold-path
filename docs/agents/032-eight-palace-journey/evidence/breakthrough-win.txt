@@ -1,0 +1,12 @@
+Browser tab: 6, Title: "本命剑：八荒五行", URL: "http://127.0.0.1:5064/".
+1 AXWebArea 本命剑：八荒五行, URL: 127.0.0.1:5064/
+	2 container result-dialog
+		3 container
+			4 text 秘境结算
+			5 heading 筑基突破成功 · 容量6→10, Value: 2, ID: result-title
+				6 text 筑基突破成功 · 容量6→10
+			7 text 已保存 · 修为-24 · 新容量已开放，可装更多宫位
+			8 button 重新挑战, ID: retry-result
+			9 button 返回阵盘, ID: return-sanctuary
+
+The focused UI element is 2 container result-dialog

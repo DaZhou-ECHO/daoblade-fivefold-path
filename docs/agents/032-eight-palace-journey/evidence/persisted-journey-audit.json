@@ -1,0 +1,753 @@
+{
+  "observed_at": "2026-10-21T22:57:59.655164+08:00",
+  "source": "Read-only SQLite audit AFTER ordinary-browser play. This script creates no progress or victory.",
+  "revision": 36,
+  "state": {
+    "ruleset_id": "journey-v1",
+    "schema_version": 1,
+    "rank": 1,
+    "beads": [
+      {
+        "id": "li.core",
+        "name": "离·核心珠",
+        "element": "fire",
+        "role": "core",
+        "palace": "li",
+        "level": 3,
+        "xp": 0
+      },
+      {
+        "id": "li.trace",
+        "name": "离·纹路珠",
+        "element": "fire",
+        "role": "trace",
+        "palace": "li",
+        "level": 3,
+        "xp": 0
+      },
+      {
+        "id": "li.edge",
+        "name": "离·锐式珠",
+        "element": "fire",
+        "role": "edge",
+        "palace": "li",
+        "level": 3,
+        "xp": 0
+      },
+      {
+        "id": "gen.core",
+        "name": "艮·核心珠",
+        "element": "earth",
+        "role": "core",
+        "palace": "gen",
+        "level": 3,
+        "xp": 0
+      },
+      {
+        "id": "gen.mind",
+        "name": "艮·心法珠",
+        "element": "earth",
+        "role": "mind",
+        "palace": "gen",
+        "level": 3,
+        "xp": 0
+      },
+      {
+        "id": "li.mind",
+        "name": "离·心法珠",
+        "element": "fire",
+        "role": "mind",
+        "palace": "li",
+        "level": 1,
+        "xp": 0
+      },
+      {
+        "id": "xun.core",
+        "name": "巽·核心珠",
+        "element": "wood",
+        "role": "core",
+        "palace": "xun",
+        "level": 1,
+        "xp": 0
+      },
+      {
+        "id": "xun.trace",
+        "name": "巽·纹路珠",
+        "element": "wood",
+        "role": "trace",
+        "palace": "xun",
+        "level": 1,
+        "xp": 0
+      },
+      {
+        "id": "xun.mind",
+        "name": "巽·心法珠",
+        "element": "wood",
+        "role": "mind",
+        "palace": "xun",
+        "level": 1,
+        "xp": 0
+      },
+      {
+        "id": "zhen.core",
+        "name": "震·核心珠",
+        "element": "wood",
+        "role": "core",
+        "palace": "zhen",
+        "level": 3,
+        "xp": 0
+      },
+      {
+        "id": "zhen.trace",
+        "name": "震·纹路珠",
+        "element": "wood",
+        "role": "trace",
+        "palace": "zhen",
+        "level": 1,
+        "xp": 0
+      },
+      {
+        "id": "zhen.mind",
+        "name": "震·心法珠",
+        "element": "wood",
+        "role": "mind",
+        "palace": "zhen",
+        "level": 1,
+        "xp": 0
+      },
+      {
+        "id": "kun.core",
+        "name": "坤·核心珠",
+        "element": "earth",
+        "role": "core",
+        "palace": "kun",
+        "level": 2,
+        "xp": 0
+      },
+      {
+        "id": "kun.trace",
+        "name": "坤·纹路珠",
+        "element": "earth",
+        "role": "trace",
+        "palace": "kun",
+        "level": 1,
+        "xp": 0
+      },
+      {
+        "id": "kun.mind",
+        "name": "坤·心法珠",
+        "element": "earth",
+        "role": "mind",
+        "palace": "kun",
+        "level": 2,
+        "xp": 0
+      },
+      {
+        "id": "gen.trace",
+        "name": "艮·纹路珠",
+        "element": "earth",
+        "role": "trace",
+        "palace": "gen",
+        "level": 1,
+        "xp": 0
+      },
+      {
+        "id": "dui.core",
+        "name": "兑·核心珠",
+        "element": "metal",
+        "role": "core",
+        "palace": "dui",
+        "level": 1,
+        "xp": 0
+      },
+      {
+        "id": "dui.trace",
+        "name": "兑·纹路珠",
+        "element": "metal",
+        "role": "trace",
+        "palace": "dui",
+        "level": 1,
+        "xp": 0
+      },
+      {
+        "id": "dui.mind",
+        "name": "兑·心法珠",
+        "element": "metal",
+        "role": "mind",
+        "palace": "dui",
+        "level": 1,
+        "xp": 0
+      },
+      {
+        "id": "qian.core",
+        "name": "乾·核心珠",
+        "element": "metal",
+        "role": "core",
+        "palace": "qian",
+        "level": 3,
+        "xp": 0
+      },
+      {
+        "id": "qian.trace",
+        "name": "乾·纹路珠",
+        "element": "metal",
+        "role": "trace",
+        "palace": "qian",
+        "level": 2,
+        "xp": 0
+      },
+      {
+        "id": "qian.mind",
+        "name": "乾·心法珠",
+        "element": "metal",
+        "role": "mind",
+        "palace": "qian",
+        "level": 1,
+        "xp": 0
+      },
+      {
+        "id": "kan.core",
+        "name": "坎·核心珠",
+        "element": "water",
+        "role": "core",
+        "palace": "kan",
+        "level": 2,
+        "xp": 0
+      },
+      {
+        "id": "kan.trace",
+        "name": "坎·纹路珠",
+        "element": "water",
+        "role": "trace",
+        "palace": "kan",
+        "level": 2,
+        "xp": 0
+      },
+      {
+        "id": "kan.mind",
+        "name": "坎·心法珠",
+        "element": "water",
+        "role": "mind",
+        "palace": "kan",
+        "level": 1,
+        "xp": 0
+      },
+      {
+        "id": "li.flow",
+        "name": "离·流式珠",
+        "element": "fire",
+        "role": "flow",
+        "palace": "li",
+        "level": 1,
+        "xp": 0
+      }
+    ],
+    "nodes": {
+      "dui.core": null,
+      "dui.edge": null,
+      "dui.flow": null,
+      "dui.mind": null,
+      "dui.trace": null,
+      "gen.core": "gen.core",
+      "gen.edge": null,
+      "gen.flow": null,
+      "gen.mind": "gen.mind",
+      "gen.trace": null,
+      "kan.core": "kan.core",
+      "kan.edge": null,
+      "kan.flow": null,
+      "kan.mind": null,
+      "kan.trace": "kan.trace",
+      "kun.core": "kun.core",
+      "kun.edge": null,
+      "kun.flow": null,
+      "kun.mind": "kun.mind",
+      "kun.trace": null,
+      "li.core": null,
+      "li.edge": null,
+      "li.flow": null,
+      "li.mind": null,
+      "li.trace": null,
+      "qian.core": "qian.core",
+      "qian.edge": null,
+      "qian.flow": null,
+      "qian.mind": null,
+      "qian.trace": "qian.trace",
+      "xun.core": null,
+      "xun.edge": null,
+      "xun.flow": null,
+      "xun.mind": null,
+      "xun.trace": null,
+      "zhen.core": null,
+      "zhen.edge": null,
+      "zhen.flow": null,
+      "zhen.mind": null,
+      "zhen.trace": null
+    },
+    "loadout": {
+      "active": [
+        "qian",
+        "kan"
+      ],
+      "passive": [
+        "gen",
+        "kun"
+      ]
+    },
+    "progress": {
+      "runs": 7,
+      "victories": 6,
+      "spirit": 60,
+      "clears": {
+        "fire": 2,
+        "wood": 1,
+        "earth": 1,
+        "metal": 1,
+        "water": 1
+      }
+    },
+    "active_trial": null
+  },
+  "receipts": [
+    {
+      "trial_id": "journey-b8aa6fb355184ed390328f84b64578d3",
+      "realm_id": "fire",
+      "map_id": "ridge",
+      "breakthrough": false,
+      "outcome": "victory",
+      "spirit": 12,
+      "xp_awards": [
+        {
+          "id": "li.core",
+          "amount": 20,
+          "level": 2,
+          "xp": 0
+        },
+        {
+          "id": "li.trace",
+          "amount": 20,
+          "level": 2,
+          "xp": 0
+        },
+        {
+          "id": "li.edge",
+          "amount": 20,
+          "level": 2,
+          "xp": 0
+        },
+        {
+          "id": "gen.core",
+          "amount": 20,
+          "level": 2,
+          "xp": 0
+        },
+        {
+          "id": "gen.mind",
+          "amount": 20,
+          "level": 2,
+          "xp": 0
+        }
+      ],
+      "drops": [
+        {
+          "id": "li.core",
+          "name": "离·核心珠",
+          "duplicate": true,
+          "xp": 5,
+          "spirit": 0
+        },
+        {
+          "id": "li.trace",
+          "name": "离·纹路珠",
+          "duplicate": true,
+          "xp": 5,
+          "spirit": 0
+        },
+        {
+          "id": "li.mind",
+          "name": "离·心法珠",
+          "duplicate": false
+        }
+      ]
+    },
+    {
+      "trial_id": "journey-a4e776739bb840748dc571c12367056d",
+      "realm_id": "wood",
+      "map_id": "hollow",
+      "breakthrough": false,
+      "outcome": "victory",
+      "spirit": 16,
+      "xp_awards": [
+        {
+          "id": "li.core",
+          "amount": 20,
+          "level": 3,
+          "xp": 0
+        },
+        {
+          "id": "li.trace",
+          "amount": 20,
+          "level": 3,
+          "xp": 0
+        },
+        {
+          "id": "li.edge",
+          "amount": 20,
+          "level": 3,
+          "xp": 0
+        },
+        {
+          "id": "gen.core",
+          "amount": 20,
+          "level": 3,
+          "xp": 0
+        },
+        {
+          "id": "gen.mind",
+          "amount": 20,
+          "level": 3,
+          "xp": 0
+        }
+      ],
+      "drops": [
+        {
+          "id": "xun.core",
+          "name": "巽·核心珠",
+          "duplicate": false
+        },
+        {
+          "id": "xun.trace",
+          "name": "巽·纹路珠",
+          "duplicate": false
+        },
+        {
+          "id": "xun.mind",
+          "name": "巽·心法珠",
+          "duplicate": false
+        },
+        {
+          "id": "zhen.core",
+          "name": "震·核心珠",
+          "duplicate": false
+        },
+        {
+          "id": "zhen.trace",
+          "name": "震·纹路珠",
+          "duplicate": false
+        },
+        {
+          "id": "zhen.mind",
+          "name": "震·心法珠",
+          "duplicate": false
+        }
+      ]
+    },
+    {
+      "trial_id": "journey-f2d9ef595c254dd3a949784b9e87d5e5",
+      "realm_id": "earth",
+      "map_id": "ridge",
+      "breakthrough": false,
+      "outcome": "victory",
+      "spirit": 16,
+      "xp_awards": [
+        {
+          "id": "li.core",
+          "amount": 0,
+          "level": 3,
+          "xp": 0
+        },
+        {
+          "id": "li.trace",
+          "amount": 0,
+          "level": 3,
+          "xp": 0
+        },
+        {
+          "id": "li.edge",
+          "amount": 0,
+          "level": 3,
+          "xp": 0
+        },
+        {
+          "id": "gen.core",
+          "amount": 0,
+          "level": 3,
+          "xp": 0
+        },
+        {
+          "id": "gen.mind",
+          "amount": 0,
+          "level": 3,
+          "xp": 0
+        },
+        {
+          "id": "zhen.core",
+          "amount": 20,
+          "level": 2,
+          "xp": 0
+        }
+      ],
+      "drops": [
+        {
+          "id": "kun.core",
+          "name": "坤·核心珠",
+          "duplicate": false
+        },
+        {
+          "id": "kun.trace",
+          "name": "坤·纹路珠",
+          "duplicate": false
+        },
+        {
+          "id": "kun.mind",
+          "name": "坤·心法珠",
+          "duplicate": false
+        },
+        {
+          "id": "gen.core",
+          "name": "艮·核心珠",
+          "duplicate": true,
+          "xp": 0,
+          "spirit": 2
+        },
+        {
+          "id": "gen.trace",
+          "name": "艮·纹路珠",
+          "duplicate": false
+        },
+        {
+          "id": "gen.mind",
+          "name": "艮·心法珠",
+          "duplicate": true,
+          "xp": 0,
+          "spirit": 2
+        }
+      ]
+    },
+    {
+      "trial_id": "journey-01ee3ee252cb4df6b0cdc52903288836",
+      "realm_id": "metal",
+      "map_id": "hollow",
+      "breakthrough": false,
+      "outcome": "victory",
+      "spirit": 12,
+      "xp_awards": [
+        {
+          "id": "li.core",
+          "amount": 0,
+          "level": 3,
+          "xp": 0
+        },
+        {
+          "id": "li.trace",
+          "amount": 0,
+          "level": 3,
+          "xp": 0
+        },
+        {
+          "id": "li.edge",
+          "amount": 0,
+          "level": 3,
+          "xp": 0
+        },
+        {
+          "id": "gen.core",
+          "amount": 0,
+          "level": 3,
+          "xp": 0
+        },
+        {
+          "id": "gen.mind",
+          "amount": 0,
+          "level": 3,
+          "xp": 0
+        },
+        {
+          "id": "zhen.core",
+          "amount": 20,
+          "level": 3,
+          "xp": 0
+        }
+      ],
+      "drops": [
+        {
+          "id": "dui.core",
+          "name": "兑·核心珠",
+          "duplicate": false
+        },
+        {
+          "id": "dui.trace",
+          "name": "兑·纹路珠",
+          "duplicate": false
+        },
+        {
+          "id": "dui.mind",
+          "name": "兑·心法珠",
+          "duplicate": false
+        },
+        {
+          "id": "qian.core",
+          "name": "乾·核心珠",
+          "duplicate": false
+        },
+        {
+          "id": "qian.trace",
+          "name": "乾·纹路珠",
+          "duplicate": false
+        },
+        {
+          "id": "qian.mind",
+          "name": "乾·心法珠",
+          "duplicate": false
+        }
+      ]
+    },
+    {
+      "trial_id": "journey-c9a6e23e24d149e8ba0b70f744d40449",
+      "realm_id": "water",
+      "map_id": "ridge",
+      "breakthrough": false,
+      "outcome": "victory",
+      "spirit": 12,
+      "base_spirit": 12,
+      "branch_spirit": 0,
+      "duplicate_spirit": 0,
+      "xp_awards": [
+        {
+          "id": "li.core",
+          "amount": 0,
+          "level": 3,
+          "xp": 0
+        },
+        {
+          "id": "li.trace",
+          "amount": 0,
+          "level": 3,
+          "xp": 0
+        },
+        {
+          "id": "li.edge",
+          "amount": 0,
+          "level": 3,
+          "xp": 0
+        },
+        {
+          "id": "gen.core",
+          "amount": 0,
+          "level": 3,
+          "xp": 0
+        },
+        {
+          "id": "gen.mind",
+          "amount": 0,
+          "level": 3,
+          "xp": 0
+        },
+        {
+          "id": "qian.core",
+          "amount": 20,
+          "level": 2,
+          "xp": 0
+        }
+      ],
+      "drops": [
+        {
+          "id": "kan.core",
+          "name": "坎·核心珠",
+          "duplicate": false
+        },
+        {
+          "id": "kan.trace",
+          "name": "坎·纹路珠",
+          "duplicate": false
+        },
+        {
+          "id": "kan.mind",
+          "name": "坎·心法珠",
+          "duplicate": false
+        }
+      ]
+    },
+    {
+      "trial_id": "journey-830d4355946549ceb096a8cc9116bfc7",
+      "realm_id": "fire",
+      "map_id": "ridge",
+      "breakthrough": true,
+      "outcome": "victory",
+      "spirit": -24,
+      "base_spirit": 0,
+      "branch_spirit": 0,
+      "duplicate_spirit": 0,
+      "xp_awards": [],
+      "drops": []
+    },
+    {
+      "trial_id": "journey-c8993fc5c03c4a4bbd9bbc9c4261c4b2",
+      "realm_id": "fire",
+      "map_id": "hollow",
+      "breakthrough": false,
+      "outcome": "victory",
+      "spirit": 16,
+      "base_spirit": 12,
+      "branch_spirit": 4,
+      "duplicate_spirit": 0,
+      "xp_awards": [
+        {
+          "id": "gen.core",
+          "amount": 0,
+          "level": 3,
+          "xp": 0
+        },
+        {
+          "id": "gen.mind",
+          "amount": 0,
+          "level": 3,
+          "xp": 0
+        },
+        {
+          "id": "kun.core",
+          "amount": 20,
+          "level": 2,
+          "xp": 0
+        },
+        {
+          "id": "kun.mind",
+          "amount": 20,
+          "level": 2,
+          "xp": 0
+        },
+        {
+          "id": "qian.core",
+          "amount": 20,
+          "level": 3,
+          "xp": 0
+        },
+        {
+          "id": "qian.trace",
+          "amount": 20,
+          "level": 2,
+          "xp": 0
+        },
+        {
+          "id": "kan.core",
+          "amount": 20,
+          "level": 2,
+          "xp": 0
+        },
+        {
+          "id": "kan.trace",
+          "amount": 20,
+          "level": 2,
+          "xp": 0
+        }
+      ],
+      "drops": [
+        {
+          "id": "li.flow",
+          "name": "离·流式珠",
+          "duplicate": false
+        }
+      ]
+    }
+  ]
+}

@@ -17,18 +17,18 @@
     </div>
     <div class="player-summary">
       <span id="save-status">读取存档中</span>
-      <span>修为 <b id="spirit-value">0</b></span>
-      <span>主属性 <b id="primary-label">未定</b></span>
-      <span>副属性 <b id="secondary-label">未定</b></span>
+      <span>旧档修为 <b id="spirit-value">0</b></span>
+      <span>旧档主属性 <b id="primary-label">未定</b></span>
+      <span>旧档副属性 <b id="secondary-label">未定</b></span>
     </div>
     <div class="account-actions"><span id="account-label">游客试玩</span><button id="account-login" class="pixel-button small" type="button">注册 / 登录</button><button id="account-import" class="pixel-button small" type="button" hidden>导入游客存档</button><button id="account-logout" class="pixel-button small" type="button" hidden>退出登录</button></div>
   </header>
   <nav class="main-nav" aria-label="主要页面">
     <button class="nav-button active" data-panel="sanctuary">洞府</button>
+    <button class="nav-button" data-panel="journey">正式征程</button>
     <button class="nav-button" data-panel="realms">五行秘境</button>
     <button class="nav-button" data-panel="inventory">灵珠匣 <span id="inventory-count">0</span></button>
     <button class="nav-button" data-panel="cultivation">八卦修行</button>
-    <button class="nav-button" data-panel="journey">正式征程</button>
     <button class="nav-button" data-panel="arraylab">阵盘试验</button>
     <button class="nav-button" data-panel="manual">剑诀</button>
   </nav>
@@ -40,9 +40,9 @@
         <div>
           <p class="eyebrow">五行剑术试玩版</p>
           <h2>同修一套剑术，各走一条大道</h2>
-          <p class="lead">进入五行秘境，以劈砍、格挡和剑气战胜守境者。获得灵珠后，将它永久镶入本命剑的八卦修行图。每一次选择都会改变后续战斗。</p>
-          <p id="checkpoint-status" hidden></p><button id="restore-checkpoint" type="button" class="pixel-button" hidden>继续火境剑碑试炼</button>
-          <div class="hero-actions"><button class="pixel-button primary" data-go="realms">进入秘境</button><button class="pixel-button" data-go="cultivation">查看本命剑</button></div>
+          <p class="lead">从正式征程开始：用赠珠挑战五境，获得本位灵珠，拆换八宫构筑，以两主动、两心法出战。积累修为，通过筑基心劫，将容量从6提升到10。旧永久档与离宫试验档各自保留。</p>
+          <p id="checkpoint-status" hidden></p><button id="restore-checkpoint" type="button" class="pixel-button" hidden>继续旧版火境剑碑试炼</button>
+          <div class="hero-actions"><button class="pixel-button primary" data-go="journey">开始正式征程</button><button class="pixel-button" data-go="cultivation">查看旧版修行</button></div>
         </div>
         <div class="sword-altar" aria-hidden="true">
           <div class="bagua-ring"><span>☯</span></div><div class="pixel-sword"></div>
@@ -50,12 +50,12 @@
         </div>
       </div>
       <div class="status-strip">
-        <article><small>闯关次数</small><strong id="runs-value">0</strong></article>
-        <article><small>成功通关</small><strong id="victories-value">0</strong></article>
-        <article><small>已镶灵珠</small><strong id="socketed-value">0 / 24</strong></article>
-        <article><small>已通秘境</small><strong id="realm-clear-value">0 / 5</strong></article>
+        <article><small>旧版闯关次数</small><strong id="runs-value">0</strong></article>
+        <article><small>旧版成功通关</small><strong id="victories-value">0</strong></article>
+        <article><small>旧版已镶灵珠</small><strong id="socketed-value">0 / 24</strong></article>
+        <article><small>旧版已通秘境</small><strong id="realm-clear-value">0 / 5</strong></article>
       </div>
-      <div class="dao-note"><span class="quote-mark">“</span><p>珠子一旦入剑，便成为这个角色经历的一部分。品阶决定起点，修行决定终点。</p></div>
+      <div class="dao-note"><span class="quote-mark">“</span><p>珠归本位，阵随心转。正式征程关外可拆换，同一颗珠保留等级与经验。</p></div>
     </section>
 
     <section id="panel-realms" class="panel">
@@ -71,6 +71,7 @@
         <button id="pause-run" class="pixel-button small">暂停</button>
       </div>
       <p id="enemy-readout" aria-live="off">靠近后观察敌人</p>
+      <p id="route-readout" aria-live="off" hidden></p>
       <div class="canvas-wrap"><canvas id="game-canvas" width="960" height="540" aria-label="横版战斗画面"></canvas><div id="game-message" class="game-message hidden"></div><div id="pause-overlay" class="pause-overlay hidden"><h2>暂歇剑锋</h2><p>按 Esc 或继续按钮返回战斗</p><div><button id="resume-run" class="pixel-button primary">继续</button><button id="retry-run" class="pixel-button">重新挑战</button><button id="settings-run" class="pixel-button">按键设置</button><button id="quit-run" class="pixel-button">退出</button></div></div></div>
       <div class="control-bar"><span><kbd data-control="left">A</kbd><kbd data-control="right">D</kbd> 移动</span><span><kbd data-control="jump">Space</kbd> 跳跃</span><span><kbd data-control="slash">J</kbd> 劈砍</span><span><kbd data-control="block">K</kbd> 格挡</span><span><kbd data-control="qi">L</kbd> 剑气</span><span><kbd data-control="dash">Shift</kbd> 闪避</span><span><kbd data-control="dao">Q</kbd> 技能一</span><span><kbd data-control="dao2">E</kbd> 技能二</span><span><kbd data-control="pause">Esc</kbd> 暂停</span></div>
       <div class="touch-controls" aria-label="触屏操作"><div><button data-touch="left">◀</button><button data-touch="right">▶</button><button data-touch="jump">跃</button><button data-touch="dash">闪</button></div><div><button data-touch="slash">斩</button><button data-touch="block">御</button><button data-touch="qi">气</button><button data-touch="dao">一</button><button data-touch="dao2">二</button></div></div>

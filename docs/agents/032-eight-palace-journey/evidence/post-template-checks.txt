@@ -1,0 +1,13 @@
+..                                                                       [100%]
+2 passed in 0.23s
+✔ 032 保存期间锁住下拉框，ACK后恢复；旧账号延迟回复不能重建已清空界面 (6.823ms)
+✔ 032 突破失败关闭试炼后，重新挑战保持原境/地图/突破类型 (4.2993ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 109.9091
+Agent document file/link checks PASSED (content review still required).

@@ -29,7 +29,7 @@ function harness({ practice = false, deferredSave = false, labTrial=null, labCom
     recordSave: state => { calls.saves.push(JSON.parse(JSON.stringify(state))); return waitSave; },
   });
   if(seed!==null)vm.runInContext(`let pilotSeed=${seed}; Math.random=()=>((pilotSeed=(Math.imul(pilotSeed,1664525)+1013904223)>>>0)/4294967296);`,context);
-  if(labService)context.DaoBladeArrayLabUI=labService;
+  if(labService){if(labCompiled?.campaign)context.DaoBladeJourneyUI=labService;else context.DaoBladeArrayLabUI=labService;}
   require("./helpers/load-rules.cjs")(context);
   const source = fs.readFileSync(path.join(__dirname, "../static/js/game.js"), "utf8")
     .replace(/\nbindUi\(\);\s*initializeSession\(\);\s*$/, "");
@@ -413,4 +413,16 @@ test("029 五境首领演练实际输入击败首领，无保存奖励，结果/
     h.nodes.get('#retry-run').handlers.click();next=h.api.active();assert.equal(next.bossPractice,true);assert.equal(next.enemies.length,1);
     next.quit();assert.equal(h.calls.panels.at(-1),'arraylab');assert.equal(JSON.stringify(h.api.state()),before);assert.equal(h.calls.saves.length,0);
   }
+});
+
+
+test("032 突破成功不再邀请重复突破，结算未确认时仍可重试确认",async()=>{
+  const compiled=require('./helpers/journey-builds.json')[1];
+  const trial={id:'result-032',realm_id:'fire',map_id:'ridge',breakthrough:true,checkpoint:null,claimed_altars:[]};
+  const service={trialAction:async()=>({state:{active_trial:null,beads:[]},receipt:{spirit:-24,xp_awards:[],drops:[]}})};
+  const h=harness({labTrial:trial,labCompiled:compiled,labService:service});
+  await h.game.finish(true);assert.match(h.nodes.get('#result-title').textContent,/突破成功/);assert.equal(h.nodes.get('#retry-result').hidden,true);
+  const bad=harness({labTrial:trial,labCompiled:compiled,labService:{trialAction:async()=>{throw Error('断线');}}});
+  await bad.game.finish(true);assert.equal(bad.nodes.get('#retry-result').hidden,false);assert.match(bad.nodes.get('#result-title').textContent,/未确认/);
+  const normal=new h.api.BattleGame('fire',{practice:true});normal.start();assert.equal(h.nodes.get('#retry-result').hidden,false);
 });

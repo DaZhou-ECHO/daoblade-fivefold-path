@@ -52,6 +52,8 @@ def test_real_sqlite_five_elements_drops_growth_replay_and_breakthrough(client):
         action('altar',trial_id=tid,altar_id='altar-1')
         result=action('settle',trial_id=tid,win=True,defeated_ids=[f'enemy-{i}' for i in range(1,7)])
         assert result['receipt']['spirit']>=16
+        assert result['receipt']['base_spirit']==12 and result['receipt']['branch_spirit']==4
+        assert result['receipt']['spirit']==16+result['receipt']['duplicate_spirit']
         for drop in result['receipt']['drops']:
             assert CATALOG[drop['id']]['element']==realm
         replay=action('settle',trial_id=tid,win=True,defeated_ids=[])
@@ -103,3 +105,11 @@ def test_engine_fixtures_match_server_compiler():
         for role in ['core','trace','mind']:state['nodes'][palace[0]+'.'+role]=palace[0]+'.'+role
         state['loadout']={'active':[palace[0],None],'passive':[palace[0],None]}
         assert compile_journey(state)==fixture
+
+
+def test_ui_fixture_matches_server_contract():
+    import json
+    from pathlib import Path
+    from journey import CONFIG, response
+    fixture=json.loads((Path(__file__).parent/'helpers/journey-ui.json').read_text(encoding='utf-8'))
+    assert fixture=={'config':CONFIG, **response(default_journey(),0), 'owner_id':None}
