@@ -15,7 +15,7 @@ function harness({deferred=false}={}) {
       if(url==="/api/lab/trial"){
         const body=JSON.parse(options.body);trialRequests.push(body);
         if(body.revision!==revision)throw new Error("stale revision");
-        if(body.action==="start")stored.active_trial={id:"test-trial",checkpoint:null,claimed_altars:[],build:{stage:stored.stage,beads:structuredClone(stored.beads),nodes:structuredClone(stored.nodes)}};
+        if(body.action==="start")stored.active_trial={id:"test-trial",realm_id:body.realm_id||"fire",checkpoint:null,claimed_altars:[],build:{stage:stored.stage,beads:structuredClone(stored.beads),nodes:structuredClone(stored.nodes)}};
         if(body.action==="checkpoint")stored.active_trial.checkpoint="swordstone";
         if(body.action==="abandon")stored.active_trial=null;
         revision++;return {ok:true,json:async()=>structuredClone({state:stored,revision,trial_compiled:require("../static/js/array-lab-rules.js").createRuntime(config).compile(stored)})};
@@ -62,4 +62,14 @@ test("018 冲突阻止队列后续写入，保留服务试炼供重读恢复",as
   h.context.DaoBladeStartArrayTrial=()=>{};await h.ui.startTrial();h.fail();
   const results=await Promise.allSettled([h.ui.trialAction("checkpoint",{trial_id:"test-trial"}),h.ui.trialAction("altar",{trial_id:"test-trial"})]);
   assert.equal(results.every(r=>r.status==="rejected"),true);assert.equal(h.node("lab-resume").disabled,true);assert.equal(h.stored().active_trial.id,"test-trial");
+});
+
+
+test("021 真实选关UI发送木境，恢复继续使用服务realm，活动中不能换境",async()=>{
+  const h=harness();await h.ui.load();h.node("lab-burst-preset").handlers.click();await h.node("lab-save").handlers.click();
+  h.node("lab-realm").value="wood";h.node("lab-realm").handlers.change();let launched;
+  h.context.DaoBladeStartArrayTrial=(trial)=>{launched=trial;};await h.ui.startTrial();
+  assert.equal(h.trialRequests[0].realm_id,"wood");assert.equal(launched.realm_id,"wood");assert.equal(h.node("lab-realm").disabled,true);
+  h.node("lab-realm").value="fire";h.node("lab-realm").handlers.change();await h.ui.resumeTrial();assert.equal(launched.realm_id,"wood");
+  assert.match(h.node("lab-trial-status").textContent,/青木境/);
 });

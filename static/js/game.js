@@ -520,7 +520,7 @@ function continueCheckpoint() {
   startRealm(game.realmKey, { trial: game.trial });
 }
 
-globalThis.DaoBladeStartArrayTrial = (trial,compiled) => startRealm("fire", {labTrial:trial,labCompiled:compiled});
+globalThis.DaoBladeStartArrayTrial = (trial,compiled) => startRealm(trial.realm_id, {labTrial:trial,labCompiled:compiled});
 
 globalThis.DaoBladeStartArrayLab = compiled => startRealm("fire", { practice: true, labCompiled: compiled });
 
@@ -535,6 +535,8 @@ class BattleGame {
     this.lab = this.practice||this.labRun ? options.labCompiled || null : null;
     this.labMetrics = { direct: 0, burn: 0, burst: 0 };
     this.level = LEVELS.getDefinition(realmKey);
+    this.checkpoint=this.labRun ? this.level.checkpoint||this.level.lab_checkpoint : this.level.checkpoint;
+    if(this.labRun && (!this.checkpoint || this.labTrial.realm_id!==realmKey))throw new Error("试炼秘境与地图不匹配");
     this.realm = REALMS[realmKey];
     this.element = ELEMENTS[realmKey];
     this.canvas = $("#game-canvas");
@@ -565,8 +567,8 @@ class BattleGame {
     this.projectiles = [];
     this.particles = [];
     this.skillEffects = [];
-    this.resuming = this.labRun ? Boolean(this.labTrial.checkpoint) : Boolean(!this.practice && this.level.checkpoint && options.trial?.activated && !options.trial.settled);
-    this.trial = !this.practice && !this.labRun && this.level.checkpoint
+    this.resuming = this.labRun ? Boolean(this.labTrial.checkpoint) : Boolean(!this.practice && this.checkpoint && options.trial?.activated && !options.trial.settled);
+    this.trial = !this.practice && !this.labRun && this.checkpoint
       ? (this.resuming ? options.trial : TRIALS.create(options.state || saveData, RULES)) : null;
     this.snapshot = this.lab ? Object.freeze({ruleset_id: "array-lab-v1", rules_version: this.lab.rules_version, stats: RULES.createCombatSnapshot(DEFAULT_STATE()).stats, skill: this.lab.skill}) : this.trial?.snapshot || RULES.createCombatSnapshot(options.state || saveData);
     this.stats = this.snapshot.stats;
@@ -583,9 +585,9 @@ class BattleGame {
     this.enemies = this.practice ? [this.enemy("dummy", "试剑木桩", 620, 99999, "dummy")] : this.makeEnemies();
     if (this.lab && this.practice) { this.player.x = 240; this.enemies[0].x = 340; }
     if (this.resuming) {
-      const anchor = this.level.anchors[this.level.checkpoint.anchor_id];
+      const anchor = this.level.anchors[this.checkpoint.anchor_id];
       this.player.x = anchor.x; this.player.y = anchor.y - this.player.h;
-      for (const enemy of this.enemies) if (this.level.checkpoint.cleared_ids.includes(enemy.id)) { enemy.dead = true; enemy.hp = 0; }
+      for (const enemy of this.enemies) if (this.checkpoint.cleared_ids.includes(enemy.id)) { enemy.dead = true; enemy.hp = 0; }
       this.cameraX = clamp(this.player.x - this.width * .42, 0, this.worldWidth - this.width);
     }
     this.boundKeyDown = event => this.keyDown(event);
@@ -621,7 +623,7 @@ class BattleGame {
   start() {
     $("#leave-run").textContent=this.labRun?"返回阵盘（保留剑碑）":"放弃闯关";
     $("#return-sanctuary").textContent=this.labRun?"返回阵盘":"返回洞府";
-    $("#realm-name").textContent = this.labRun ? "阵盘挑战 · 离火境" : this.lab ? "阵盘试验 · 离火试招" : this.practice ? "练功场 · 临时试招" : `${this.element.zh} · ${this.element.realm}`;
+    $("#realm-name").textContent = this.labRun ? `阵盘挑战 · ${this.element.realm}` : this.lab ? "阵盘试验 · 离火试招" : this.practice ? "练功场 · 临时试招" : `${this.element.zh} · ${this.element.realm}`;
     $("#objective-text").textContent = this.labRun ? "冻结配珠挑战 · 清除六敌胜利成长；剑碑保存后可续关" : this.lab ? "只读已保存配置 · Q施招，E按方案引爆/回火；无奖励，退出回阵盘" : this.practice ? "木桩会恢复，不结算战利品" : `击败 ${this.realm.enemies.join("、")}与${this.realm.boss}`;
     if (!this.practice && !this.labRun && !this.resuming) { saveData.active_trial = null; saveData.progress.runs += 1; void saveState(""); }
     renderCheckpointRecovery();
@@ -1314,7 +1316,7 @@ class BattleGame {
   updateCheckpoint() {
     if(this.labPending||this.labError||this.finished)return;
     if(this.labRun ? this.labTrial.checkpoint : !this.trial || this.trial.activated)return;
-    const checkpoint = this.level.checkpoint, anchor = this.level.anchors[checkpoint.anchor_id];
+    const checkpoint = this.checkpoint, anchor = this.level.anchors[checkpoint.anchor_id];
     if (!checkpoint.cleared_ids.every(id => this.enemies.some(enemy => enemy.id === id && enemy.dead))) return;
     const p = this.player;
     if (!p.onGround || Math.abs(p.x - anchor.x) > 70 || Math.abs(p.y + p.h - anchor.y) > 2) return;
@@ -1392,7 +1394,7 @@ class BattleGame {
       const payload=await globalThis.DaoBladeArrayLabUI.trialAction("settle",{trial_id:this.labTrial.id,win,defeated_ids:this.defeatedIds()});
       if(this.disposed)return;
       this.labTrial=payload.state.active_trial;this.labPending=false;
-      $("#result-title").textContent=win?"离火境 · 阵盘试炼成功":"阵盘试炼 · 道心未折";
+      $("#result-title").textContent=win?`${this.element.realm} · 阵盘试炼成功`:"阵盘试炼 · 道心未折";
       $("#result-message").textContent=win?`胜利已保存：修为 +${payload.receipt.spirit}，仅有效出战珠成长。返回阵盘可拆换并再次挑战。`:this.labTrial?.checkpoint?"剑碑已保存，原配珠与已领祭坛保留；续关重置后段敌人。失败不发经验。":"本次失败已保存，无经验奖励。返回阵盘调整，或重新挑战。";
       $("#reward-list").innerHTML=win?payload.receipt.xp_awards.map(a=>`<div class="reward-item"><b>${esc(payload.state.beads?.find(b=>b.id===a.id)?.name||a.id)}</b><small>经验 +${a.amount} → Lv${a.level}</small></div>`).join(""):'<div class="empty-message">未获得奖励</div>';
     } catch(error) {
@@ -1445,7 +1447,7 @@ class BattleGame {
     });
     if (this.trial||this.labRun) {
       const activated=this.labRun?Boolean(this.labTrial?.checkpoint):this.trial.activated;
-      const anchor = this.level.anchors[this.level.checkpoint.anchor_id];
+      const anchor = this.level.anchors[this.checkpoint.anchor_id];
       ctx.fillStyle = activated ? "#f4d576" : "#858991";
       ctx.fillRect(anchor.x + 8, anchor.y - 62, 20, 62);
       ctx.fillRect(anchor.x, anchor.y - 12, 36, 12);

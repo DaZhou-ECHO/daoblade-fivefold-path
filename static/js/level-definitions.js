@@ -58,6 +58,9 @@
   }
   definitions.fire.anchors.swordstone = { x: 1640, y: 474 };
   definitions.fire.checkpoint = { id: "swordstone", anchor_id: "swordstone", cleared_ids: ["enemy-1", "enemy-2", "enemy-3"] };
+  // 木境的新阵盘检查点独立于旧永久档试炼格式。
+  definitions.wood.anchors.swordstone = { x: 1640, y: 474 };
+  definitions.wood.lab_checkpoint = { id: "swordstone", anchor_id: "swordstone", cleared_ids: ["enemy-1", "enemy-2", "enemy-3"] };
   freeze(definitions);
   const api = freeze({
     realms: REALMS, realm_ids: Object.keys(REALMS),

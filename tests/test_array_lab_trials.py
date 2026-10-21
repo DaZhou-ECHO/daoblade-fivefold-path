@@ -190,3 +190,26 @@ def test_research_unlock_once_and_protect_stage(client):
     frozen = action(client, saved, "start").get_json()
     assert frozen["state"]["active_trial"]["build"]["stage"] == 2
     assert frozen["trial_compiled"]["skill"]["cycle_damage"] == 10
+
+
+def test_wood_trial_resume_and_once_only_rewards(client):
+    saved=ready(client)
+    started=action(client,saved,"start",realm_id="wood").get_json()
+    assert started["state"]["active_trial"]["realm_id"]=="wood"
+    checkpoint=action(client,started,"checkpoint",defeated_ids=ALL[:3]).get_json()
+    claimed=action(client,checkpoint,"altar",altar_id="altar-1").get_json()
+    failed=action(client,claimed,"settle",win=False,defeated_ids=ALL[:4],realm_id="fire").get_json()
+    restored=client.get("/api/lab/state").get_json()
+    assert restored["state"]["active_trial"]["realm_id"]=="wood"
+    assert restored["state"]["active_trial"]["checkpoint"]=="swordstone"
+    assert restored["state"]["active_trial"]["claimed_altars"]==["altar-1"]
+    won=action(client,restored,"settle",win=True,defeated_ids=ALL).get_json()
+    assert won["state"]["progress"]=={"runs":1,"victories":1,"spirit":12}
+    assert action(client,restored,"settle",win=True,defeated_ids=ALL).get_json()["revision"]==won["revision"]
+
+
+@pytest.mark.parametrize("realm",["water","earth","metal","",None,[],True])
+def test_unopened_or_invalid_realm_rejected_without_state_change(client,realm):
+    saved=ready(client)
+    assert action(client,saved,"start",realm_id=realm).status_code==400
+    assert client.get("/api/lab/state").get_json()["revision"]==saved["revision"]

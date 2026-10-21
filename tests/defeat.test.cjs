@@ -4,7 +4,7 @@ const path = require("node:path");
 const test = require("node:test");
 const vm = require("node:vm");
 
-function harness({ practice = false, deferredSave = false, labTrial=null, labCompiled=null, labService=null } = {}) {
+function harness({ practice = false, deferredSave = false, labTrial=null, labCompiled=null, labService=null, realm="fire" } = {}) {
   const calls = { awards: [], saves: [], modals: 0, frames: [], queued: [], close: 0, panels: [] };
   const nodes = new Map();
   const element = selector => {
@@ -42,7 +42,7 @@ function harness({ practice = false, deferredSave = false, labTrial=null, labCom
     this.api = { BattleGame, state: () => saveData, active: () => activeGame,
       setActive: game => { activeGame = game; }, setSyncBlocked: value => { saveBlocked = value; }, restoreCheckpoint, replaceState: value => { saveData = value; }, bindUi, showRealPanel: actualShowPanel };
   `, context);
-  const game = new context.api.BattleGame("fire", { practice,labTrial,labCompiled });
+  const game = new context.api.BattleGame(realm, { practice,labTrial,labCompiled });
   context.api.setActive(game);
   game.draw = () => calls.frames.push({ deathTime: game.player.deathTime, deathDrop: game.player.deathDrop });
   const step = (milliseconds = 34) => {
@@ -285,7 +285,7 @@ function arrayFixture(checkpoint=null){
   const cfg=require("../static/data/rules/array-lab-v1.json"),rules=require("../static/js/array-lab-rules.js").createRuntime(cfg);
   const build={stage:1,beads:structuredClone(cfg.beads),nodes:Object.fromEntries(cfg.nodes.map(n=>[n.id,["core","mark","burst"].includes(n.role)?"lab-"+n.role:null]))};
   const state={...build,ruleset_id:cfg.ruleset_id,rules_version:2,schema_version:2,progress:{runs:1,victories:0,spirit:0},active_trial:null};
-  return {labTrial:{id:"test-array",checkpoint,claimed_altars:["altar-1"],build},labCompiled:rules.compile(state)};
+  return {labTrial:{id:"test-array",realm_id:"fire",checkpoint,claimed_altars:["altar-1"],build},labCompiled:rules.compile(state)};
 }
 test("018 新阵盘正式战六敌、剑碑恢复与冻结技能，不写旧永久档",async()=>{
   const f=arrayFixture("swordstone"),h=harness({...f,labService:{trialAction:async()=>({state:{active_trial:null},receipt:{spirit:12,xp_awards:[{id:"lab-core",amount:20,level:2}]}})}});
@@ -324,4 +324,16 @@ test("018 检查点失败保留同ID，无检查点失败关闭；都不发旧�
     const pending=h.game.finish(false);h.complete();await pending;
     assert.equal(h.game.canContinueCheckpoint(),Boolean(checkpoint));assert.equal(h.calls.saves.length,0);assert.deepEqual(h.calls.awards,[]);
   }
+});
+
+
+test("021 木境使用木敌人与专属检查点，结果不串火且不写旧档",async()=>{
+  const f=arrayFixture("swordstone");f.labTrial.realm_id="wood";
+  const h=harness({...f,realm:"wood",labService:{trialAction:async()=>({state:{active_trial:null},receipt:{spirit:12,xp_awards:[]}})}});
+  assert.equal(h.game.realmKey,"wood");assert.equal(h.game.trial,null);assert.equal(h.game.enemies.filter(e=>e.dead).length,3);
+  assert.equal(h.game.enemies.at(-1).name,"青木药王");assert.equal(h.game.enemies.at(-1).maxHp,240);
+  h.game.start();h.game.enemies.forEach(e=>{e.dead=true;});await h.game.finish(true);
+  assert.match(h.nodes.get("#result-title").textContent,/古林药谷/);assert.equal(h.calls.saves.length,0);
+  assert.equal(new h.api.BattleGame("wood").trial,null);
+  assert.throws(()=>new h.api.BattleGame("fire",f),/不匹配/);
 });

@@ -3,7 +3,7 @@
   const $=id=>document.getElementById(id);
   const text=value=>String(value).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   let state=null,rules=null,revision=0,owner=null,csrf="",saved="",selected="li.core",busy=false,blocked=false,epoch=0;
-  let queue=Promise.resolve();
+  let queue=Promise.resolve(),realm="fire";
   const fingerprint=()=>JSON.stringify(state);
   function status(message) { $("lab-save-status").textContent=message; }
   function buttons() {
@@ -18,7 +18,11 @@
     $("lab-challenge").disabled=!state||busy||blocked||dirty||!revision||active||!rules?.compile(state).skill.enabled;
     $("lab-resume").disabled=!active||busy||blocked;
     $("lab-abandon").disabled=!active||busy||blocked;
-    $("lab-trial-status").textContent=active ? `未完成火境 · ${state.active_trial.checkpoint ? "剑碑已保存" : "入口恢复"} · 构筑已冻结，放弃或结束后可拆换` : "挑战六名敌人；胜利仅出战有效珠成长，失败无奖励。";
+    $("lab-realm").disabled=!state||busy||blocked||active;
+    const destination=rules?.config.realms?.find(r=>r.id===(active?state.active_trial.realm_id:realm));
+    $("lab-challenge").textContent=`挑战${destination?.name||"秘境"}`;
+    $("lab-realm-description").textContent=destination?.description||"";
+    $("lab-trial-status").textContent=active ? `未完成${destination?.name||"秘境"} · ${state.active_trial.checkpoint ? "剑碑已保存" : "入口恢复"} · 构筑已冻结，放弃或结束后可拆换` : "挑战六名敌人；胜利仅出战有效珠成长，失败无奖励。";
   }
   function render() {
     if(!state) {buttons();return;}
@@ -37,6 +41,8 @@
       `${node.parent?"需连接"+cfg.nodes.find(n=>n.id===node.parent).label:"决定本宫技能火行属性"}。${compiled.inactive[node.id]||"只接受对应功能的火行珠。"}`;
     $("lab-bead").innerHTML=state.beads.map(b=>`<option value="${b.id}">${text(b.name)} · Lv${b.level} / XP${b.xp}${Object.values(state.nodes).includes(b.id)?" · 已装配":" · 珠匣"}</option>`).join("");
     if(state.nodes[selected]) $("lab-bead").value=state.nodes[selected];
+    if(state.active_trial)realm=state.active_trial.realm_id;
+    $("lab-realm").value=realm;
     const skill=compiled.skill;
     $("lab-compiled").innerHTML=`<h3>${skill.enabled?(skill.cycle?"回火 · 资源周转":skill.focus?"聚焰 · 持续压制":skill.burst?"留痕 · 蓄势引爆":"离火 · 基础剑式"):"技能已停用"}</h3><p>${!skill.enabled?"核心未连接。装回离火核心可恢复技能，无需重新学习。":
       skill.cycle?`Q：伤害${skill.cycle_damage}，较低伤害换续航。E：收回前方火痕，最多回复${skill.cycle_max_qi}剑意与${skill.cycle_max_shield}护盾，持续${skill.cycle_shield_seconds}秒；无爆发伤害。`:skill.focus?`Q：短距${skill.focus_range}，直伤${skill.focus_damage}并持续灼烧。放弃远距与引爆。`:skill.burst?`Q：火行剑式留下火痕，上限${skill.max_marks}层。E：消耗火痕，每层${skill.burst_per_mark}额外伤害；冷却${skill.burst_cooldown}秒。`:`Q：火行剑式，范围${skill.range}、直伤${skill.damage}。连接留痕后可积累火痕。`}</p><small>基础面板保持中性；只编译当前有效连线。${Object.keys(compiled.inactive).length?"存在未连接节点，不提供效果。":""}</small>`;
@@ -79,7 +85,7 @@
     const work=queue.then(async()=>{
       if(generation!==epoch)throw new Error("账号已变化，操作取消");
       if(!state||blocked)throw new Error("试验档未同步，请回阵盘重新读取");
-      busy=true;buttons();status("正在记录火境进度…");
+      busy=true;buttons();status("正在记录试炼进度…");
       try {
         const response=await fetch("/api/lab/trial",{method:"POST",headers:{"Content-Type":"application/json","X-CSRF-Token":csrf},body:JSON.stringify({action,revision,owner_id:owner,...extra})});
         const payload=await response.json();
@@ -102,7 +108,7 @@
   }
   async function startTrial() {
     if(busy||blocked||!state||state.active_trial||!revision||saved!==fingerprint())return;
-    launchTrial(await trialAction("start"));
+    launchTrial(await trialAction("start",{realm_id:realm}));
   }
   async function resumeTrial() {
     if(busy||blocked||!state?.active_trial)return;
@@ -119,7 +125,7 @@
     await abandonTrial();await startTrial();
   }
   function handle(promise) {promise.catch(error=>{ $("lab-error").textContent=error.message; });}
-  function reset() {epoch++;queue=Promise.resolve();state=null;rules=null;saved="";revision=0;busy=false;blocked=false;buttons();for(const id of ["lab-palaces","lab-nodes","lab-compiled"]) $(id).textContent="";selected="li.core";status("账号状态已更新，请进入阵盘试验读取");}
+  function reset() {epoch++;queue=Promise.resolve();realm="fire";state=null;rules=null;saved="";revision=0;busy=false;blocked=false;buttons();for(const id of ["lab-palaces","lab-nodes","lab-compiled"]) $(id).textContent="";selected="li.core";status("账号状态已更新，请进入阵盘试验读取");}
   $("lab-equip").addEventListener("click",()=>edit(()=>rules.equip(state,selected,$("lab-bead").value)));
   $("lab-detach").addEventListener("click",()=>edit(()=>rules.equip(state,selected,null)));
   for(const variant of ["focus","burst","cycle"]) $("lab-"+variant+"-preset").addEventListener("click",()=>edit(()=>{
@@ -129,6 +135,7 @@
   $("lab-save").addEventListener("click",save);$("lab-reload").addEventListener("click",()=>load(true));
   $("lab-practice").addEventListener("click",()=>{if(!busy&&!blocked&&revision&&saved===fingerprint())root.DaoBladeStartArrayLab(rules.compile(state));});
   $("lab-research").addEventListener("click",()=>{if(!$("lab-research").disabled)handle(trialAction("research"));});
+  $("lab-realm").addEventListener("change",()=>{if(!$("lab-realm").disabled){realm=$("lab-realm").value;buttons();}});
   $("lab-challenge").addEventListener("click",()=>handle(startTrial()));
   $("lab-resume").addEventListener("click",()=>handle(resumeTrial()));
   $("lab-abandon").addEventListener("click",()=>handle(abandonTrial()));

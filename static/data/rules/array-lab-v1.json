@@ -192,5 +192,17 @@
     "cost": 12,
     "min_victories": 1,
     "max_stage": 2
-  }
+  },
+  "realms": [
+    {
+      "id": "fire",
+      "name": "离火境",
+      "description": "突进与爆发预警，留意转身与地火。"
+    },
+    {
+      "id": "wood",
+      "name": "青木境",
+      "description": "追近的藤甲敌人和远程毒蕈，利用平台避开地面危险。"
+    }
+  ]
 }

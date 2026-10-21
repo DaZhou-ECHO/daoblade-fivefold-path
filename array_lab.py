@@ -87,7 +87,7 @@ def validate_lab_state(raw):
         keys = {"id", "realm_id", "rules_version", "build", "effective_bead_ids", "checkpoint", "claimed_altars"}
         if not isinstance(trial, dict) or set(trial) != keys or not isinstance(trial["id"], str) or not 1 <= len(trial["id"]) <= 80:
             raise ValueError("试验试炼记录无效")
-        if trial["realm_id"] != "fire" or type(trial["rules_version"]) is not int or trial["rules_version"] != 2 or trial["checkpoint"] not in (None, "swordstone"):
+        if type(trial["realm_id"]) is not str or trial["realm_id"] not in {realm["id"] for realm in CONFIG["realms"]} or type(trial["rules_version"]) is not int or trial["rules_version"] != 2 or trial["checkpoint"] not in (None, "swordstone"):
             raise ValueError("试验试炼规则不受支持")
         build = trial["build"]
         if not isinstance(build, dict) or set(build) != {"stage", "beads", "nodes"}:

@@ -62,12 +62,15 @@ def transition_trial(slot, revision, payload):
             state["progress"]["spirit"] -= research["cost"]
             state["stage"] = 2
         elif action == "start":
+            realm = payload.get("realm_id", "fire")
+            if type(realm) is not str or realm not in {item["id"] for item in CONFIG["realms"]}:
+                raise ValueError("试验秘境尚未开放")
             if state["active_trial"]:
                 raise ValueError("已有进行中试炼，请恢复或先放弃")
             compiled = compile_lab(state)
             if not compiled["skill"]["enabled"]:
                 raise ValueError("请先装好离火核心并保存")
-            state["active_trial"] = {"id": "array-" + uuid.uuid4().hex, "realm_id": "fire", "rules_version": 2,
+            state["active_trial"] = {"id": "array-" + uuid.uuid4().hex, "realm_id": realm, "rules_version": 2,
                                      "build": {key: deepcopy(state[key]) for key in ("stage", "beads", "nodes")},
                                      "effective_bead_ids": [state["nodes"][node] for node in compiled["effective"]],
                                      "checkpoint": None, "claimed_altars": []}
