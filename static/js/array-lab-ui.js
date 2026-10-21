@@ -42,6 +42,7 @@
     $("lab-bead").innerHTML=state.beads.map(b=>`<option value="${b.id}">${text(b.name)} · Lv${b.level} / XP${b.xp}${Object.values(state.nodes).includes(b.id)?" · 已装配":" · 珠匣"}</option>`).join("");
     if(state.nodes[selected]) $("lab-bead").value=state.nodes[selected];
     if(state.active_trial)realm=state.active_trial.realm_id;
+    $("lab-realm").innerHTML=cfg.realms.map(r=>`<option value="${text(r.id)}">${text(r.name)}</option>`).join("");
     $("lab-realm").value=realm;
     const skill=compiled.skill;
     $("lab-compiled").innerHTML=`<h3>${skill.enabled?(skill.cycle?"回火 · 资源周转":skill.focus?"聚焰 · 持续压制":skill.burst?"留痕 · 蓄势引爆":"离火 · 基础剑式"):"技能已停用"}</h3><p>${!skill.enabled?"核心未连接。装回离火核心可恢复技能，无需重新学习。":

@@ -208,8 +208,27 @@ def test_wood_trial_resume_and_once_only_rewards(client):
     assert action(client,restored,"settle",win=True,defeated_ids=ALL).get_json()["revision"]==won["revision"]
 
 
-@pytest.mark.parametrize("realm",["water","earth","metal","",None,[],True])
+@pytest.mark.parametrize("realm",["unknown","",None,[],True])
 def test_unopened_or_invalid_realm_rejected_without_state_change(client,realm):
     saved=ready(client)
     assert action(client,saved,"start",realm_id=realm).status_code==400
     assert client.get("/api/lab/state").get_json()["revision"]==saved["revision"]
+
+
+@pytest.mark.parametrize("realm",["earth","metal","water"])
+def test_remaining_realms_checkpoint_restore_and_atomic_reward(client,realm):
+    saved=ready(client)
+    started=action(client,saved,"start",realm_id=realm).get_json()
+    assert started["state"]["active_trial"]["realm_id"]==realm
+    checked=action(client,started,"checkpoint",defeated_ids=ALL[:3]).get_json()
+    claimed=action(client,checked,"altar",altar_id="altar-2").get_json()
+    failed=action(client,claimed,"settle",win=False,defeated_ids=ALL[:4]).get_json()
+    restored=client.get("/api/lab/state").get_json()
+    assert restored["state"]["active_trial"]["realm_id"]==realm
+    assert restored["state"]["active_trial"]["checkpoint"]=="swordstone"
+    assert restored["state"]["active_trial"]["claimed_altars"]==["altar-2"]
+    assert restored["state"]["progress"]["runs"]==1
+    won=action(client,restored,"settle",win=True,defeated_ids=ALL).get_json()
+    assert won["state"]["progress"]["victories"]==1
+    assert len(won["receipt"]["xp_awards"])==3
+    assert action(client,restored,"settle",win=True,defeated_ids=ALL).get_json()["revision"]==won["revision"]

@@ -2,6 +2,7 @@
 
 | 任务ID | 任务目标 | 状态 | 当前接续Agent | 分支/基线 | 最新交接链接 | 依赖或阻塞 |
 |---|---|---|---|---|---|---|
+| 022-d06-five-realm-array | 新阵盘土金水与五境流程 | 待验收 | agent-20261021-0031-c8e4 | work/022-d06-five-realm-array-local / 0c30a29 | [交接](022-d06-five-realm-array/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 五境接入99/133通过，土金水实际首敌/刷新恢复通过；完整胜利待验收，仅本地 |
 | 021-d06-wood-array-trial | 新阵盘第二秘境木境 | 待验收 | agent-20261021-0031-c8e4 | work/021-d06-wood-array-trial-local / 38a82f6 | [交接](021-d06-wood-array-trial/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 木境接入/真实剑碑恢复与失败续关通过；真实胜利待验收，继续土金水；仅本地 |
 | 020-d03-return-flame | 回火第三组合与研习 | 已完成 | agent-20261021-0031-c8e4 | work/020-d03-return-flame-local / 0ae362f | [交接](020-d03-return-flame/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 90/128通过；真实研习/回火试招/刷新重登；仅本地 |
 | 019-d05-ranged-engagement | 修复警戒外受击不追击漏洞 | 已完成 | agent-20261021-0031-c8e4 | work/019-d05-ranged-engagement-local / fb3ac2e | [交接](019-d05-ranged-engagement/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 修前失败/修后3条回归及真实追击通过；平衡继续，仅本地 |

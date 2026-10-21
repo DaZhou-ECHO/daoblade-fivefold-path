@@ -337,3 +337,15 @@ test("021 木境使用木敌人与专属检查点，结果不串火且不写旧�
   assert.equal(new h.api.BattleGame("wood").trial,null);
   assert.throws(()=>new h.api.BattleGame("fire",f),/不匹配/);
 });
+
+
+test("022 土金水新阵盘恢复原构筑与各自地图，胜利仅独立回执，旧档无检查点",async()=>{
+  for(const [realm,name] of [["earth","荒山遗迹"],["metal","矿山剑冢"],["water","寒潭水府"]]){
+    const f=arrayFixture("swordstone");f.labTrial.realm_id=realm;f.labTrial.claimed_altars=["altar-2"];
+    const h=harness({...f,realm,labService:{trialAction:async()=>({state:{active_trial:null},receipt:{spirit:12,xp_awards:[]}})}});
+    h.game.start();assert.equal(h.game.enemies.filter(e=>e.dead).length,3);assert.equal(h.game.player.x,1640);
+    assert.equal(h.game.altars[1].taken,true);assert.equal(h.game.trial,null);assert.equal(h.game.stats.primary,null);
+    h.game.enemies.forEach(e=>{e.dead=true;});await h.game.finish(true);assert.ok(h.nodes.get("#result-title").textContent.includes(name));
+    assert.equal(h.calls.saves.length,0);assert.equal(h.calls.awards.length,0);assert.equal(new h.api.BattleGame(realm).checkpoint,undefined);
+  }
+});
