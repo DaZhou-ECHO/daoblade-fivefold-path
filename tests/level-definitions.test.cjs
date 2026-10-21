@@ -31,3 +31,12 @@ test("未知秘境明确拒绝，不返回对象原型或另一张地图",()=>{
   for(const id of ["missing","toString","__proto__"])assert.throws(()=>levels.getDefinition(id),/未知秘境/);
   assert.equal(Object.isFrozen(levels.realms.fire.enemies),true);
 });
+
+
+test("029 四境首领配置各两招且深冻结，火境沿用既有行为",()=>{
+  for(const realm of levels.realm_ids){
+    const moves=levels.getDefinition(realm).boss_moves;assert.equal(Object.isFrozen(moves),true);
+    assert.equal(moves.length,realm==="fire"?0:2);
+    for(const move of moves){assert.equal(Object.isFrozen(move),true);assert.ok(move.windup>=.5);assert.ok(move.recovery>=.7);assert.ok(move.label&&move.hint);}
+  }
+});

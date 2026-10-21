@@ -28,6 +28,26 @@
       "earth": [["melee",0,670,60,"crusher"],["melee",0,1070,58,"melee"],["ranged",1,1500,52,"caster"],["melee",0,1930,70,"crusher"],["melee",0,2390,76,"melee"],["boss",-1,2860,240,"boss"]],
   };
 
+  // 四境共用前摇/有效/恢复骨架；落点与方向在起手时锁定。
+  const BOSS_MOVES = {
+    wood: [
+      { id: "slash", label: "藤刃横扫", hint: "正面防守，收招后反击", windup: .55, active: .18, recovery: .7, cooldown: .5, reach: 105 },
+      { id: "vines", label: "缠根阵", hint: "离开地面标记或跳起", windup: .65, active: .12, recovery: .85, cooldown: .5, warning: .75, radius: 75 },
+    ],
+    earth: [
+      { id: "slam", label: "镇岳重击", hint: "慢起手，格挡或绕背后反击", windup: .9, active: .2, recovery: .95, cooldown: .45, reach: 135 },
+      { id: "rock", label: "飞岩", hint: "落点起手锁定，跳跃或换位", windup: .8, active: .15, recovery: .85, cooldown: .5, projectile: true, speed: 230 },
+    ],
+    metal: [
+      { id: "thrust", label: "贯金突刺", hint: "避开正前方直线，收招后追近", windup: .65, active: .28, recovery: .75, cooldown: .5, reach: 85, speed: 400 },
+      { id: "pierce", label: "穿云剑", hint: "锁定直线后换位或正面格挡", windup: .6, active: .15, recovery: .7, cooldown: .5, projectile: true, speed: 420 },
+    ],
+    water: [
+      { id: "delayed_slash", label: "回潮斩", hint: "延迟出手，勿见预警就急按弹反", windup: 1.05, active: .18, recovery: .85, cooldown: .5, reach: 115 },
+      { id: "frost", label: "寒流", hint: "慢弹命中减速，换位或格挡", windup: .8, active: .15, recovery: .8, cooldown: .5, projectile: true, speed: 180, slow: .8 },
+    ],
+  };
+
   function freeze(value) {
     if (value && typeof value === "object" && !Object.isFrozen(value)) {
       Object.values(value).forEach(freeze); Object.freeze(value);
@@ -54,6 +74,7 @@
         ...layout.ledges.map(([x, y, w], index) => ({ id: `ledge-${index + 1}`, x, y, w, h: 22 }))],
       altars, hazards: layout.hazards.map(([x, w], index) => ({ id: `hazard-${index + 1}`, x, w })),
       encounters,
+      boss_moves: BOSS_MOVES[realm] || [],
     };
   }
   definitions.fire.anchors.swordstone = { x: 1640, y: 474 };

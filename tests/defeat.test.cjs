@@ -4,7 +4,7 @@ const path = require("node:path");
 const test = require("node:test");
 const vm = require("node:vm");
 
-function harness({ practice = false, deferredSave = false, labTrial=null, labCompiled=null, labService=null, realm="fire" } = {}) {
+function harness({ practice = false, deferredSave = false, labTrial=null, labCompiled=null, labService=null, realm="fire", seed=null, bossPractice=false } = {}) {
   const calls = { awards: [], saves: [], modals: 0, frames: [], queued: [], close: 0, panels: [] };
   const nodes = new Map();
   const element = selector => {
@@ -28,6 +28,7 @@ function harness({ practice = false, deferredSave = false, labTrial=null, labCom
     recordPanel: name => calls.panels.push(name),
     recordSave: state => { calls.saves.push(JSON.parse(JSON.stringify(state))); return waitSave; },
   });
+  if(seed!==null)vm.runInContext(`let pilotSeed=${seed}; Math.random=()=>((pilotSeed=(Math.imul(pilotSeed,1664525)+1013904223)>>>0)/4294967296);`,context);
   if(labService)context.DaoBladeArrayLabUI=labService;
   require("./helpers/load-rules.cjs")(context);
   const source = fs.readFileSync(path.join(__dirname, "../static/js/game.js"), "utf8")
@@ -42,7 +43,7 @@ function harness({ practice = false, deferredSave = false, labTrial=null, labCom
     this.api = { BattleGame, state: () => saveData, active: () => activeGame,
       setActive: game => { activeGame = game; }, setSyncBlocked: value => { saveBlocked = value; }, restoreCheckpoint, replaceState: value => { saveData = value; }, bindUi, showRealPanel: actualShowPanel };
   `, context);
-  const game = new context.api.BattleGame(realm, { practice,labTrial,labCompiled });
+  const game = new context.api.BattleGame(realm, { practice,labTrial,labCompiled,bossPractice });
   context.api.setActive(game);
   game.draw = () => calls.frames.push({ deathTime: game.player.deathTime, deathDrop: game.player.deathDrop });
   const step = (milliseconds = 34) => {
@@ -347,5 +348,69 @@ test("022 土金水新阵盘恢复原构筑与各自地图，胜利仅独立回�
     assert.equal(h.game.altars[1].taken,true);assert.equal(h.game.trial,null);assert.equal(h.game.stats.primary,null);
     h.game.enemies.forEach(e=>{e.dead=true;});await h.game.finish(true);assert.ok(h.nodes.get("#result-title").textContent.includes(name));
     assert.equal(h.calls.saves.length,0);assert.equal(h.calls.awards.length,0);assert.equal(new h.api.BattleGame(realm).checkpoint,undefined);
+  }
+});
+
+
+function driveFrame(g){
+  const p=g.player,enemy=g.nearestEnemy();if(!enemy||g.finished||g.labPending)return;
+  const key=(code,held)=>{const has=g.keyboardKeys.has(({KeyA:'left',KeyD:'right',KeyK:'block'})[code]);if(held&&!has)g.keyDown({code,preventDefault(){}});if(!held&&has)g.keyUp({code,preventDefault(){}});};
+  const tap=code=>{g.keyUp({code,preventDefault(){}});g.keyDown({code,preventDefault(){}});g.keyUp({code,preventDefault(){}});};
+  const dx=enemy.x+enemy.w/2-p.x-p.w/2,dist=Math.abs(dx),dir=Math.sign(dx)||p.face;
+  const needStone=g.labRun&&!g.labTrial.checkpoint&&g.enemies.slice(0,3).every(e=>e.dead);
+  const target=needStone?1640:enemy.x+enemy.w/2-dir*72;
+  let move=Math.abs(target-p.x-p.w/2)>12?Math.sign(target-p.x-p.w/2):0;
+  // 高台上与地面敌人错层时，走向最近边缘落下，不悬空修改位置。
+  if(p.onGround&&p.y+p.h<g.floorY-20&&Math.abs(enemy.y-p.y)>70){
+    const ledge=g.platforms.find(v=>v.y<g.floorY&&Math.abs(p.y+p.h-v.y)<2&&p.x+p.w>v.x&&p.x<v.x+v.w);
+    if(ledge)move=p.x+ p.w/2<ledge.x+ledge.w/2?-1:1;
+  }
+  const zone=g.enemyZones.some(z=>z.warning<.3&&p.x+p.w>z.x&&p.x<z.x+z.w);
+  const jumpAttack=['dash','thrust'].includes(enemy.attackType)&&enemy.attackState==='windup'&&enemy.attackTimer<.22&&dist<300;
+  const hazard=p.onGround&&p.y+p.h>g.floorY-2&&g.hazards.some(v=>p.x+p.w+move*55>v.x&&p.x+move*55<v.x+v.w);
+  if((zone||jumpAttack||hazard)&&p.onGround)tap('Space');
+  const imminent=enemy.attackState==='windup'&&enemy.attackTimer<.2&&dist<180&&!['vines','thrust','dash'].includes(enemy.attackType);
+  const shot=g.projectiles.some(s=>s.owner==='enemy'&&Math.abs(s.y-p.y-25)<80&&(s.x-p.x)*s.vx<0&&Math.abs(s.x-p.x)<Math.abs(s.vx)*.18+40);
+  const guard=imminent||shot||enemy.attackState==='strike'&&dist<160;
+  if(guard){key('KeyA',false);key('KeyD',false);if(p.face!==dir){key(dir<0?'KeyA':'KeyD',true);key('KeyK',false);}else key('KeyK',true);return;}
+  key('KeyK',false);
+  if(p.face!==dir&&!needStone)move=dir;
+  key('KeyA',move<0);key('KeyD',move>0);
+  if(needStone||p.hurt>0||p.dash>0||p.qiCast>0||p.slash>0)return;
+  if(dist<180&&p.face===dir&&Math.abs(enemy.y-p.y)<100){
+    if(enemy.labMarks>=2&&p.skillCooldowns[1]===0&&p.qi>=24)tap('KeyE');
+    else if(dist<=180&&p.skillCooldowns[0]===0&&p.qi>=12)tap('KeyQ');
+    else if(dist<125&&p.slashCooldown===0)tap('KeyJ');
+  }else if(dist<550&&p.face===dir&&p.qi>55&&p.qiCooldown===0)tap('KeyL');
+}
+
+test("029 全五境真实引擎输入驱动从入口至结算，不改血量位置或敌人死亡",async(t)=>{
+  for(const [fps,seed] of [[30,2901],[60,2902],[120,2903]])for(const realm of ['wood','fire','earth','metal','water']){
+    const f=arrayFixture();f.labTrial.realm_id=realm;f.labTrial.claimed_altars=[];const actions=[];
+    const h=harness({...f,realm,seed,labService:{trialAction:async(action,payload)=>{
+      actions.push({action,...payload});if(action==='checkpoint')f.labTrial.checkpoint='swordstone';
+      if(action==='altar')f.labTrial.claimed_altars.push(payload.altar_id);
+      return {state:{active_trial:action==='settle'?null:f.labTrial,beads:f.labTrial.build.beads},receipt:action==='settle'?{spirit:payload.win?12:0,xp_awards:[]}:null};
+    }}});h.game.start();let frames=0;
+    while(!h.game.finished&&frames<300*fps){driveFrame(h.game);h.game.update(1/fps);await Promise.resolve();frames++;}
+    await new Promise(setImmediate);
+    const result={realm,fps,seed,seconds:Math.round(frames/fps),outcome:h.game.lastOutcome||'timeout',hp:Math.round(h.game.player.hp),checkpoint:!!f.labTrial.checkpoint,living:h.game.enemies.filter(e=>!e.dead).map(e=>[e.id,Math.round(e.hp),Math.round(e.x)]),x:Math.round(h.game.player.x),actions};
+    t.diagnostic(JSON.stringify(result));
+    assert.equal(h.game.lastOutcome,'victory',JSON.stringify(result));assert.equal(h.calls.saves.length,0);
+    assert.equal(actions.filter(a=>a.action==='settle'&&a.win).length,1);assert.equal(actions.filter(a=>a.action==='checkpoint').length,1);
+  }
+});
+
+
+test("029 五境首领演练实际输入击败首领，无保存奖励，结果/暂停重试不转正式战",async()=>{
+  for(const realm of ['wood','fire','earth','metal','water']){
+    const f=arrayFixture(),h=harness({realm,bossPractice:true,labCompiled:f.labCompiled,seed:2908});const before=JSON.stringify(h.api.state());h.game.start();
+    assert.equal(h.game.enemies.length,1);assert.equal(h.game.enemies[0].kind,'boss');assert.equal(h.game.altars.length,0);assert.equal(h.game.hazards.length,0);assert.equal(h.game.labRun,false);
+    for(let i=0;i<6000&&!h.game.finished;i++){driveFrame(h.game);h.game.update(1/60);}
+    await new Promise(setImmediate);assert.equal(h.game.lastOutcome,'victory',realm);assert.equal(h.calls.modals,1);assert.match(h.nodes.get('#result-title').textContent,/演练通过/);
+    assert.equal(JSON.stringify(h.api.state()),before);assert.equal(h.calls.saves.length,0);assert.equal(h.calls.awards.length,0);
+    h.api.bindUi();h.nodes.get('#retry-result').handlers.click({preventDefault(){}});let next=h.api.active();assert.equal(next.bossPractice,true);assert.equal(next.practice,true);assert.equal(next.labRun,false);assert.equal(next.realmKey,realm);
+    h.nodes.get('#retry-run').handlers.click();next=h.api.active();assert.equal(next.bossPractice,true);assert.equal(next.enemies.length,1);
+    next.quit();assert.equal(h.calls.panels.at(-1),'arraylab');assert.equal(JSON.stringify(h.api.state()),before);assert.equal(h.calls.saves.length,0);
   }
 });

@@ -73,3 +73,15 @@ test("021 真实选关UI发送木境，恢复继续使用服务realm，活动中
   h.node("lab-realm").value="fire";h.node("lab-realm").handlers.change();await h.ui.resumeTrial();assert.equal(launched.realm_id,"wood");
   assert.match(h.node("lab-trial-status").textContent,/青木境/);
 });
+
+
+test("029 五境演练只读已保存配珠，草稿/冲突禁入，有正式试炼也不改它",async()=>{
+  const h=harness(),launched=[];h.context.DaoBladeStartBossPractice=(realm,compiled)=>launched.push({realm,compiled});h.context.DaoBladeStartArrayTrial=()=>{};await h.ui.load();
+  assert.equal(h.node('lab-boss-practice').disabled,true);h.node('lab-burst-preset').handlers.click();h.node('lab-boss-practice').handlers.click();assert.equal(launched.length,0);await h.node('lab-save').handlers.click();
+  await h.ui.startTrial();const before=JSON.stringify(h.stored()),requests=h.trialRequests.length;
+  for(const realm of ['wood','fire','earth','metal','water']){h.node('lab-training-realm').value=realm;h.node('lab-boss-practice').handlers.click();assert.equal(launched.at(-1).realm,realm);assert.equal(launched.at(-1).compiled.skill.burst,true);}
+  assert.equal(JSON.stringify(h.stored()),before);assert.equal(h.trialRequests.length,requests);assert.equal(h.node('lab-realm').disabled,true);assert.equal(h.node('lab-training-realm').disabled,false);
+  h.node('lab-training-realm').value='__proto__';h.node('lab-boss-practice').handlers.click();assert.equal(launched.length,5);
+  await h.ui.abandonTrial();h.node('lab-focus-preset').handlers.click();h.fail();await h.node('lab-save').handlers.click();assert.equal(h.node('lab-boss-practice').disabled,true);h.node('lab-boss-practice').handlers.click();assert.equal(launched.length,5);
+  h.ui.reset();assert.equal(h.node('lab-boss-practice').disabled,true);
+});

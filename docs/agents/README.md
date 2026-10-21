@@ -2,6 +2,7 @@
 
 | 任务ID | 任务目标 | 状态 | 当前接续Agent | 分支/基线 | 最新交接链接 | 依赖或阻塞 |
 |---|---|---|---|---|---|---|
+| 029-d05-five-realm-encounters | 五境首轮独有首领与完整流程验证 | 已完成 | agent-20261021-0031-c8e4 | work/029-d05-five-realm-encounters-local / 1023f11 | [交接](029-d05-five-realm-encounters/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 104/164全检；15路引擎+真实SQLite；五境浏览器演练胜利；正式实玩转030，仅本地 |
 | 028-d02-guard-input-buffer | 初次普通格挡短缓冲 | 已完成 | agent-20261021-0031-c8e4 | work/028-d02-guard-input-buffer-local / ca0c240 | [交接](028-d02-guard-input-buffer/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 99/154通过；0.18秒普通挡/三帧率，不自动弹反；水境胜利待验收，仅本地 |
 | 027-d06-water-playtest | 水境真实主路与首领验证 | 待验收 | agent-20261021-0031-c8e4 | work/027-d06-water-playtest-local / e62987d | [交接](027-d06-water-playtest/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 真实五守卫/剑碑刷新通过；首领首轮失败，初次K缓冲转028；仅本地 |
 | 026-d02-held-guard | 持续防守受击恢复与输入清理 | 已完成 | agent-20261021-0031-c8e4 | work/026-d02-held-guard-local / 64f48ac | [交接](026-d02-held-guard/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 99/150通过；真实水境持续K对照；普通挡恢复不自动弹反，仅本地 |

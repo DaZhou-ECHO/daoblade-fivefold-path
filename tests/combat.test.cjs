@@ -782,3 +782,63 @@ test("028 立即合法的K保留原弹反，第三段未结束不可提前取消
     assert.equal(g.player.blocking,true);assert.equal(g.player.parryArmed,0);assert.equal(g.player.parryLock,0);
   }
 });
+
+
+function realmBoss(realm,index=0){
+  const api=gameContext(),g=new api.BattleGame(realm),boss=g.enemies.at(-1);g.enemies=[boss];g.player.x=600;boss.x=690;boss.face=-1;
+  boss.bossMove=g.level.boss_moves[index];g.beginEnemyAttack(boss,boss.bossMove.id,boss.bossMove.windup);
+  boss.attackTarget={x:g.player.x+g.player.w/2,y:g.player.y+g.player.h/2,foot:g.player.y+g.player.h};return {g,boss};
+}
+test("029 四境各两招共享循环，预警期间不命中，收招有空当且有效段只打一次",()=>{
+  for(const realm of ["wood","earth","metal","water"])for(const dt of [1/30,1/60,1/120]){
+    const {g,boss}=realmBoss(realm),hp=g.player.hp;const label=boss.bossMove.label;
+    assert.match(g.enemyReadout(),new RegExp(label));
+    let time=0;while(time+dt<boss.bossMove.windup){g.updateEnemies(dt);time+=dt;assert.equal(g.player.hp,hp);}
+    for(let i=0;i<Math.ceil((boss.bossMove.active+.05)/dt);i++)g.updateEnemies(dt);
+    assert.equal(g.events.recent.filter(e=>e.type==="player_hurt").length,1,realm+dt);
+    assert.equal(boss.attackState,"recover");assert.ok(boss.attackTimer>.4);
+    const after=g.player.hp;g.player.invuln=0;g.updateEnemies(.1);assert.equal(g.player.hp,after);
+  }
+});
+test("029 木境缠根阵起手锁落点、有预警，可跳起/离开，源敌死亡取消",()=>{
+  for(const avoid of ["jump","move","kill","stay"]){
+    const {g,boss}=realmBoss("wood",1),locked=boss.attackTarget.x,hp=g.player.hp;g.updateEnemies(.66);
+    assert.equal(g.enemyZones.length,1);const zone=g.enemyZones[0];assert.equal(zone.x+zone.w/2,locked);assert.match(g.enemyReadout(),/缠根阵/);
+    g.updateEnemyZones(.7);assert.equal(g.player.hp,hp);
+    if(avoid==="jump")g.player.onGround=false;if(avoid==="move")g.player.x+=250;if(avoid==="kill")boss.dead=true;
+    g.updateEnemyZones(.06);g.updateEnemyZones(.02);
+    assert.equal(g.player.hp<hp,avoid==="stay");
+    if(avoid==="stay"){assert.equal(g.player.slowTime,.7);const after=g.player.hp;g.player.invuln=0;g.updateEnemyZones(.1);assert.equal(g.player.hp,after);}
+    if(avoid==="kill")assert.equal(g.enemyZones.length,0);
+  }
+});
+test("029 土境正面守势仅闲置/蓄力减伤，背击/收招/持续燃烧不被减免",()=>{
+  for(const phase of ["idle","windup","recover"])for(const back of [false,true]){
+    const {g,boss}=realmBoss("earth");boss.attackState=phase;g.player.x=back?800:600;
+    const hp=boss.hp;g.hitEnemy(boss,20,false,false,"slash");assert.equal(hp-boss.hp,!back&&phase!=="recover"?14:20);
+    const after=boss.hp;g.hitEnemy(boss,5,false,true,"lab_burn");assert.equal(after-boss.hp,5);
+  }
+});
+test("029 金境突刺锁方向，远程招式锁起手目标，死敌不再出招",()=>{
+  const {g,boss}=realmBoss("metal");const x=boss.x;g.player.x=900;g.updateEnemies(.66);assert.equal(boss.attackDirection,-1);assert.ok(boss.x<x);
+  for(const realm of ["earth","metal","water"]){
+    const {g,boss}=realmBoss(realm,1),target=JSON.stringify(boss.attackTarget);g.player.x=900;g.player.y-=120;
+    g.updateEnemies(boss.bossMove.windup+.01);assert.equal(g.projectiles.length,1);assert.ok(g.projectiles[0].vx<0);assert.equal(JSON.stringify(boss.attackTarget),target);
+    const dead=realmBoss(realm,1);dead.boss.dead=true;dead.g.updateEnemies(2);assert.equal(dead.g.projectiles.length,0);
+  }
+});
+test("029 水境实际受伤才减速，弹反/闪避/无敌不被慢弹附带命中",()=>{
+  for(const mode of ["hit","block","parry","dash","invuln"]){
+    const g=bufferGame();g.realmKey="water";g.player.blocking=["block","parry"].includes(mode);g.player.parryArmed=mode==="parry"?.22:0;
+    if(mode==="dash")g.player.dash=.15;if(mode==="invuln")g.player.invuln=.2;
+    g.projectiles=[{owner:"enemy",type:"frost",source_id:"water-boss",x:g.player.x+25,y:g.player.y+20,w:20,h:18,vx:0,vy:0,life:1,damage:18,slow:.8}];
+    g.updateProjectiles(.01);assert.equal(g.player.slowTime||0,["hit","block"].includes(mode)?.8:0,mode);
+  }
+});
+test("029 四境首领远距主动使用第二招并追击，高台目标记录高度且不追踪转向",()=>{
+  for(const realm of ["wood","earth","metal","water"]){
+    const api=gameContext(),g=new api.BattleGame(realm),boss=g.enemies.at(-1);g.enemies=[boss];g.player.x=boss.x-500;g.player.y-=100;boss.attackCd=0;
+    g.updateEnemies(.01);assert.equal(boss.attackState,"windup");assert.equal(boss.attackType,g.level.boss_moves[1].id);assert.equal(boss.attackTarget.y,g.player.y+g.player.h/2);
+    const type=boss.attackType;g.player.x=boss.x+400;g.updateEnemies(.1);assert.equal(boss.attackType,type);assert.equal(boss.attackDirection,-1);
+  }
+});

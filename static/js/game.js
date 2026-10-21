@@ -481,7 +481,7 @@ function grantBeadExperience(amount) {
 }
 
 function startRealm(key, options = {}) {
-  if (saveBlocked && !options.practice && !options.labTrial) return showToast("存档未同步，请先刷新或重新登录；仍可进入练功场临时试招", true);
+  if (saveBlocked && !options.practice && !options.bossPractice && !options.labTrial) return showToast("存档未同步，请先刷新或重新登录；仍可进入练功场临时试招", true);
   showPanel("game");
   if (activeGame) activeGame.destroy();
   activeGame = new BattleGame(key, options);
@@ -523,11 +523,14 @@ function continueCheckpoint() {
 globalThis.DaoBladeStartArrayTrial = (trial,compiled) => startRealm(trial.realm_id, {labTrial:trial,labCompiled:compiled});
 
 globalThis.DaoBladeStartArrayLab = compiled => startRealm("fire", { practice: true, labCompiled: compiled });
+globalThis.DaoBladeStartBossPractice = (realm, compiled) => startRealm(realm, { bossPractice: true, labCompiled: compiled });
 
 class BattleGame {
   constructor(realmKey, options = {}) {
     this.realmKey = realmKey;
-    this.practice = Boolean(options.practice);
+    this.bossPractice = Boolean(options.bossPractice);
+    if (this.bossPractice && options.labTrial) throw new Error("首领演练不能附带正式试炼");
+    this.practice = Boolean(options.practice || this.bossPractice);
     this.labRun=Boolean(options.labTrial);
     this.labTrial=options.labTrial||null;
     this.labTrialId=this.labTrial?.id||null;
@@ -583,8 +586,10 @@ class BattleGame {
     });
     this.hazards = this.practice ? [] : this.level.hazards.map(hazard => ({ ...hazard }));
     this.hazardTimer = 0;
-    this.enemies = this.practice ? [this.enemy("dummy", "试剑木桩", 620, 99999, "dummy")] : this.makeEnemies();
-    if (this.lab && this.practice) { this.player.x = 240; this.enemies[0].x = 340; }
+    this.enemyZones = [];
+    this.enemies = this.bossPractice ? this.makeEnemies().filter(e => e.kind === "boss") : this.practice ? [this.enemy("dummy", "试剑木桩", 620, 99999, "dummy")] : this.makeEnemies();
+    if (this.bossPractice) { this.player.x = 2600; this.platforms = [this.platforms[0]]; this.cameraX = 2200; }
+    else if (this.lab && this.practice) { this.player.x = 240; this.enemies[0].x = 340; }
     if (this.resuming) {
       const anchor = this.level.anchors[this.checkpoint.anchor_id];
       this.player.x = anchor.x; this.player.y = anchor.y - this.player.h;
@@ -626,6 +631,11 @@ class BattleGame {
     $("#return-sanctuary").textContent=this.labRun?"返回阵盘":"返回洞府";
     $("#realm-name").textContent = this.labRun ? `阵盘挑战 · ${this.element.realm}` : this.lab ? "阵盘试验 · 离火试招" : this.practice ? "练功场 · 临时试招" : `${this.element.zh} · ${this.element.realm}`;
     $("#objective-text").textContent = this.labRun ? "冻结配珠挑战 · 清除六敌胜利成长；剑碑保存后可续关" : this.lab ? "只读已保存配置 · Q施招，E按方案引爆/回火；无奖励，退出回阵盘" : this.practice ? "木桩会恢复，不结算战利品" : `击败 ${this.realm.enemies.join("、")}与${this.realm.boss}`;
+    if (this.bossPractice) {
+      $("#realm-name").textContent = `首领演练 · ${this.realm.boss}`;
+      $("#objective-text").textContent = "与正式首领相同招式 · 观察预警并反击 · 无奖励，不影响未完成试炼";
+      $("#leave-run").textContent = "退出演练回阵盘";
+    }
     if (!this.practice && !this.labRun && !this.resuming) { saveData.active_trial = null; saveData.progress.runs += 1; void saveState(""); }
     renderCheckpointRecovery();
     $("#pause-overlay").classList.add("hidden");
@@ -697,7 +707,7 @@ class BattleGame {
     this.releaseTouchCapture(button, id);
   }
 
-  quit() { const target = this.lab ? "arraylab" : this.practice ? "cultivation" : "realms"; abandonCheckpoint(this); this.destroy(); activeGame = null; showPanel(target); }
+  quit() { const target = this.lab || this.bossPractice ? "arraylab" : this.practice ? "cultivation" : "realms"; abandonCheckpoint(this); this.destroy(); activeGame = null; showPanel(target); }
 
   setPause(value) {
     if (this.finished || (!value && (this.labPending||this.labError))) return;
@@ -1085,6 +1095,8 @@ class BattleGame {
     }
     this.updateEnemies(dt);
     if (this.finished) { this.updateHud(); return; }
+    this.updateEnemyZones(dt);
+    if (this.finished) { this.updateHud(); return; }
     this.updateProjectiles(dt);
     this.particles.forEach(particle => { particle.x += particle.vx * dt; particle.y += particle.vy * dt; particle.life -= dt; });
     this.particles = this.particles.filter(particle => particle.life > 0);
@@ -1093,7 +1105,7 @@ class BattleGame {
     this.cameraX += (clamp(p.x - this.width * .42, 0, this.worldWidth - this.width) - this.cameraX) * Math.min(1, dt * 5);
     this.updateCheckpoint();
     this.updateHud();
-    if (!this.practice && !this.finished && !this.labPending && this.enemies.every(enemy => enemy.dead)) this.finish(true);
+    if ((!this.practice || this.bossPractice) && !this.finished && !this.labPending && this.enemies.every(enemy => enemy.dead)) this.finish(true);
   }
 
   updateEnemies(dt) {
@@ -1116,6 +1128,10 @@ class BattleGame {
       if (enemy.attackState === "idle") enemy.face = direction;
       if (this.realmKey === "fire") {
         this.updateFireEnemy(enemy, dt, distance, direction, speed);
+        continue;
+      }
+      if (enemy.kind === "boss") {
+        this.updateRealmBoss(enemy, dt, distance, direction, speed);
         continue;
       }
       if (enemy.attackState !== "idle") {
@@ -1144,6 +1160,67 @@ class BattleGame {
       }
       enemy.x = clamp(enemy.x, 40, this.worldWidth - 80);
     }
+  }
+
+  updateRealmBoss(enemy, dt, distance, direction, speed) {
+    const p = this.player;
+    const move = enemy.bossMove || { id: "slash", active: .18, recovery: .7, cooldown: .5, reach: 100 };
+    if (enemy.attackState !== "idle") {
+      enemy.attackTimer -= dt;
+      if (enemy.attackState === "windup" && enemy.attackTimer <= 0) {
+        enemy.attackState = "strike"; enemy.attackTimer = move.active; enemy.attackHit = false;
+        if (move.projectile) {
+          const target = enemy.attackTarget;
+          this.enemyShot(enemy, enemy.attackDirection, move.id);
+          const shot = this.projectiles.at(-1);
+          shot.vx = enemy.attackDirection * move.speed;
+          shot.vy = target ? clamp((target.y - shot.y) / Math.max(.1, Math.abs(target.x - shot.x) / move.speed), -move.speed, move.speed) : 0;
+          shot.slow = move.slow || 0;
+          shot.life = shot.maxLife = 4.2;
+        } else if (move.id === "vines") {
+          const target = enemy.attackTarget || { x: p.x + p.w / 2, foot: p.y + p.h };
+          this.enemyZones.push({ source_id: enemy.id, x: target.x - move.radius, y: target.foot, w: move.radius * 2, warning: move.warning, life: .3, hit: false });
+        }
+      }
+      if (enemy.attackState === "strike") {
+        if (move.id === "thrust") enemy.x += enemy.attackDirection * move.speed * dt;
+        if (!move.projectile && move.id !== "vines" && !enemy.attackHit) {
+          const reach = move.reach, x = enemy.attackDirection > 0 ? enemy.x + enemy.w - 5 : enemy.x - reach + 5;
+          if (this.overlap(x, enemy.y + 6, reach, enemy.h - 10, p.x, p.y, p.w, p.h)) {
+            enemy.attackHit = true; this.damagePlayer(23, enemy.x + enemy.w / 2, enemy.id, move.id);
+          }
+        }
+        if (enemy.attackTimer <= 0) { enemy.attackState = "recover"; enemy.attackTimer = move.recovery; }
+      } else if (enemy.attackState === "recover") {
+        if (this.realmKey === "metal" && enemy.attackTimer > move.recovery - .2) enemy.x -= enemy.attackDirection * 100 * dt;
+        if (enemy.attackTimer <= 0) { enemy.attackState = "idle"; enemy.attackCd = move.cooldown; }
+      }
+    } else {
+      const busy = this.enemies.some(other => other !== enemy && !other.dead && ["windup", "strike"].includes(other.attackState) && Math.abs(other.x - p.x) < 260);
+      if (distance > 90 && (distance < 650 || enemy.engaged)) enemy.x += direction * speed * dt;
+      if (!busy && enemy.attackCd <= 0 && distance < 650) {
+        const moves = this.level.boss_moves;
+        // 远处优先有射程的第二招，近身则交替，不站在原地空挥。
+        enemy.bossMove = moves[distance > 190 ? 1 : enemy.comboStep++ % moves.length];
+        this.beginEnemyAttack(enemy, enemy.bossMove.id, enemy.bossMove.windup);
+        enemy.attackTarget = { x: p.x + p.w / 2, y: p.y + p.h / 2, foot: p.y + p.h };
+      }
+    }
+    enemy.x = clamp(enemy.x, 40, this.worldWidth - 80);
+  }
+
+  updateEnemyZones(dt) {
+    for (const zone of this.enemyZones) {
+      if (!this.enemies.some(e => e.id === zone.source_id && !e.dead)) { zone.life = 0; continue; }
+      if (zone.warning > 0) { zone.warning = Math.max(0, zone.warning - dt); continue; }
+      zone.life = Math.max(0, zone.life - dt);
+      const p = this.player;
+      if (!zone.hit && p.onGround && Math.abs(p.y + p.h - zone.y) < 12 && p.x + p.w > zone.x && p.x < zone.x + zone.w) {
+        zone.hit = true;
+        if (this.damagePlayer(14, zone.x + zone.w / 2, zone.source_id, "vines")) p.slowTime = Math.max(p.slowTime || 0, .7);
+      }
+    }
+    this.enemyZones = this.enemyZones.filter(zone => zone.life > 0);
   }
 
   updateFireEnemy(enemy, dt, distance, direction, speed) {
@@ -1232,7 +1309,11 @@ class BattleGame {
             shot.pierce -= 1; if (shot.pierce < 0) { shot.life = 0; break; }
           }
         }
-      } else if (this.overlap(shot.x, shot.y, shot.w, shot.h, this.player.x, this.player.y, this.player.w, this.player.h)) { this.damagePlayer(shot.damage, shot.x + shot.w / 2, shot.source_id || "enemy-projectile", shot.type); if (this.realmKey === "water") this.player.slowTime = 1.2; shot.life = 0; }
+      } else if (this.overlap(shot.x, shot.y, shot.w, shot.h, this.player.x, this.player.y, this.player.w, this.player.h)) {
+        const hit = this.damagePlayer(shot.damage, shot.x + shot.w / 2, shot.source_id || "enemy-projectile", shot.type);
+        if (hit && (shot.slow || this.realmKey === "water")) this.player.slowTime = Math.max(this.player.slowTime || 0, shot.slow || 1.2);
+        shot.life = 0;
+      }
     }
     this.projectiles = this.projectiles.filter(shot => shot.life > 0 && shot.x > -100 && shot.x < this.worldWidth + 100);
   }
@@ -1289,6 +1370,7 @@ class BattleGame {
       if (kind === "slash" && p.flameBuff > 0) { enemy.burn = Math.max(enemy.burn, 2.5); p.flameBuff = 0; }
     }
     if (!dot && enemy.variant === "guard") damage *= .82;
+    if (!dot && enemy.kind === "boss" && this.realmKey === "earth" && ["idle", "windup"].includes(enemy.attackState) && Math.sign(p.x + p.w / 2 - enemy.x - enemy.w / 2) === enemy.face) damage *= .7;
     if ((this.stats.affixes.burst || 0) && enemy.hp / enemy.maxHp < .3) damage *= 1 + this.stats.affixes.burst / 100;
     if (this.lab) this.labMetrics[kind === "lab_burn" ? "burn" : kind === "lab_burst" ? "burst" : "direct"] += damage;
     // Actual damage starts local engagement; an unhit encounter keeps its original notice range.
@@ -1345,6 +1427,7 @@ class BattleGame {
     p.hurt = .2; p.queuedSlash = 0; p.jumpBuffer = 0; p.slash = 0; p.dash = 0; p.qiCast = 0; p.blocking = false; p.skillGuard = 0; p.skillParry = false;
     this.emitBattleEvent("player_hurt", { source_id: sourceId, target_id: "player", action_id: actionId, element: this.realmKey, phase: "impact", amount });
     if (p.hp <= 0) this.finish(false);
+    return true;
   }
 
   burst(x, y, color, count) { for (let i = 0; i < count; i++) this.particles.push({ x, y, vx: (Math.random() - .5) * 180, vy: (Math.random() - .5) * 160, life: .25 + Math.random() * .35, color }); }
@@ -1407,7 +1490,15 @@ class BattleGame {
     this.clearInput(); $("#pause-overlay").classList.add("hidden");
     const visual = win ? Promise.resolve(true) : this.defeatVisual();
     if (this.practice) {
-      if (await visual && !this.disposed) { activeGame = null; showPanel(this.lab ? "arraylab" : "cultivation"); }
+      if (await visual && !this.disposed) {
+        if (this.bossPractice) {
+          $("#result-title").textContent = `${this.realm.boss} · 演练${win ? "通过" : "结束"}`;
+          $("#result-message").textContent = "演练不发经验或修为，也不改变正式试炼。可再次演练，或返回阵盘。";
+          $("#reward-list").innerHTML = '<div class="empty-message">演练无奖励</div>';
+          $("#continue-checkpoint").hidden = true; $("#return-sanctuary").textContent = "返回阵盘";
+          $("#result-dialog").showModal();
+        } else { activeGame = null; showPanel(this.lab ? "arraylab" : "cultivation"); }
+      }
       return;
     }
     if(this.labRun){await this.finishLab(win,visual);return;}
@@ -1484,9 +1575,12 @@ class BattleGame {
     if(Math.hypot(dx,dy)>600)return `${side}远处有敌人，靠近后观察`;
     const behind=dx*p.face < -8?" · 身后，请转身":"";
     const warnings={dash:"蓄力突进",slash:"准备挥击",fireball:"准备火球",wave:"准备剑波",bolt:"准备远程攻击"};
-    const phase=enemy.attackState==="windup"?(warnings[enemy.attackType]||"准备攻击"):
+    const phase=enemy.attackState==="windup"?(enemy.bossMove ? `${enemy.bossMove.label} · ${enemy.attackTimer.toFixed(1)}秒后出手 · ${enemy.bossMove.hint}` : warnings[enemy.attackType]||"准备攻击"):
       enemy.attackState==="strike"?"正在出招":enemy.attackState==="recover"?"收招中":enemy.hurt>0?"受击中":"观察中";
-    return `近敌 ${enemy.name} · ${side}${behind} · 气血 ${Math.ceil(clamp(enemy.hp,0,enemy.maxHp))}/${enemy.maxHp} · ${phase}`;
+    const zone = this.enemyZones.find(z => Math.abs(z.x + z.w / 2 - p.x - p.w / 2) < z.w / 2 + 100);
+    const danger = zone ? ` · 缠根阵${zone.warning > 0 ? ` ${zone.warning.toFixed(1)}秒后生效` : "生效中"}：离开标记或跳起` : "";
+    const guard = enemy.kind === "boss" && this.realmKey === "earth" && ["idle", "windup"].includes(enemy.attackState) ? " · 正面守势，绕背或等收招" : "";
+    return `近敌 ${enemy.name} · ${side}${behind} · 气血 ${Math.ceil(clamp(enemy.hp,0,enemy.maxHp))}/${enemy.maxHp} · ${phase}${guard}${danger}`;
   }
 
   updateHud() {
@@ -1531,6 +1625,12 @@ class BattleGame {
       ctx.fillText(activated ? "剑碑 · 已激活" : "剑碑 · 清除前段守卫", anchor.x + 18, anchor.y - 74);
       ctx.textAlign = "left";
     }
+    this.enemyZones.forEach(zone => {
+      ctx.strokeStyle = zone.warning > 0 ? "#ffe29b" : "#8dda85"; ctx.lineWidth = 3;
+      ctx.strokeRect(zone.x, zone.y - 12, zone.w, 12);
+      ctx.fillStyle = ctx.strokeStyle; ctx.font = "13px sans-serif";
+      ctx.fillText(zone.warning > 0 ? `缠根阵 ${zone.warning.toFixed(1)}s · 跳起/移开` : "缠根阵 · 生效", zone.x, zone.y - 18);
+    });
     this.enemies.forEach(enemy => { if (!enemy.dead) this.drawEnemy(ctx, enemy); });
     this.projectiles.forEach(shot => this.drawProjectile(ctx, shot));
     this.skillEffects.forEach(effect => {
@@ -1785,7 +1885,7 @@ function bindUi() {
   $("#practice-run").addEventListener("click", () => startRealm("fire", { practice: true, state: previewSocketState() }));
   $("#pause-run").addEventListener("click", () => activeGame?.setPause(!activeGame.pause));
   $("#resume-run").addEventListener("click", () => activeGame?.setPause(false));
-  $("#retry-run").addEventListener("click", () => { if(activeGame?.labRun){void activeGame.restartLab();return;} if (activeGame) startRealm(activeGame.realmKey, { practice: activeGame.practice, labCompiled: activeGame.lab, state: activeGame.practice ? previewSocketState() : saveData }); });
+  $("#retry-run").addEventListener("click", () => { if(activeGame?.labRun){void activeGame.restartLab();return;} if (activeGame) startRealm(activeGame.realmKey, { practice: activeGame.practice, bossPractice: activeGame.bossPractice, labCompiled: activeGame.lab, state: activeGame.practice ? previewSocketState() : saveData }); });
   $("#quit-run").addEventListener("click", () => activeGame?.quit());
   $("#leave-run").addEventListener("click", () => activeGame?.quit());
   $("#settings-run").addEventListener("click", () => { renderControls(); $("#settings-dialog").showModal(); });
@@ -1805,12 +1905,13 @@ function bindUi() {
   $("#reset-controls").addEventListener("click", () => { controls = { ...DEFAULT_CONTROLS }; localStorage.setItem("daoblade-controls", JSON.stringify(controls)); renderControls(); });
   $("#return-sanctuary").addEventListener("click", event => {
     event.preventDefault(); $("#result-dialog").close();
-    const target=activeGame?.labRun?"arraylab":"sanctuary"; activeGame?.destroy(); activeGame = null; showPanel(target);
+    const target=activeGame?.labRun||activeGame?.bossPractice?"arraylab":"sanctuary"; activeGame?.destroy(); activeGame = null; showPanel(target);
   });
   $("#continue-checkpoint").addEventListener("click", continueCheckpoint);
   $("#retry-result").addEventListener("click", event => {
     event.preventDefault(); $("#result-dialog").close();
     if(activeGame?.labRun){void activeGame.restartLab();return;}
+    if(activeGame?.bossPractice){startRealm(activeGame.realmKey,{bossPractice:true,labCompiled:activeGame.lab});return;}
     if (activeGame) startRealm(activeGame.realmKey);
   });
   renderControls();

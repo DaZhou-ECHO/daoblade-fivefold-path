@@ -10,6 +10,8 @@
     const dirty=state&&fingerprint()!==saved, active=Boolean(state?.active_trial);
     $("lab-save").disabled=!state||busy||blocked||active;
     $("lab-practice").disabled=!state||busy||blocked||dirty||revision===0;
+    $("lab-boss-practice").disabled=$("lab-practice").disabled;
+    $("lab-training-realm").disabled=!state||busy||blocked;
     for(const id of ["lab-equip","lab-detach","lab-focus-preset","lab-burst-preset"]) $(id).disabled=!state||busy||blocked||active;
     $("lab-cycle-preset").disabled=!state||busy||blocked||active||state.stage<2;
     $("lab-research").disabled=!state||busy||blocked||active||dirty||state.stage>=2||state.progress.victories<1||state.progress.spirit<12;
@@ -43,6 +45,9 @@
     if(state.nodes[selected]) $("lab-bead").value=state.nodes[selected];
     if(state.active_trial)realm=state.active_trial.realm_id;
     $("lab-realm").innerHTML=cfg.realms.map(r=>`<option value="${text(r.id)}">${text(r.name)}</option>`).join("");
+    const trainingRealm=$("lab-training-realm").value;
+    $("lab-training-realm").innerHTML=cfg.realms.map(r=>`<option value="${text(r.id)}">${text(r.name)}</option>`).join("");
+    $("lab-training-realm").value=cfg.realms.some(r=>r.id===trainingRealm)?trainingRealm:cfg.realms[0].id;
     $("lab-realm").value=realm;
     const skill=compiled.skill;
     $("lab-compiled").innerHTML=`<h3>${skill.enabled?(skill.cycle?"回火 · 资源周转":skill.focus?"聚焰 · 持续压制":skill.burst?"留痕 · 蓄势引爆":"离火 · 基础剑式"):"技能已停用"}</h3><p>${!skill.enabled?"核心未连接。装回离火核心可恢复技能，无需重新学习。":
@@ -135,6 +140,9 @@
   }));
   $("lab-save").addEventListener("click",save);$("lab-reload").addEventListener("click",()=>load(true));
   $("lab-practice").addEventListener("click",()=>{if(!busy&&!blocked&&revision&&saved===fingerprint())root.DaoBladeStartArrayLab(rules.compile(state));});
+  $("lab-boss-practice").addEventListener("click",()=>{
+    if(!busy&&!blocked&&revision&&saved===fingerprint()&&rules.config.realms.some(r=>r.id===$("lab-training-realm").value))root.DaoBladeStartBossPractice($("lab-training-realm").value,rules.compile(state));
+  });
   $("lab-research").addEventListener("click",()=>{if(!$("lab-research").disabled)handle(trialAction("research"));});
   $("lab-realm").addEventListener("change",()=>{if(!$("lab-realm").disabled){realm=$("lab-realm").value;buttons();}});
   $("lab-challenge").addEventListener("click",()=>handle(startTrial()));

@@ -3,7 +3,7 @@
 // 只读目标投影：位置用于提示，胜利仍由实际敌人状态决定。
 (function (root) {
   const levels=root.DaoBladeLevels||(typeof module!=="undefined"&&module.exports?require("./level-definitions.js"):null);
-  const tips=Object.freeze({fire:["火境","留意地面火焰"],wood:["木境","借高台分开近敌与远程攻击"],earth:["土境","观察重击前摇后换位"],metal:["金境","铁甲敌人减伤，留意直线剑气"],water:["水境","避开水弹减速，留意延迟出手"]});
+  const tips=Object.freeze({fire:["火境","留意地面火焰"],wood:["木境","缠根阵落点固定，移开标记或跳起"],earth:["土境","正面守势，重击收招后反击"],metal:["金境","直线突刺锁方向，收招后追近"],water:["水境","慢弹命中减速，留意延迟出手"]});
   function objective(realm, x, enemies) {
     if(!Object.hasOwn(tips,realm))return null;
     const [title,tip]=tips[realm];

@@ -232,3 +232,51 @@ def test_remaining_realms_checkpoint_restore_and_atomic_reward(client,realm):
     assert won["state"]["progress"]["victories"]==1
     assert len(won["receipt"]["xp_awards"])==3
     assert action(client,restored,"settle",win=True,defeated_ids=ALL).get_json()["revision"]==won["revision"]
+
+
+@pytest.fixture(scope="session")
+def engine_routes():
+    """Replay real engine output through the real Flask/SQLite ledger, not a browser win."""
+    import json
+    import subprocess
+    from pathlib import Path
+
+    result = subprocess.run(
+        ["node", "--test", "--test-reporter=tap", "--test-name-pattern=029 全五境", "tests/defeat.test.cjs"],
+        cwd=Path(__file__).resolve().parents[1], capture_output=True, text=True, encoding="utf-8", timeout=45,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    routes = []
+    for line in result.stdout.splitlines():
+        start = line.find('{"realm":')
+        if start >= 0:
+            routes.append(json.loads(line[start:]))
+    assert len(routes) == 15
+    assert all(row["outcome"] == "victory" for row in routes)
+    return {row["realm"]: row for row in routes if row["fps"] == 60}
+
+
+@pytest.mark.parametrize("realm", ["wood", "fire", "earth", "metal", "water"])
+def test_real_engine_clear_ids_to_real_sqlite_ledger(client, engine_routes, realm):
+    record = ready(client)
+    record = action(client, record, "start", realm_id=realm).get_json()
+    frozen = deepcopy(record["state"]["active_trial"]["build"])
+    for step in engine_routes[realm]["actions"]:
+        payload = {key: value for key, value in step.items() if key not in ("action", "trial_id")}
+        before = deepcopy(record)
+        response = action(client, record, step["action"], **payload)
+        assert response.status_code == 200
+        record = response.get_json()
+        if step["action"] == "checkpoint":
+            assert record["state"]["active_trial"]["realm_id"] == realm
+            assert record["state"]["active_trial"]["checkpoint"] == "swordstone"
+            assert record["state"]["active_trial"]["build"] == frozen
+            assert client.get("/api/lab/state").get_json()["state"]["active_trial"]["checkpoint"] == "swordstone"
+        elif step["action"] == "settle":
+            replay = action(client, before, "settle", **payload).get_json()
+            assert replay["receipt"] == record["receipt"]
+    persisted = client.get("/api/lab/state").get_json()
+    assert persisted["state"]["active_trial"] is None
+    assert persisted["state"]["progress"] == {"runs": 1, "victories": 1, "spirit": 12}
+    assert {a["id"] for a in record["receipt"]["xp_awards"]} == {"lab-core", "lab-mark", "lab-burst"}
+    assert all(a["amount"] == 20 for a in record["receipt"]["xp_awards"])
