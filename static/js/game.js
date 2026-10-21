@@ -534,6 +534,7 @@ class BattleGame {
     this.labPending=false; this.labError=false;
     this.lab = this.practice||this.labRun ? options.labCompiled || null : null;
     this.labMetrics = { direct: 0, burn: 0, burst: 0 };
+    this.skillInput=null;
     this.level = LEVELS.getDefinition(realmKey);
     this.checkpoint=this.labRun ? this.level.checkpoint||this.level.lab_checkpoint : this.level.checkpoint;
     if(this.labRun && (!this.checkpoint || this.labTrial.realm_id!==realmKey))throw new Error("试炼秘境与地图不匹配");
@@ -674,6 +675,7 @@ class BattleGame {
   }
 
   clearInput() {
+    this.skillInput=null;
     const pointers = [...this.touchPointers];
     this.touchPointers.clear(); this.keyboardKeys.clear(); this.keys.clear();
     for (const [id, { button }] of pointers) this.releaseTouchCapture(button, id);
@@ -727,13 +729,14 @@ class BattleGame {
   }
 
   performAction(action) {
-    if (this.finished || this.pause || this.labPending || this.labError) return;
+    if (this.disposed || this.finished || this.pause || this.labPending || this.labError) return;
+    if(["slash","qi","block","dash"].includes(action))this.skillInput=null;
     if (action === "jump") this.jump();
     else if (action === "slash") this.slash();
     else if (action === "block") this.beginBlock();
     else if (action === "qi") this.swordQi();
-    else if (action === "dao") this.daoSkill(0);
-    else if (action === "dao2") this.daoSkill(1);
+    else if (action === "dao") this.requestDaoSkill(0);
+    else if (action === "dao2") this.requestDaoSkill(1);
     else if (action === "dash") this.dash();
   }
 
@@ -819,6 +822,30 @@ class BattleGame {
     p.vx -= p.face * 35;
     this.projectiles.push({ type: "swordQi", owner: "player", x: p.x + (p.face > 0 ? p.w : -38), y: p.y + 24, vx: p.face * (this.stats.primary === "earth" ? 430 : 640), vy: 0, w: this.stats.primary === "earth" ? 58 : 48, h: this.stats.primary === "earth" ? 26 : 20, damage, life: 1.8, maxLife: 1.8, pierce: (this.stats.primary === "metal" ? 2 : 0) + (this.stats.secondary === "metal" ? 1 : 0) + (this.stats.mastery.qian >= 1 ? 1 : 0), hitIds: new Set(), color: elementColor(this.stats.primary) });
     this.burst(p.x + p.w / 2 + p.face * 32, p.y + 33, "#dff6ff", 12);
+  }
+
+  skillInputBlocked(slot) {
+    const p=this.player;
+    return p.slash>0||p.hurt>0||p.qiCast>0||p.dash>0||p.skillCooldowns[slot]>0;
+  }
+
+  requestDaoSkill(slot) {
+    if(this.disposed||this.finished||this.pause||this.labPending||this.labError)return;
+    this.skillInput=null;
+    if(this.player.blocking)return;
+    this.player.queuedSlash=0;
+    if(this.skillInputBlocked(slot)){this.skillInput={slot,remaining:.18};return;}
+    this.daoSkill(slot);
+  }
+
+  flushSkillInput(dt) {
+    const input=this.skillInput;if(!input)return;
+    input.remaining=Math.max(0,input.remaining-dt);
+    if(input.remaining===0||this.player.blocking){this.skillInput=null;return;}
+    if(this.skillInputBlocked(input.slot))return;
+    this.skillInput=null;
+    // Cost, current build, facing and targets are checked by the real cast, not at keydown.
+    this.daoSkill(input.slot);
   }
 
   arrayLabSkill(slot) {
@@ -969,6 +996,7 @@ class BattleGame {
     p.qi = Math.min(this.stats.qiMax, p.qi + this.stats.qiRegen * dt);
     const move = (this.keys.has("right") ? 1 : 0) - (this.keys.has("left") ? 1 : 0);
     if (move && p.dash <= 0 && p.slash <= 0 && p.hurt <= 0 && !p.blocking) p.face = move;
+    this.flushSkillInput(dt);
     if (p.hurt > 0) p.vx *= Math.pow(.02, dt);
     else if (p.dash > 0) p.vx = p.dashDirection * 570;
     else {
@@ -1290,6 +1318,7 @@ class BattleGame {
     if (amount <= 0) return;
     p.hp -= amount; p.invuln = .65; p.vx = sourceX < p.x ? 180 : -180; this.burst(p.x + p.w / 2, p.y + 30, "#ef5c45", 10);
     this.screenShake = Math.max(this.screenShake, .2);
+    this.skillInput=null;
     p.hurt = .2; p.queuedSlash = 0; p.jumpBuffer = 0; p.slash = 0; p.dash = 0; p.qiCast = 0; p.blocking = false; p.skillGuard = 0; p.skillParry = false;
     this.emitBattleEvent("player_hurt", { source_id: sourceId, target_id: "player", action_id: actionId, element: this.realmKey, phase: "impact", amount });
     if (p.hp <= 0) this.finish(false);

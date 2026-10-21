@@ -605,3 +605,53 @@ test("020 回火珠成长只改本分支护盾，时间到失效且停用连线"
   for(let i=0;i<100;i++)g.update(.034);assert.equal(g.player.shield,0);
   state.nodes["li.core"]=null;assert.equal(rules.compile(state).skill.cycle,false);
 });
+
+
+test("023 挥剑收招前短按Q在窗口内施放一次，不提前扣费",()=>{
+  const api=gameContext(),g=new api.BattleGame("fire",{practice:true,labCompiled:labConfiguration(["core","mark","burst"])});
+  g.player.slash=.09;const qi=g.player.qi;g.performAction("dao");assert.equal(g.player.qi,qi);assert.equal(g.labMetrics.direct,0);
+  for(let i=0;i<4;i++)g.update(.034);
+  assert.equal(g.labMetrics.direct,12);assert.equal(g.enemies[0].labMarks,1);assert.ok(g.player.skillCooldowns[0]>0);
+  for(let i=0;i<50;i++)g.update(.034);assert.equal(g.labMetrics.direct,12);
+});
+
+
+function bufferGame(){const api=gameContext();return new api.BattleGame("fire",{practice:true,labCompiled:labConfiguration(["core","mark","burst"])});}
+function bufferSteps(g,count=8){for(let i=0;i<count;i++)g.update(.034);}
+test("023 缓冲有时限，短冷却可接上、长动作不会延迟自动施放",()=>{
+  const short=bufferGame();short.player.skillCooldowns[0]=.09;short.performAction("dao");bufferSteps(short,4);assert.equal(short.labMetrics.direct,12);
+  for(const field of ["slash","hurt","dash","qiCast"]){const g=bufferGame();g.player[field]=.3;g.performAction("dao");bufferSteps(g,14);assert.equal(g.events.recent.some(e=>e.action_id==="lab_fire"),false,field);assert.equal(g.skillInput,null);}
+  const long=bufferGame();long.player.skillCooldowns[0]=.5;long.performAction("dao");bufferSteps(long,20);assert.equal(long.labMetrics.direct,0);
+});
+test("023 单槽最新Q/E覆盖，后按J/L/防守/闪避取消旧技能",()=>{
+  const g=bufferGame();g.enemies[0].labMarks=2;g.player.slash=.08;g.performAction("dao");g.performAction("dao2");bufferSteps(g,4);
+  assert.equal(g.labMetrics.direct,0);assert.equal(g.labMetrics.burst,28);assert.equal(g.enemies[0].labMarks,0);
+  for(const action of ["slash","qi","block","dash"]){const h=bufferGame();h.player.slash=.09;h.performAction("dao");h.performAction(action);assert.equal(h.skillInput,null);}
+  const blocked=bufferGame();blocked.player.blocking=true;blocked.performAction("dao");assert.equal(blocked.skillInput,null);
+});
+test("023 真正施放时重验剑意、前方火痕和当前朝向，不预付费不追踪离场目标",()=>{
+  for(const invalid of ["qi","target","face"]){const g=bufferGame();g.enemies[0].labMarks=2;g.player.slash=.08;g.performAction("dao2");
+    if(invalid==="qi")g.player.qi=0;if(invalid==="target")g.enemies[0].x=900;if(invalid==="face")g.player.face=-1;
+    bufferSteps(g,4);assert.equal(g.labMetrics.burst,0);assert.equal(g.enemies[0].labMarks,2);assert.equal(g.player.skillCooldowns[1],0);assert.equal(g.skillInput,null);
+  }
+});
+test("023 暂停、清理、销毁、致命/非致命伤与服务等待不遗留幽灵施法",()=>{
+  for(const stop of [g=>g.setPause(true),g=>g.clearInput(),g=>g.destroy(),g=>g.damagePlayer(5,0),g=>g.damagePlayer(999,0)]){
+    const g=bufferGame();g.player.slash=.09;g.performAction("dao");assert.ok(g.skillInput);stop(g);assert.equal(g.skillInput,null);
+  }
+  const g=bufferGame();g.labPending=true;g.performAction("dao");assert.equal(g.skillInput,null);g.labPending=false;g.labError=true;g.performAction("dao");assert.equal(g.skillInput,null);
+});
+test("023 键盘短按和触屏松手共用同一缓冲，松手不取消一次技能意图",()=>{
+  const button=touchButton("dao"),api=gameContext([button]),g=new api.BattleGame("fire",{practice:true,labCompiled:labConfiguration(["core","mark","burst"])});g.bindTouch();g.player.slash=.09;
+  button.onpointerdown(pointer(7));button.onpointerup(pointer(7));assert.ok(g.skillInput);bufferSteps(g,4);assert.equal(g.labMetrics.direct,12);
+  const h=bufferGame();h.player.slash=.09;h.keyDown({code:"KeyQ",preventDefault(){}});h.keyUp({code:"KeyQ",preventDefault(){}});bufferSteps(h,4);assert.equal(h.labMetrics.direct,12);
+});
+
+
+test("023 旧永久档主动技能同样经过缓冲，不提前扣30剑意",()=>{
+  const api=gameContext(),state=api.defaultState();
+  state.cultivation.qian[0]={id:"q1",name:"test",element:"metal",level:3,quality:1,xp:0,affixes:[]};
+  state.cultivation.qian[1]={id:"q2",name:"test",element:"metal",level:1,quality:1,xp:0,affixes:[]};state.loadout.active[0]="qian";
+  const g=new api.BattleGame("fire",{practice:true,state});g.player.slash=.09;const qi=g.player.qi;g.performAction("dao");assert.equal(g.player.qi,qi);
+  bufferSteps(g,4);assert.ok(g.player.skillCooldowns[0]>0);assert.ok(g.player.qi<qi-25);assert.equal(g.skillInput,null);
+});

@@ -1,0 +1,4 @@
+Baseline 3259b41 + new 023 regression, original game.js.
+node --test --test-name-pattern=023 tests/combat.test.cjs
+1 test failed: after pressing Q with slash=.09, labMetrics.direct stayed 0 rather than 12.
+No skill resource was spent; request was silently discarded.
