@@ -586,11 +586,11 @@ class BattleGame {
     if(this.journey){
       this.stats=JSON.parse(JSON.stringify(this.stats));
       const minds=this.lab.minds;
-      if(minds.includes("qian"))this.stats.attack+=2;
-      if(minds.includes("dui"))this.stats.qiRegen+=1;
-      if(minds.includes("xun"))this.stats.speed+=12;
-      if(minds.includes("gen"))this.stats.defense+=2;
-      if(minds.includes("kun"))this.stats.hpMax+=15;
+      if(minds.includes("qian"))this.stats.attack+=1+this.journeyMindLevel("qian");
+      if(minds.includes("dui"))this.stats.qiRegen+=.5+.5*this.journeyMindLevel("dui");
+      if(minds.includes("xun"))this.stats.speed+=8+4*this.journeyMindLevel("xun");
+      if(minds.includes("gen"))this.stats.defense+=1+this.journeyMindLevel("gen");
+      if(minds.includes("kun"))this.stats.hpMax+=10+5*this.journeyMindLevel("kun");
     }
     this.characterArt = globalThis.DaoBladeCharacterArt?.renderer || null;
     if (this.characterArt) void this.characterArt.load();
@@ -892,11 +892,13 @@ class BattleGame {
     this.daoSkill(input.slot);
   }
 
+  journeyMindLevel(id){return this.lab.minds.includes(id)?(this.lab.mind_levels?.[id]||1):0;}
+
   journeySkill(slot){
     const skill=this.lab.skills[slot],p=this.player;
     if(!skill)return showToast("此出战宫未连接核心，技能停用",true);
     if(this.pause||this.finished||this.disposed||this.labPending||this.labError||this.skillInputBlocked(slot)||p.blocking||p.qi<skill.cost)return;
-    p.qi-=skill.cost;p.skillCooldowns[slot]=skill.cooldown*(this.lab.minds.includes("kan")?.9:1);p.qiCast=.22;p.skillPose=skill.id;
+    p.qi-=skill.cost;p.skillCooldowns[slot]=skill.cooldown*(this.lab.minds.includes("kan")?(.95-.05*this.journeyMindLevel("kan")):1);p.qiCast=.22;p.skillPose=skill.id;
     const before=p.x,center=p.x+p.w/2;
     if(skill.id==="xun"){p.x=clamp(p.x+p.face*180,0,this.worldWidth-p.w);p.invuln=Math.max(p.invuln,.2);}
     const targets=this.enemies.filter(e=>{
@@ -907,7 +909,7 @@ class BattleGame {
     });
     if(skill.id==="gen"){p.shield=Math.max(p.shield,12);p.shieldTime=3;}
     for(const e of targets){
-      this.hitEnemy(e,skill.damage+(this.lab.minds.includes("li")?2:0),false,false,"journey_"+skill.id,skill.element);
+      this.hitEnemy(e,skill.damage+(this.lab.minds.includes("li")?1+this.journeyMindLevel("li"):0),false,false,"journey_"+skill.id,skill.element);
       if(e.dead)continue;
       if(skill.id==="li"){e.labBurn=3;e.labBurnTick=1;}
       if(skill.id==="kan")e.slow=Math.max(e.slow,e.kind==="boss"?.8:2);
@@ -1419,7 +1421,7 @@ class BattleGame {
       if ((this.stats.affixes.seed || 0) && Math.random() < .16) damage += this.stats.affixes.seed;
       if (kind === "slash" && p.flameBuff > 0) { enemy.burn = Math.max(enemy.burn, 2.5); p.flameBuff = 0; }
     }
-    if(this.journey&&!dot&&kind==="slash"&&this.lab.minds.includes("zhen"))enemy.x=clamp(enemy.x+p.face*(enemy.kind==="boss"?2:10),40,this.worldWidth-80);
+    if(this.journey&&!dot&&kind==="slash"&&this.lab.minds.includes("zhen"))enemy.x=clamp(enemy.x+p.face*(enemy.kind==="boss"?1+this.journeyMindLevel("zhen"):6+4*this.journeyMindLevel("zhen")),40,this.worldWidth-80);
     if (!dot && enemy.variant === "guard") damage *= .82;
     if (!dot && enemy.kind === "boss" && this.realmKey === "earth" && ["idle", "windup"].includes(enemy.attackState) && Math.sign(p.x + p.w / 2 - enemy.x - enemy.w / 2) === enemy.face) damage *= .7;
     if ((this.stats.affixes.burst || 0) && enemy.hp / enemy.maxHp < .3) damage *= 1 + this.stats.affixes.burst / 100;

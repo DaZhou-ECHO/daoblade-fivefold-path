@@ -27,6 +27,9 @@
     "minds": [
       "xun"
     ],
+    "mind_levels": {
+      "xun": 1
+    },
     "effective_bead_ids": [
       "xun.core",
       "xun.mind",
@@ -65,6 +68,9 @@
     "minds": [
       "li"
     ],
+    "mind_levels": {
+      "li": 1
+    },
     "effective_bead_ids": [
       "li.core",
       "li.mind",
@@ -103,6 +109,9 @@
     "minds": [
       "kun"
     ],
+    "mind_levels": {
+      "kun": 1
+    },
     "effective_bead_ids": [
       "kun.core",
       "kun.mind",
@@ -141,6 +150,9 @@
     "minds": [
       "zhen"
     ],
+    "mind_levels": {
+      "zhen": 1
+    },
     "effective_bead_ids": [
       "zhen.core",
       "zhen.mind",
@@ -179,6 +191,9 @@
     "minds": [
       "dui"
     ],
+    "mind_levels": {
+      "dui": 1
+    },
     "effective_bead_ids": [
       "dui.core",
       "dui.mind",
@@ -217,6 +232,9 @@
     "minds": [
       "gen"
     ],
+    "mind_levels": {
+      "gen": 1
+    },
     "effective_bead_ids": [
       "gen.core",
       "gen.mind",
@@ -255,6 +273,9 @@
     "minds": [
       "kan"
     ],
+    "mind_levels": {
+      "kan": 1
+    },
     "effective_bead_ids": [
       "kan.core",
       "kan.mind",
@@ -293,6 +314,9 @@
     "minds": [
       "qian"
     ],
+    "mind_levels": {
+      "qian": 1
+    },
     "effective_bead_ids": [
       "qian.core",
       "qian.mind",

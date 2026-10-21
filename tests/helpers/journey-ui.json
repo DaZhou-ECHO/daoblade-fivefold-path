@@ -856,6 +856,9 @@
     "minds": [
       "gen"
     ],
+    "mind_levels": {
+      "gen": 1
+    },
     "effective_bead_ids": [
       "gen.core",
       "gen.mind",

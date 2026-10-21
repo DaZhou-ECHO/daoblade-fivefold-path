@@ -92,6 +92,7 @@ def compile_journey(state):
             connected.append(n["id"])
     levels = {b["id"]: b["level"] for b in state["beads"]}
     selected, skills, minds = set(), [], []
+    mind_levels = {}
     for p in state["loadout"]["active"]:
         if p is None or p+".core" not in connected:
             skills.append(None)
@@ -101,17 +102,18 @@ def compile_journey(state):
         edge, flow = p+".edge" in keys, p+".flow" in keys
         palace = next(x for x in CONFIG["palaces"] if x["id"] == p)
         skills.append({"id": p, "name": palace["skill"], "element": palace["element"],
-                       "damage": 18 + (levels[p+".core"]-1)*2 + (4 if p+".trace" in keys else 0) + (6 if edge else -3 if flow else 0),
-                       "cost": 16 if edge else 8 if flow else 12, "cooldown": 1.5,
+                       "damage": 18 + (levels[p+".core"]-1)*2 + (3 + levels[p+".trace"] if p+".trace" in keys else 0) + (4 + 2*levels[p+".edge"] if edge else levels[p+".flow"]-4 if flow else 0),
+                       "cost": 16 if edge else 9-levels[p+".flow"] if flow else 12, "cooldown": 1.5,
                        "range": 300 if p == "qian" else 220 if p == "kan" else 170,
                        "variant": "锐式" if edge else "流式" if flow else "基础"})
     for p in state["loadout"]["passive"]:
         if p and p+".mind" in connected:
             selected.update([p+".core", p+".mind"])
             minds.append(p)
+            mind_levels[p] = levels[p+".mind"]
     return {"campaign": True, "ruleset_id": "journey-v1", "used": sum(x is not None for x in state["nodes"].values()),
             "capacity": CONFIG["ranks"][state["rank"]]["capacity"], "rank": state["rank"], "connected": connected,
-            "inactive": inactive, "skills": skills, "minds": minds, "effective_bead_ids": sorted(selected),
+            "inactive": inactive, "skills": skills, "minds": minds, "mind_levels": mind_levels, "effective_bead_ids": sorted(selected),
             "skill": {"enabled": any(skills), "burn_damage": 4}}
 
 

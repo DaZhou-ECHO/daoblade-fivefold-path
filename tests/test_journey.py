@@ -3,6 +3,23 @@ import pytest
 from journey import default_journey, compile_journey, validate_build, new_bead, CATALOG
 
 
+def test_noncore_growth_and_selected_mind_levels():
+    for role, expected_damage, expected_cost in [('edge', [28, 33, 38], [16]*3), ('flow', [19, 23, 27], [8, 7, 6])]:
+        for level in (1, 2, 3):
+            state = default_journey()
+            state['beads'] = [new_bead('li.'+r) for r in ('core', 'trace', role, 'mind')]
+            for bead in state['beads']:
+                bead['level'] = level
+            state['nodes'] = {k: k if k in {b['id'] for b in state['beads']} else None for k in CATALOG}
+            state['loadout'] = {'active': ['li', None], 'passive': ['li', None]}
+            compiled = compile_journey(state)
+            assert compiled['skills'][0]['damage'] == expected_damage[level-1]
+            assert compiled['skills'][0]['cost'] == expected_cost[level-1]
+            assert compiled['mind_levels'] == {'li': level}
+            state['loadout']['passive'] = [None, None]
+            assert compile_journey(state)['mind_levels'] == {}
+
+
 def test_eight_palaces_connect_exclusive_and_only_selected_effective():
     state = default_journey()
     state["rank"] = 1

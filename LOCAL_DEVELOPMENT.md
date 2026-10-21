@@ -24,6 +24,10 @@ py -3.11 -m venv .venv
 
 ## 隔离试玩
 
+环境准备好后，日常固定启动：`powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\start-local.ps1`。此命令只对当前脚本进程生效，不修改系统执行策略；服务仅监听本机。默认使用项目绝对路径 `instance/daoblade.sqlite3`（已设置 `DAOBLADE_DATABASE` 时优先沿用），控制台会明确打印实际数据库，防止换工作目录后误认为丢档。不要为试玩清空旧库。
+
+可用 `-DatabasePath work/local-play.sqlite3 -Port 5065` 明确隔离存档和端口；相对路径始终相对项目根目录。已有端口会直接说明冲突，不会终止其他服务。窗口保持打开，Ctrl+C停止；游戏内用同一账号登录恢复。首次游玩步骤见[README](README.md#第一次玩)。备份请停止服务后复制打印出的SQLite数据库，连同原文件保留；恢复时停止服务再替换副本，不要在运行中直接覆盖。
+
 ```powershell
 $env:DAOBLADE_DATABASE = Join-Path (Get-Location) 'work/local-play.sqlite3'
 .\.venv\Scripts\python.exe -m flask --app app run --no-reload --port 5064

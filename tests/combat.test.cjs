@@ -1003,3 +1003,28 @@ test("032 支路导航只读位置与领取，说明方向/高度/奖励，不�
   g.altars[0].taken=true;assert.match(g.journeyRouteReadout(),/已领1\/2/);
   g.player.x=g.altars[1].x+120;assert.match(g.journeyRouteReadout(),/左侧相距/);
 });
+
+test("033 心法等级进入真实属性/伤害/冷却/击退，旧冻结快照仍按一级",()=>{
+  const builds=require('./helpers/journey-builds.json');
+  for(const level of [1,2,3])for(const source of builds){
+    const api=gameContext(),build=JSON.parse(JSON.stringify(source)),id=build.minds[0];build.mind_levels={[id]:level};
+    const trial={id:'growth-033',realm_id:'wood',map_id:'ridge',checkpoint:null,claimed_altars:[]};
+    const g=new api.BattleGame('wood',{labTrial:trial,labCompiled:build});
+    const base=new api.BattleGame('wood',{practice:true});
+    if(id==='qian')assert.ok(Math.abs(g.stats.attack-base.stats.attack-(1+level))<1e-9);
+    if(id==='dui')assert.ok(Math.abs(g.stats.qiRegen-base.stats.qiRegen-(.5+.5*level))<1e-9);
+    if(id==='xun')assert.equal(g.stats.speed-base.stats.speed,8+4*level);
+    if(id==='gen')assert.equal(g.stats.defense-base.stats.defense,1+level);
+    if(id==='kun')assert.equal(g.player.hp-base.player.hp,10+5*level);
+    const e=g.enemy('melee','靶',g.player.x+95,10000,'melee');e.y=g.floorY-e.h;g.enemies=[e];const hp=e.hp;
+    g.daoSkill(0);
+    if(id==='li')assert.equal(hp-e.hp,build.skills[0].damage+1+level);
+    if(id==='kan')assert.ok(Math.abs(g.player.skillCooldowns[0]-1.5*(.95-.05*level))<1e-9);
+    if(id==='zhen'){const before=e.x;g.hitEnemy(e,1,false,false,'slash');assert.equal(e.x-before,6+4*level);}
+    delete build.mind_levels;
+    const legacy=new api.BattleGame('wood',{labTrial:trial,labCompiled:build});assert.equal(legacy.journeyMindLevel(id),1);
+    build.minds=[];build.mind_levels={[id]:3};
+    const off=new api.BattleGame('wood',{labTrial:trial,labCompiled:build});assert.equal(off.journeyMindLevel(id),0);
+    assert.deepEqual(JSON.parse(JSON.stringify(off.stats)),JSON.parse(JSON.stringify(base.stats)));
+  }
+});
