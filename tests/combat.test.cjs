@@ -858,3 +858,43 @@ test("030 持续K跨长动作/新受击仍待普通防守，松开后绝不自�
   const h=bufferGame();h.player.qiCast=.3;h.keyDown({code:'KeyK',preventDefault(){}});h.damagePlayer(12,h.player.x+100);bufferSteps(h,8);assert.equal(h.player.blocking,true);assert.equal(h.player.parryArmed,0);
   const released=bufferGame();released.player.hurt=.4;released.keyDown({code:'KeyK',preventDefault(){}});bufferSteps(released,8);released.keyUp({code:'KeyK'});bufferSteps(released,10);assert.equal(released.player.blocking,false);
 });
+
+
+test("031 地面机关仅在生效且足底接地时伤害，上方平台/空中/预警安全",()=>{
+  const levels=require('../static/js/level-definitions.js');
+  for(const realm of levels.realm_ids)for(const placement of ['floor','platform','air','warning','safe']){
+    const api=gameContext(),g=new api.BattleGame(realm,{practice:true});
+    const h={...levels.getDefinition(realm).hazards[0]};
+    g.hazards=[h];g.enemies=[];
+    g.platforms=[{x:0,y:g.floorY,w:3200,h:80}];
+    g.elapsed=h.safe+h.warning+.1-h.offset;
+    if(placement==='warning')g.elapsed=h.safe+.1-h.offset;
+    if(placement==='safe')g.elapsed=.1-h.offset;
+    g.player.x=h.x;g.player.y=g.floorY-g.player.h;g.player.vy=0;
+    if(placement==='platform'){
+      g.platforms.push({x:h.x-40,y:g.floorY-60,w:200,h:22});g.player.y-=60;
+    }
+    if(placement==='air'){g.player.y-=50;g.player.onGround=false;g.player.vy=-150;}
+    const hp=g.player.hp;g.update(.001);
+    assert.equal(g.player.hp,placement==='floor'?hp-Math.max(1,9-g.stats.defense):hp,`${realm}/${placement}`);
+    if(placement==='floor'){const after=g.player.hp;g.update(.001);assert.equal(g.player.hp,after,'持续重叠不逐帧扣血');}
+    const text=g.terrainReadout();assert.match(text,new RegExp(h.label));assert.match(text,/安全|预警|生效/);
+  }
+});
+
+test("031 五境基础单跳通过危险段后落地，不需要巽卦或技能",()=>{
+  const levels=require('../static/js/level-definitions.js');
+  for(const realm of levels.realm_ids)for(const fps of [30,60,120]){
+    const api=gameContext(),g=new api.BattleGame(realm,{practice:true,labCompiled:labConfiguration(['core','mark','focus'])});
+    const h={...levels.getDefinition(realm).hazards[0],safe:.001,warning:.001,active:100,offset:0};
+    g.hazards=[h];g.enemies=[];g.platforms=[{x:0,y:g.floorY,w:3200,h:80}];
+    g.player.x=h.x-110;const hp=g.player.hp;
+    g.keyDown({code:'KeyD',preventDefault(){}});
+    for(let i=0;i<Math.round(fps*.4);i++)g.update(1/fps);
+    g.keyDown({code:'Space',preventDefault(){}});g.keyUp({code:'Space'});
+    for(let i=0;i<fps;i++)g.update(1/fps);
+    assert.ok(g.player.x>h.x+h.w,`${realm}/${fps} 已到对岸`);
+    assert.equal(g.player.hp,hp,`${realm}/${fps} 真实有效期单跳无伤`);
+    assert.equal(g.player.jumpCount,0);assert.equal(g.player.onGround,true);
+  }
+});

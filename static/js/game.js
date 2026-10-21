@@ -1051,7 +1051,7 @@ class BattleGame {
     p.coyote = p.onGround ? .11 : wasGrounded ? .11 : Math.max(0, p.coyote - dt);
     this.tryJump();
     this.hazardTimer = Math.max(0, this.hazardTimer - dt);
-    if (p.onGround && this.hazardTimer === 0 && Math.sin(this.elapsed * 3) > .45 && this.hazards.some(h => p.x + p.w > h.x && p.x < h.x + h.w)) {
+    if (p.onGround && Math.abs(p.y + p.h - this.floorY) < 1 && this.hazardTimer === 0 && this.hazards.some(h => p.x + p.w > h.x && p.x < h.x + h.w && DaoBladeLevels.hazardState(h, this.elapsed).phase === "active")) {
       this.hazardTimer = 1;
       this.damagePlayer(9, p.x + (p.face > 0 ? 100 : -100));
     }
@@ -1584,12 +1584,23 @@ class BattleGame {
     return `近敌 ${enemy.name} · ${side}${behind} · 相距${Math.round(Math.abs(dx))} · 气血 ${Math.ceil(clamp(enemy.hp,0,enemy.maxHp))}/${enemy.maxHp} · ${phase}${guard}${danger}`;
   }
 
+  terrainReadout() {
+    const center = this.player.x + this.player.w / 2;
+    const hazard = this.hazards.filter(h => center >= h.x - 200 && center <= h.x + h.w + 120)
+      .sort((a,b) => Math.abs(a.x + a.w / 2 - center) - Math.abs(b.x + b.w / 2 - center))[0];
+    if (!hazard) return "";
+    const state = DaoBladeLevels.hazardState(hazard, this.elapsed);
+    const seconds = (Math.ceil(state.remaining * 10) / 10).toFixed(1);
+    const phase = state.phase === "safe" ? "安全" : state.phase === "warning" ? "预警" : "生效";
+    return ` · ${hazard.label}${phase} ${seconds}s · 地面危险，跳跃或上高台避开`;
+  }
+
   updateHud() {
     if (!this.practice) {
       const objective = globalThis.DaoBladeLevelProgress?.objective(this.realmKey, this.player.x, this.enemies);
       if (objective) $("#objective-text").textContent = objective + (this.labRun ? (this.labTrial?.checkpoint ? " · 剑碑已保存" : " · 前段清场后前往剑碑") : this.trial
         ? this.trial.activated ? " · 剑碑已激活" : " · 前段清场后前往剑碑恢复"
-        : "");
+        : "") + this.terrainReadout();
     }
     $("#hud-hp").textContent = `${Math.ceil(Math.max(0, this.player.hp))} / ${this.stats.hpMax}`;
     $("#hud-qi").textContent = `${Math.floor(this.player.qi)} / ${this.stats.qiMax}`;
@@ -1607,9 +1618,13 @@ class BattleGame {
     ctx.save(); ctx.translate(-camera + (feedback.shake && this.screenShake > 0 ? (Math.random() - .5) * 6 : 0), feedback.shake && this.screenShake > 0 ? (Math.random() - .5) * 4 : 0);
     for (const platform of this.platforms) this.drawPlatform(ctx, platform);
     this.hazards.forEach(hazard => {
-      ctx.fillStyle = this.element.color; ctx.globalAlpha = Math.sin(this.elapsed * 3) > .45 ? .78 : .3;
+      const state = DaoBladeLevels.hazardState(hazard, this.elapsed);
+      ctx.fillStyle = this.element.color; ctx.globalAlpha = state.phase === "active" ? .85 : state.phase === "warning" ? .55 : .2;
       for (let x = hazard.x; x < hazard.x + hazard.w; x += 15) { ctx.fillRect(x, this.floorY - 8, 9, 8); ctx.fillRect(x + 3, this.floorY - 17, 3, 9); }
       ctx.globalAlpha = 1;
+      ctx.fillStyle = "#fff0b5"; ctx.font = "13px sans-serif";
+      const phase = state.phase === "safe" ? "安全" : state.phase === "warning" ? "预警" : "生效";
+      ctx.fillText(`${hazard.label} · ${phase} ${(Math.ceil(state.remaining * 10) / 10).toFixed(1)}s`, hazard.x - 8, this.floorY - 28);
     });
     this.altars.filter(altar => !altar.taken).forEach(altar => {
       ctx.fillStyle = "#6b5436"; ctx.fillRect(altar.x + 4, altar.y + 17, 20, 11);

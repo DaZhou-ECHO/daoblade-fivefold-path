@@ -20,6 +20,22 @@
   };
 
 
+  // 原创灰盒机关：安全期→预警→生效；两段错峰，均可单跳通过。
+  const HAZARD_RHYTHMS = {
+    fire: { label: "地火", safe: 1.8, warning: .8, active: 1.0, stagger: 1.8 },
+    wood: { label: "毒蕈地带", safe: 2.4, warning: 1.0, active: .8, stagger: 2.1 },
+    earth: { label: "地脉震击", safe: 2.8, warning: 1.2, active: .4, stagger: 2.2 },
+    metal: { label: "地刃", safe: 1.4, warning: .7, active: .45, stagger: 1.3 },
+    water: { label: "寒潮", safe: 2.6, warning: 1.4, active: .7, stagger: 2.35 },
+  };
+  function hazardState(hazard, elapsed) {
+    const cycle = hazard.safe + hazard.warning + hazard.active;
+    const time = ((elapsed + hazard.offset) % cycle + cycle) % cycle;
+    if (time < hazard.safe) return { phase: "safe", remaining: hazard.safe - time };
+    if (time < hazard.safe + hazard.warning) return { phase: "warning", remaining: hazard.safe + hazard.warning - time };
+    return { phase: "active", remaining: cycle - time };
+  }
+
   const ENCOUNTERS = {
       "metal": [["melee",0,670,60,"guard"],["melee",0,1070,58,"melee"],["ranged",1,1500,52,"caster"],["melee",0,1930,70,"guard"],["melee",0,2390,76,"melee"],["boss",-1,2860,240,"boss"]],
       "wood": [["melee",0,670,60,"stalker"],["melee",0,1070,58,"melee"],["ranged",1,1500,52,"caster"],["melee",0,1930,70,"stalker"],["melee",0,2390,76,"melee"],["boss",-1,2860,240,"boss"]],
@@ -72,7 +88,7 @@
       world: { width: 3200, floor_y: 474 }, anchors,
       platforms: [{ id: "floor", x: 0, y: 474, w: 3200, h: 80 },
         ...layout.ledges.map(([x, y, w], index) => ({ id: `ledge-${index + 1}`, x, y, w, h: 22 }))],
-      altars, hazards: layout.hazards.map(([x, w], index) => ({ id: `hazard-${index + 1}`, x, w })),
+      altars, hazards: layout.hazards.map(([x, w], index) => ({ id: `hazard-${index + 1}`, x, w, ...HAZARD_RHYTHMS[realm], offset: index * HAZARD_RHYTHMS[realm].stagger })),
       encounters,
       boss_moves: BOSS_MOVES[realm] || [],
     };
@@ -88,7 +104,7 @@
   }
   freeze(definitions);
   const api = freeze({
-    realms: REALMS, realm_ids: Object.keys(REALMS),
+    hazardState, realms: REALMS, realm_ids: Object.keys(REALMS),
     getDefinition(realm) {
       if (!Object.hasOwn(definitions, realm)) throw new Error("未知秘境配置");
       return definitions[realm];
