@@ -4,7 +4,7 @@ const path = require("node:path");
 const test = require("node:test");
 const vm = require("node:vm");
 
-function harness({ practice = false, deferredSave = false } = {}) {
+function harness({ practice = false, deferredSave = false, labTrial=null, labCompiled=null, labService=null } = {}) {
   const calls = { awards: [], saves: [], modals: 0, frames: [], queued: [], close: 0, panels: [] };
   const nodes = new Map();
   const element = selector => {
@@ -28,6 +28,7 @@ function harness({ practice = false, deferredSave = false } = {}) {
     recordPanel: name => calls.panels.push(name),
     recordSave: state => { calls.saves.push(JSON.parse(JSON.stringify(state))); return waitSave; },
   });
+  if(labService)context.DaoBladeArrayLabUI=labService;
   require("./helpers/load-rules.cjs")(context);
   const source = fs.readFileSync(path.join(__dirname, "../static/js/game.js"), "utf8")
     .replace(/\nbindUi\(\);\s*initializeSession\(\);\s*$/, "");
@@ -41,7 +42,7 @@ function harness({ practice = false, deferredSave = false } = {}) {
     this.api = { BattleGame, state: () => saveData, active: () => activeGame,
       setActive: game => { activeGame = game; }, setSyncBlocked: value => { saveBlocked = value; }, restoreCheckpoint, replaceState: value => { saveData = value; }, bindUi, showRealPanel: actualShowPanel };
   `, context);
-  const game = new context.api.BattleGame("fire", { practice });
+  const game = new context.api.BattleGame("fire", { practice,labTrial,labCompiled });
   context.api.setActive(game);
   game.draw = () => calls.frames.push({ deathTime: game.player.deathTime, deathDrop: game.player.deathDrop });
   const step = (milliseconds = 34) => {
@@ -277,4 +278,50 @@ test("016 暂停重新挑战保持试验快照，退出返回阵盘且不增加�
   const restarted=h.api.active();assert.equal(restarted.lab,compiled);assert.equal(restarted.snapshot.ruleset_id,"array-lab-v1");
   assert.equal(game.disposed,true);assert.equal(h.api.state().progress.runs,0);
   restarted.quit();assert.equal(h.calls.panels.at(-1),"arraylab");
+});
+
+
+function arrayFixture(checkpoint=null){
+  const cfg=require("../static/data/rules/array-lab-v1.json"),rules=require("../static/js/array-lab-rules.js").createRuntime(cfg);
+  const build={stage:1,beads:structuredClone(cfg.beads),nodes:Object.fromEntries(cfg.nodes.map(n=>[n.id,["core","mark","burst"].includes(n.role)?"lab-"+n.role:null]))};
+  const state={...build,ruleset_id:cfg.ruleset_id,rules_version:2,schema_version:2,progress:{runs:1,victories:0,spirit:0},active_trial:null};
+  return {labTrial:{id:"test-array",checkpoint,claimed_altars:["altar-1"],build},labCompiled:rules.compile(state)};
+}
+test("018 新阵盘正式战六敌、剑碑恢复与冻结技能，不写旧永久档",async()=>{
+  const f=arrayFixture("swordstone"),h=harness({...f,labService:{trialAction:async()=>({state:{active_trial:null},receipt:{spirit:12,xp_awards:[{id:"lab-core",amount:20,level:2}]}})}});
+  const before=JSON.stringify(h.api.state());h.game.start();
+  assert.equal(h.game.practice,false);assert.equal(h.game.enemies.length,6);assert.equal(h.game.enemies.filter(e=>e.dead).length,3);
+  assert.equal(h.game.player.x,1640);assert.equal(h.game.altars[0].taken,true);assert.equal(h.game.trial,null);
+  assert.equal(h.game.snapshot.skill.burst,true);assert.equal(h.game.stats.primary,null);
+  h.game.enemies.forEach(e=>{e.dead=true;});await h.game.finish(true);await h.game.finish(true);
+  assert.equal(h.calls.modals,1);assert.equal(h.calls.saves.length,0);assert.deepEqual(h.calls.awards,[]);assert.equal(JSON.stringify(h.api.state()),before);
+  assert.match(h.nodes.get("#result-message").textContent,/胜利已保存/);
+});
+test("018 剑碑必须实际清场到地面，等待保存时冻结且ACK后只回血一次",async()=>{
+  const f=arrayFixture();let resolve,calls=0;
+  const h=harness({...f,labService:{trialAction:async()=>{calls++;return new Promise(r=>{resolve=r;});}}});
+  const g=h.game;g.player.x=1640;g.player.hp=10;g.updateCheckpoint();assert.equal(calls,0);
+  g.enemies.slice(0,3).forEach(e=>{e.dead=true;});g.player.onGround=false;g.updateCheckpoint();assert.equal(calls,0);
+  g.player.onGround=true;g.updateCheckpoint();assert.equal(calls,1);assert.equal(g.labPending,true);assert.equal(g.player.hp,10);
+  const snapshot=JSON.stringify(g.player);g.update(.03);g.performAction("slash");assert.equal(JSON.stringify(g.player),snapshot);
+  resolve({state:{active_trial:{...f.labTrial,checkpoint:"swordstone"}}});await new Promise(setImmediate);
+  assert.equal(g.player.hp,g.stats.hpMax);g.player.hp=11;g.updateCheckpoint();assert.equal(g.player.hp,11);assert.equal(calls,1);
+});
+test("018 网络错误不发奖，重读重试同ID；销毁后迟到ACK不弹结算",async()=>{
+  const f=arrayFixture();let fail=true,reads=0;const ids=[];
+  const h=harness({...f,labService:{load:async()=>{reads++;},trialAction:async(action,payload)=>{ids.push(payload.trial_id);if(fail)throw new Error("offline");return {state:{active_trial:null},receipt:{spirit:12,xp_awards:[]}};}}});
+  h.game.enemies.forEach(e=>{e.dead=true;});await h.game.finish(true);
+  assert.equal(h.game.labError,true);assert.equal(h.calls.awards.length,0);assert.match(h.nodes.get("#result-title").textContent,/未确认/);
+  fail=false;await h.game.restartLab();assert.equal(reads,1);assert.deepEqual(ids,["test-array","test-array"]);assert.equal(h.game.labError,false);
+  let release;const other=harness({...arrayFixture(),labService:{trialAction:()=>new Promise(r=>{release=r;})}});
+  const pending=other.game.finish(true);other.game.destroy();release({state:{active_trial:null},receipt:{spirit:12,xp_awards:[]}});await pending;assert.equal(other.calls.modals,0);
+});
+
+
+test("018 检查点失败保留同ID，无检查点失败关闭；都不发旧档经验",async()=>{
+  for(const checkpoint of [null,"swordstone"]){
+    const f=arrayFixture(checkpoint),h=harness({...f,labService:{trialAction:async()=>({state:{active_trial:checkpoint?f.labTrial:null},receipt:checkpoint?null:{outcome:"defeat",xp_awards:[]}})}});
+    const pending=h.game.finish(false);h.complete();await pending;
+    assert.equal(h.game.canContinueCheckpoint(),Boolean(checkpoint));assert.equal(h.calls.saves.length,0);assert.deepEqual(h.calls.awards,[]);
+  }
 });

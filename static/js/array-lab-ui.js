@@ -3,14 +3,19 @@
   const $=id=>document.getElementById(id);
   const text=value=>String(value).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   let state=null,rules=null,revision=0,owner=null,csrf="",saved="",selected="li.core",busy=false,blocked=false,epoch=0;
+  let queue=Promise.resolve();
   const fingerprint=()=>JSON.stringify(state);
   function status(message) { $("lab-save-status").textContent=message; }
   function buttons() {
-    const dirty=state&&fingerprint()!==saved;
-    $("lab-save").disabled=!state||busy||blocked;
+    const dirty=state&&fingerprint()!==saved, active=Boolean(state?.active_trial);
+    $("lab-save").disabled=!state||busy||blocked||active;
     $("lab-practice").disabled=!state||busy||blocked||dirty||revision===0;
-    for(const id of ["lab-equip","lab-detach","lab-focus-preset","lab-burst-preset"]) $(id).disabled=!state||busy||blocked;
+    for(const id of ["lab-equip","lab-detach","lab-focus-preset","lab-burst-preset"]) $(id).disabled=!state||busy||blocked||active;
     $("lab-reload").disabled=busy;
+    $("lab-challenge").disabled=!state||busy||blocked||dirty||!revision||active||!rules?.compile(state).skill.enabled;
+    $("lab-resume").disabled=!active||busy||blocked;
+    $("lab-abandon").disabled=!active||busy||blocked;
+    $("lab-trial-status").textContent=active ? `未完成火境 · ${state.active_trial.checkpoint ? "剑碑已保存" : "入口恢复"} · 构筑已冻结，放弃或结束后可拆换` : "挑战六名敌人；胜利仅出战有效珠成长，失败无奖励。";
   }
   function render() {
     if(!state) {buttons();return;}
@@ -36,12 +41,13 @@
     buttons();
   }
   function edit(change) {
+    if(busy||blocked||state?.active_trial)return;
     try {state=change();$("lab-error").textContent="";status(revision&&fingerprint()===saved?`已保存 · 版本 ${revision}`:"草稿未保存 · 保存成功后才能试招");render();}
     catch(error) {$("lab-error").textContent=error.message;}
   }
   async function load(force=false) {
     if(state&&!force) {render();return;}
-    const generation=++epoch;busy=true;blocked=false;buttons();status("读取独立试验档…");
+    const generation=++epoch;queue=Promise.resolve();busy=true;blocked=false;buttons();status("读取独立试验档…");
     try {
       const [identity,response]=await Promise.all([fetch("/api/auth/me"),fetch("/api/lab/state")]);
       const [me,payload]=await Promise.all([identity.json(),response.json()]);
@@ -55,7 +61,7 @@
     finally {if(generation===epoch){busy=false;render();}}
   }
   async function save() {
-    if(busy||blocked||!state)return;
+    if(busy||blocked||!state||state.active_trial)return;
     const generation=epoch,submitted=JSON.stringify(state);busy=true;buttons();status("正在保存…");
     try {
       const response=await fetch("/api/lab/state",{method:"POST",headers:{"Content-Type":"application/json","X-CSRF-Token":csrf},body:JSON.stringify({state,revision,owner_id:owner})});
@@ -65,7 +71,52 @@
     } catch(error) {if(generation===epoch){blocked=true;status(error.message+"；草稿保留，请重新读取后核对");}}
     finally {if(generation===epoch){busy=false;render();}}
   }
-  function reset() {epoch++;state=null;rules=null;saved="";revision=0;busy=false;blocked=false;buttons();for(const id of ["lab-palaces","lab-nodes","lab-compiled"]) $(id).textContent="";selected="li.core";status("账号状态已更新，请进入阵盘试验读取");}
+  function trialAction(action,extra={}) {
+    const generation=epoch;
+    const work=queue.then(async()=>{
+      if(generation!==epoch)throw new Error("账号已变化，操作取消");
+      if(!state||blocked)throw new Error("试验档未同步，请回阵盘重新读取");
+      busy=true;buttons();status("正在记录火境进度…");
+      try {
+        const response=await fetch("/api/lab/trial",{method:"POST",headers:{"Content-Type":"application/json","X-CSRF-Token":csrf},body:JSON.stringify({action,revision,owner_id:owner,...extra})});
+        const payload=await response.json();
+        if(generation!==epoch)throw new Error("账号已变化，忽略旧试炼响应");
+        if(!response.ok)throw new Error(payload.error||"记录试炼失败");
+        rules.validate(payload.state);state=payload.state;revision=payload.revision;saved=fingerprint();
+        status(`已保存 · 版本 ${revision}`);return payload;
+      } catch(error) {
+        if(generation===epoch){blocked=true;status(error.message+"；请重新读取确认服务记录，禁止继续提交");}
+        throw error;
+      } finally {if(generation===epoch){busy=false;render();}}
+    });
+    queue=work.catch(()=>{});return work;
+  }
+  function launchTrial(payload) {
+    const trial=payload?.state?.active_trial||state?.active_trial;
+    if(!trial)throw new Error("没有可恢复的试炼");
+    const build={...JSON.parse(JSON.stringify(state)),...trial.build};
+    root.DaoBladeStartArrayTrial(JSON.parse(JSON.stringify(trial)),payload?.trial_compiled||rules.compile(build));
+  }
+  async function startTrial() {
+    if(busy||blocked||!state||state.active_trial||!revision||saved!==fingerprint())return;
+    launchTrial(await trialAction("start"));
+  }
+  async function resumeTrial() {
+    if(busy||blocked||!state?.active_trial)return;
+    // Refresh before resuming so another window cannot silently supply a stale trial.
+    await load(true);if(blocked)throw new Error("恢复失败，请回阵盘重新读取");if(state?.active_trial)launchTrial();else throw new Error("试炼已被另一窗口结束，请核对阵盘进度");
+  }
+  async function abandonTrial() {
+    if(busy||blocked||!state?.active_trial)return;
+    await trialAction("abandon",{trial_id:state.active_trial.id});
+  }
+  async function restartTrial(expectedId) {
+    if(busy||blocked)throw new Error("试验档未同步，请回阵盘重新读取");
+    if(state?.active_trial&&state.active_trial.id!==expectedId)throw new Error("服务已有另一试炼，请回阵盘核对，不能覆盖它");
+    await abandonTrial();await startTrial();
+  }
+  function handle(promise) {promise.catch(error=>{ $("lab-error").textContent=error.message; });}
+  function reset() {epoch++;queue=Promise.resolve();state=null;rules=null;saved="";revision=0;busy=false;blocked=false;buttons();for(const id of ["lab-palaces","lab-nodes","lab-compiled"]) $(id).textContent="";selected="li.core";status("账号状态已更新，请进入阵盘试验读取");}
   $("lab-equip").addEventListener("click",()=>edit(()=>rules.equip(state,selected,$("lab-bead").value)));
   $("lab-detach").addEventListener("click",()=>edit(()=>rules.equip(state,selected,null)));
   for(const variant of ["focus","burst"]) $("lab-"+variant+"-preset").addEventListener("click",()=>edit(()=>{
@@ -74,5 +125,8 @@
   }));
   $("lab-save").addEventListener("click",save);$("lab-reload").addEventListener("click",()=>load(true));
   $("lab-practice").addEventListener("click",()=>{if(!busy&&!blocked&&revision&&saved===fingerprint())root.DaoBladeStartArrayLab(rules.compile(state));});
-  root.DaoBladeArrayLabUI=Object.freeze({load,reset});buttons();
+  $("lab-challenge").addEventListener("click",()=>handle(startTrial()));
+  $("lab-resume").addEventListener("click",()=>handle(resumeTrial()));
+  $("lab-abandon").addEventListener("click",()=>handle(abandonTrial()));
+  root.DaoBladeArrayLabUI=Object.freeze({load,reset,trialAction,startTrial,resumeTrial,abandonTrial,restartTrial});buttons();
 })(globalThis);

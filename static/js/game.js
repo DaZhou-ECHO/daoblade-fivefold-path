@@ -481,7 +481,7 @@ function grantBeadExperience(amount) {
 }
 
 function startRealm(key, options = {}) {
-  if (saveBlocked && !options.practice) return showToast("存档未同步，请先刷新或重新登录；仍可进入练功场临时试招", true);
+  if (saveBlocked && !options.practice && !options.labTrial) return showToast("存档未同步，请先刷新或重新登录；仍可进入练功场临时试招", true);
   showPanel("game");
   if (activeGame) activeGame.destroy();
   activeGame = new BattleGame(key, options);
@@ -512,12 +512,15 @@ function abandonCheckpoint(game) {
 }
 
 function continueCheckpoint() {
-  if (saveBlocked) return showToast("存档未同步，暂不能继续正式试炼", true);
   const game = activeGame;
+  if(game?.labRun){ if(!game.canContinueCheckpoint())return; $("#result-dialog").close(); void globalThis.DaoBladeArrayLabUI.resumeTrial().catch(error=>{game.quit();showToast(error.message,true);}); return; }
+  if (saveBlocked) return showToast("存档未同步，暂不能继续正式试炼", true);
   if (!game?.canContinueCheckpoint()) return;
   $("#result-dialog").close();
   startRealm(game.realmKey, { trial: game.trial });
 }
+
+globalThis.DaoBladeStartArrayTrial = (trial,compiled) => startRealm("fire", {labTrial:trial,labCompiled:compiled});
 
 globalThis.DaoBladeStartArrayLab = compiled => startRealm("fire", { practice: true, labCompiled: compiled });
 
@@ -525,7 +528,11 @@ class BattleGame {
   constructor(realmKey, options = {}) {
     this.realmKey = realmKey;
     this.practice = Boolean(options.practice);
-    this.lab = this.practice ? options.labCompiled || null : null;
+    this.labRun=Boolean(options.labTrial);
+    this.labTrial=options.labTrial||null;
+    this.labTrialId=this.labTrial?.id||null;
+    this.labPending=false; this.labError=false;
+    this.lab = this.practice||this.labRun ? options.labCompiled || null : null;
     this.labMetrics = { direct: 0, burn: 0, burst: 0 };
     this.level = LEVELS.getDefinition(realmKey);
     this.realm = REALMS[realmKey];
@@ -558,8 +565,8 @@ class BattleGame {
     this.projectiles = [];
     this.particles = [];
     this.skillEffects = [];
-    this.resuming = Boolean(!this.practice && this.level.checkpoint && options.trial?.activated && !options.trial.settled);
-    this.trial = !this.practice && this.level.checkpoint
+    this.resuming = this.labRun ? Boolean(this.labTrial.checkpoint) : Boolean(!this.practice && this.level.checkpoint && options.trial?.activated && !options.trial.settled);
+    this.trial = !this.practice && !this.labRun && this.level.checkpoint
       ? (this.resuming ? options.trial : TRIALS.create(options.state || saveData, RULES)) : null;
     this.snapshot = this.lab ? Object.freeze({ruleset_id: "array-lab-v1", rules_version: this.lab.rules_version, stats: RULES.createCombatSnapshot(DEFAULT_STATE()).stats, skill: this.lab.skill}) : this.trial?.snapshot || RULES.createCombatSnapshot(options.state || saveData);
     this.stats = this.snapshot.stats;
@@ -569,12 +576,12 @@ class BattleGame {
     this.platforms = this.level.platforms.map(platform => ({ ...platform }));
     this.altars = this.practice ? [] : this.level.altars.map(altar => {
       const anchor = this.level.anchors[altar.anchor_id];
-      return { id: altar.id, x: anchor.x, y: anchor.y - 28, taken: this.trial?.claimedAltars.has(altar.id) || false };
+      return { id: altar.id, x: anchor.x, y: anchor.y - 28, taken: this.labRun ? this.labTrial.claimed_altars.includes(altar.id) : this.trial?.claimedAltars.has(altar.id) || false };
     });
     this.hazards = this.practice ? [] : this.level.hazards.map(hazard => ({ ...hazard }));
     this.hazardTimer = 0;
     this.enemies = this.practice ? [this.enemy("dummy", "试剑木桩", 620, 99999, "dummy")] : this.makeEnemies();
-    if (this.lab) { this.player.x = 240; this.enemies[0].x = 340; }
+    if (this.lab && this.practice) { this.player.x = 240; this.enemies[0].x = 340; }
     if (this.resuming) {
       const anchor = this.level.anchors[this.level.checkpoint.anchor_id];
       this.player.x = anchor.x; this.player.y = anchor.y - this.player.h;
@@ -612,9 +619,11 @@ class BattleGame {
   }
 
   start() {
-    $("#realm-name").textContent = this.lab ? "阵盘试验 · 离火试招" : this.practice ? "练功场 · 临时试招" : `${this.element.zh} · ${this.element.realm}`;
-    $("#objective-text").textContent = this.lab ? "只读已保存配置 · Q留痕/聚焰，E引爆；无奖励，退出回阵盘" : this.practice ? "木桩会恢复，不结算战利品" : `击败 ${this.realm.enemies.join("、")}与${this.realm.boss}`;
-    if (!this.practice && !this.resuming) { saveData.active_trial = null; saveData.progress.runs += 1; void saveState(""); }
+    $("#leave-run").textContent=this.labRun?"返回阵盘（保留剑碑）":"放弃闯关";
+    $("#return-sanctuary").textContent=this.labRun?"返回阵盘":"返回洞府";
+    $("#realm-name").textContent = this.labRun ? "阵盘挑战 · 离火境" : this.lab ? "阵盘试验 · 离火试招" : this.practice ? "练功场 · 临时试招" : `${this.element.zh} · ${this.element.realm}`;
+    $("#objective-text").textContent = this.labRun ? "冻结配珠挑战 · 清除六敌胜利成长；剑碑保存后可续关" : this.lab ? "只读已保存配置 · Q留痕/聚焰，E引爆；无奖励，退出回阵盘" : this.practice ? "木桩会恢复，不结算战利品" : `击败 ${this.realm.enemies.join("、")}与${this.realm.boss}`;
+    if (!this.practice && !this.labRun && !this.resuming) { saveData.active_trial = null; saveData.progress.runs += 1; void saveState(""); }
     renderCheckpointRecovery();
     $("#pause-overlay").classList.add("hidden");
     window.addEventListener("keydown", this.boundKeyDown);
@@ -687,7 +696,7 @@ class BattleGame {
   quit() { const target = this.lab ? "arraylab" : this.practice ? "cultivation" : "realms"; abandonCheckpoint(this); this.destroy(); activeGame = null; showPanel(target); }
 
   setPause(value) {
-    if (this.finished) return;
+    if (this.finished || (!value && (this.labPending||this.labError))) return;
     this.pause = value;
     if (value) battleAudio?.stop();
     this.lastTime = performance.now();
@@ -700,7 +709,7 @@ class BattleGame {
     if (action) event.preventDefault();
     if (event.repeat) return;
     if (action === "pause") return this.setPause(!this.pause);
-    if (this.finished || this.pause || !action) return;
+    if (this.finished || this.pause || this.labPending || this.labError || !action) return;
     this.keyboardKeys.add(action);
     this.keys.add(action);
     this.performAction(action);
@@ -716,7 +725,7 @@ class BattleGame {
   }
 
   performAction(action) {
-    if (this.finished || this.pause) return;
+    if (this.finished || this.pause || this.labPending || this.labError) return;
     if (action === "jump") this.jump();
     else if (action === "slash") this.slash();
     else if (action === "block") this.beginBlock();
@@ -731,7 +740,7 @@ class BattleGame {
       button.onpointerdown = event => {
         event.preventDefault();
         const action = button.dataset.touch;
-        if (this.finished || this.disposed || this.pause || (event.button !== undefined && event.button !== 0)) return;
+        if (this.finished || this.disposed || this.pause || this.labPending || this.labError || (event.button !== undefined && event.button !== 0)) return;
         this.endTouchPointer(event.pointerId);
         this.touchPointers.set(event.pointerId, { action, button });
         try { button.setPointerCapture?.(event.pointerId); }
@@ -814,7 +823,7 @@ class BattleGame {
     const skill = this.lab.skill, p = this.player;
     if (!skill.enabled) return showToast("离火核心未连接，技能暂时停用", true);
     if (slot !== 0 && !skill.burst) return showToast("当前方案没有引爆变式", true);
-    if (this.pause || this.finished || this.disposed || p.hurt > 0 || p.slash > 0 || p.qiCast > 0 || p.dash > 0 || p.blocking || p.skillCooldowns[slot] > 0) return;
+    if (this.pause || this.finished || this.disposed || this.labPending || this.labError || p.hurt > 0 || p.slash > 0 || p.qiCast > 0 || p.dash > 0 || p.blocking || p.skillCooldowns[slot] > 0) return;
     const reach = skill.focus ? skill.focus_range : skill.range;
     const targets = this.enemies.filter(e => !e.dead && (e.x + e.w / 2 - p.x - p.w / 2) * p.face >= 0 && (e.x + e.w / 2 - p.x - p.w / 2) * p.face <= reach && Math.abs(e.y + e.h / 2 - p.y - p.h / 2) < 105);
     if (slot === 1 && !targets.some(e => e.labMarks > 0)) return showToast("范围内没有可引爆火痕；先用Q留痕", true);
@@ -895,7 +904,7 @@ class BattleGame {
     this.lastTime = time;
     if (this.defeat) {
       if (!document.hidden) this.advanceDefeat(dt);
-    } else if (!this.pause) {
+    } else if (!this.pause && !this.labPending && !this.labError) {
       this.screenShake = Math.max(0, this.screenShake - dt);
       if (this.hitStop > 0) this.hitStop = Math.max(0, this.hitStop - dt);
       else this.update(dt);
@@ -932,6 +941,7 @@ class BattleGame {
   }
 
   update(dt) {
+    if(this.labPending||this.labError)return;
     if (this.finished) return;
     const p = this.player;
     this.elapsed += dt;
@@ -979,6 +989,13 @@ class BattleGame {
     if (this.finished) { this.updateHud(); return; }
     this.altars.forEach(altar => {
       if (!altar.taken && this.overlap(p.x, p.y, p.w, p.h, altar.x, altar.y, 28, 28)) {
+        if(this.labRun){
+          this.labRecord("altar",{altar_id:altar.id},()=>{
+            altar.taken=true;this.player.hp=Math.min(this.stats.hpMax,this.player.hp+12);
+            this.player.qi=Math.min(this.stats.qiMax,this.player.qi+18);
+            showToast("祭坛已保存：恢复气血与剑意，不重复领取");
+          });return;
+        }
         altar.taken = true;
         this.trial?.claimedAltars.add(altar.id);
         if (this.trial?.activated) this.persistCheckpoint();
@@ -988,6 +1005,7 @@ class BattleGame {
         showToast("发现支路祭坛：恢复气血，通关后额外得珠");
       }
     });
+    if(this.labPending)return;
     if (p.y > this.height + 120) this.damagePlayer(30, p.x - 20);
     if (this.finished) { this.updateHud(); return; }
     if (p.y > this.height + 80) { p.x = Math.max(40, p.x - 180); p.y = 280; p.vy = 0; }
@@ -1016,7 +1034,7 @@ class BattleGame {
     this.cameraX += (clamp(p.x - this.width * .42, 0, this.worldWidth - this.width) - this.cameraX) * Math.min(1, dt * 5);
     this.updateCheckpoint();
     this.updateHud();
-    if (!this.practice && !this.finished && this.enemies.every(enemy => enemy.dead)) this.finish(true);
+    if (!this.practice && !this.finished && !this.labPending && this.enemies.every(enemy => enemy.dead)) this.finish(true);
   }
 
   updateEnemies(dt) {
@@ -1269,12 +1287,34 @@ class BattleGame {
   burst(x, y, color, count) { for (let i = 0; i < count; i++) this.particles.push({ x, y, vx: (Math.random() - .5) * 180, vy: (Math.random() - .5) * 160, life: .25 + Math.random() * .35, color }); }
   overlap(ax, ay, aw, ah, bx, by, bw, bh) { return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by; }
 
+  defeatedIds(){return this.enemies.filter(e=>e.dead).map(e=>e.id);}
+
+  async labRecord(action,extra,onSaved=()=>{}) {
+    if(this.labPending||this.labError||this.disposed)return;
+    this.labPending=true;this.clearInput();
+    try {
+      const payload=await globalThis.DaoBladeArrayLabUI.trialAction(action,{trial_id:this.labTrial.id,...extra});
+      if(this.disposed)return;
+      if(payload.state.active_trial)this.labTrial=JSON.parse(JSON.stringify(payload.state.active_trial));
+      onSaved(payload);
+    } catch(error) {
+      if(!this.disposed){this.labError=true;this.setPause(true);showToast(error.message+"；退出回阵盘重新读取后恢复",true);}
+    } finally {this.labPending=false;}
+  }
+
   updateCheckpoint() {
-    if (!this.trial || this.trial.activated || this.finished) return;
+    if(this.labPending||this.labError||this.finished)return;
+    if(this.labRun ? this.labTrial.checkpoint : !this.trial || this.trial.activated)return;
     const checkpoint = this.level.checkpoint, anchor = this.level.anchors[checkpoint.anchor_id];
     if (!checkpoint.cleared_ids.every(id => this.enemies.some(enemy => enemy.id === id && enemy.dead))) return;
     const p = this.player;
     if (!p.onGround || Math.abs(p.x - anchor.x) > 70 || Math.abs(p.y + p.h - anchor.y) > 2) return;
+    if(this.labRun){
+      void this.labRecord("checkpoint",{defeated_ids:this.defeatedIds()},()=>{
+        p.hp=this.stats.hpMax;p.qi=this.stats.qiMax;
+        showToast("剑碑已保存：原配珠冻结，失败或刷新可从此续关");
+      });return;
+    }
     this.trial.activated = true;
     p.hp = this.stats.hpMax; p.qi = this.stats.qiMax;
     this.persistCheckpoint();
@@ -1288,6 +1328,7 @@ class BattleGame {
   }
 
   canContinueCheckpoint() {
+    if(this.labRun)return Boolean(this.finished&&!this.labPending&&!this.labError&&this.lastOutcome==="defeat"&&this.labTrial?.checkpoint&&!this.disposed);
     return Boolean(this.finished && this.lastOutcome === "defeat" && !this.disposed && this.trial?.activated && !this.trial.settled);
   }
 
@@ -1306,6 +1347,7 @@ class BattleGame {
       if (await visual && !this.disposed) { activeGame = null; showPanel(this.lab ? "arraylab" : "cultivation"); }
       return;
     }
+    if(this.labRun){await this.finishLab(win,visual);return;}
     $("#continue-checkpoint").hidden = !this.canContinueCheckpoint();
     const rewards = [];
     if (win) {
@@ -1334,10 +1376,37 @@ class BattleGame {
     if (present && !this.disposed) $("#result-dialog").showModal();
   }
 
+  async finishLab(win,visual=Promise.resolve(true)) {
+    this.labPending=true;
+    try {
+      if(this.labError){await globalThis.DaoBladeArrayLabUI.load(true);this.labError=false;}
+      const payload=await globalThis.DaoBladeArrayLabUI.trialAction("settle",{trial_id:this.labTrial.id,win,defeated_ids:this.defeatedIds()});
+      if(this.disposed)return;
+      this.labTrial=payload.state.active_trial;this.labPending=false;
+      $("#result-title").textContent=win?"离火境 · 阵盘试炼成功":"阵盘试炼 · 道心未折";
+      $("#result-message").textContent=win?`胜利已保存：修为 +${payload.receipt.spirit}，仅有效出战珠成长。返回阵盘可拆换并再次挑战。`:this.labTrial?.checkpoint?"剑碑已保存，原配珠与已领祭坛保留；续关重置后段敌人。失败不发经验。":"本次失败已保存，无经验奖励。返回阵盘调整，或重新挑战。";
+      $("#reward-list").innerHTML=win?payload.receipt.xp_awards.map(a=>`<div class="reward-item"><b>${esc(payload.state.beads?.find(b=>b.id===a.id)?.name||a.id)}</b><small>经验 +${a.amount} → Lv${a.level}</small></div>`).join(""):'<div class="empty-message">未获得奖励</div>';
+    } catch(error) {
+      if(this.disposed)return;
+      this.labError=true;this.labPending=false;
+      $("#result-title").textContent="结算未确认";
+      $("#result-message").textContent=error.message+"；重新挑战按钮会先重读并重试本次结算，服务器按试炼编号去重。也可返回阵盘核对。";
+      $("#reward-list").textContent="尚未确认奖励，未在客户端发奖";
+    }
+    if(await visual&&!this.disposed){$("#continue-checkpoint").hidden=!this.canContinueCheckpoint();$("#result-dialog").showModal();}
+  }
+
+  async restartLab() {
+    if(this.labPending||this.disposed)return;
+    if(this.labError&&this.finished){await this.finishLab(this.lastOutcome==="victory");return;}
+    const ui=globalThis.DaoBladeArrayLabUI;
+    try {if(this.labError)await ui.load(true);await ui.restartTrial(this.labTrialId);}catch(error){showToast(error.message,true);}
+  }
+
   updateHud() {
     if (!this.practice) {
       const objective = globalThis.DaoBladeLevelProgress?.objective(this.realmKey, this.player.x, this.enemies);
-      if (objective) $("#objective-text").textContent = objective + (this.trial
+      if (objective) $("#objective-text").textContent = objective + (this.labRun ? (this.labTrial?.checkpoint ? " · 剑碑已保存" : " · 前段清场后前往剑碑") : this.trial
         ? this.trial.activated ? " · 剑碑已激活" : " · 前段清场后前往剑碑恢复"
         : "");
     }
@@ -1345,7 +1414,8 @@ class BattleGame {
     $("#hud-qi").textContent = `${Math.floor(this.player.qi)} / ${this.stats.qiMax}`;
     $("#hud-enemies").textContent = this.enemies.filter(enemy => !enemy.dead).length;
     $("#skill-hud").textContent = this.stats.loadout.active.map((key, index) => `${index ? "E" : "Q"} ${key ? TRIGRAMS[key].skill : "未装备"}${this.player.skillCooldowns[index] > 0 ? ` ${this.player.skillCooldowns[index].toFixed(1)}s` : ""}`).join(" · ");
-    if (this.lab) $("#skill-hud").textContent = `${this.lab.skill.enabled ? "Q " + (this.lab.skill.focus ? "聚焰" : "离火留痕") + (this.lab.skill.burst ? " · E引爆" : "") : "核心未连接 · 技能停用"} · 火痕 ${this.enemies[0].labMarks || 0}/3 · 直伤${Math.round(this.labMetrics.direct)} / 灼烧${this.labMetrics.burn} / 引爆${this.labMetrics.burst}`;
+    const markedTarget=this.enemies.filter(e=>!e.dead).sort((a,b)=>Math.abs(a.x-this.player.x)-Math.abs(b.x-this.player.x))[0];
+    if (this.lab) $("#skill-hud").textContent = `${this.lab.skill.enabled ? "Q " + (this.lab.skill.focus ? "聚焰" : "离火留痕") + (this.lab.skill.burst ? " · E引爆" : "") : "核心未连接 · 技能停用"} · Q ${this.player.skillCooldowns[0].toFixed(1)}s${this.lab.skill.burst?" / E "+this.player.skillCooldowns[1].toFixed(1)+"s":""} · 近敌火痕 ${markedTarget?.labMarks || 0}/3 · 直伤${Math.round(this.labMetrics.direct)} / 灼烧${this.labMetrics.burn} / 引爆${this.labMetrics.burst}`;
   }
 
   draw() {
@@ -1364,13 +1434,14 @@ class BattleGame {
       ctx.fillStyle = "#dfad4c"; ctx.fillRect(altar.x + 10, altar.y + 2, 8, 15);
       ctx.fillStyle = "#fff0b5"; ctx.fillRect(altar.x + 13, altar.y - 3, 2, 8);
     });
-    if (this.trial) {
+    if (this.trial||this.labRun) {
+      const activated=this.labRun?Boolean(this.labTrial?.checkpoint):this.trial.activated;
       const anchor = this.level.anchors[this.level.checkpoint.anchor_id];
-      ctx.fillStyle = this.trial.activated ? "#f4d576" : "#858991";
+      ctx.fillStyle = activated ? "#f4d576" : "#858991";
       ctx.fillRect(anchor.x + 8, anchor.y - 62, 20, 62);
       ctx.fillRect(anchor.x, anchor.y - 12, 36, 12);
       ctx.font = "14px sans-serif"; ctx.textAlign = "center";
-      ctx.fillText(this.trial.activated ? "剑碑 · 已激活" : "剑碑 · 清除前段守卫", anchor.x + 18, anchor.y - 74);
+      ctx.fillText(activated ? "剑碑 · 已激活" : "剑碑 · 清除前段守卫", anchor.x + 18, anchor.y - 74);
       ctx.textAlign = "left";
     }
     this.enemies.forEach(enemy => { if (!enemy.dead) this.drawEnemy(ctx, enemy); });
@@ -1627,7 +1698,7 @@ function bindUi() {
   $("#practice-run").addEventListener("click", () => startRealm("fire", { practice: true, state: previewSocketState() }));
   $("#pause-run").addEventListener("click", () => activeGame?.setPause(!activeGame.pause));
   $("#resume-run").addEventListener("click", () => activeGame?.setPause(false));
-  $("#retry-run").addEventListener("click", () => { if (activeGame) startRealm(activeGame.realmKey, { practice: activeGame.practice, labCompiled: activeGame.lab, state: activeGame.practice ? previewSocketState() : saveData }); });
+  $("#retry-run").addEventListener("click", () => { if(activeGame?.labRun){void activeGame.restartLab();return;} if (activeGame) startRealm(activeGame.realmKey, { practice: activeGame.practice, labCompiled: activeGame.lab, state: activeGame.practice ? previewSocketState() : saveData }); });
   $("#quit-run").addEventListener("click", () => activeGame?.quit());
   $("#leave-run").addEventListener("click", () => activeGame?.quit());
   $("#settings-run").addEventListener("click", () => { renderControls(); $("#settings-dialog").showModal(); });
@@ -1647,11 +1718,12 @@ function bindUi() {
   $("#reset-controls").addEventListener("click", () => { controls = { ...DEFAULT_CONTROLS }; localStorage.setItem("daoblade-controls", JSON.stringify(controls)); renderControls(); });
   $("#return-sanctuary").addEventListener("click", event => {
     event.preventDefault(); $("#result-dialog").close();
-    activeGame?.destroy(); activeGame = null; showPanel("sanctuary");
+    const target=activeGame?.labRun?"arraylab":"sanctuary"; activeGame?.destroy(); activeGame = null; showPanel(target);
   });
   $("#continue-checkpoint").addEventListener("click", continueCheckpoint);
   $("#retry-result").addEventListener("click", event => {
     event.preventDefault(); $("#result-dialog").close();
+    if(activeGame?.labRun){void activeGame.restartLab();return;}
     if (activeGame) startRealm(activeGame.realmKey);
   });
   renderControls();
