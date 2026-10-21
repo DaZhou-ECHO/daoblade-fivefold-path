@@ -1,0 +1,173 @@
+{
+  "ruleset_id": "array-lab-v1",
+  "schema_version": 1,
+  "rules_version": 1,
+  "capacity": 3,
+  "stage": 1,
+  "palaces": [
+    {
+      "id": "xun",
+      "name": "巽",
+      "element": "wood",
+      "direction": "东南",
+      "symbol": "☴"
+    },
+    {
+      "id": "li",
+      "name": "离",
+      "element": "fire",
+      "direction": "南",
+      "symbol": "☲"
+    },
+    {
+      "id": "kun",
+      "name": "坤",
+      "element": "earth",
+      "direction": "西南",
+      "symbol": "☷"
+    },
+    {
+      "id": "zhen",
+      "name": "震",
+      "element": "wood",
+      "direction": "东",
+      "symbol": "☳"
+    },
+    {
+      "id": "dui",
+      "name": "兑",
+      "element": "metal",
+      "direction": "西",
+      "symbol": "☱"
+    },
+    {
+      "id": "gen",
+      "name": "艮",
+      "element": "earth",
+      "direction": "东北",
+      "symbol": "☶"
+    },
+    {
+      "id": "kan",
+      "name": "坎",
+      "element": "water",
+      "direction": "北",
+      "symbol": "☵"
+    },
+    {
+      "id": "qian",
+      "name": "乾",
+      "element": "metal",
+      "direction": "西北",
+      "symbol": "☰"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "li.core",
+      "label": "离火核心",
+      "role": "core",
+      "parent": null,
+      "min_stage": 1
+    },
+    {
+      "id": "li.mark",
+      "label": "留痕纹路",
+      "role": "mark",
+      "parent": "li.core",
+      "min_stage": 1
+    },
+    {
+      "id": "li.focus",
+      "label": "聚焰分支",
+      "role": "focus",
+      "parent": "li.mark",
+      "min_stage": 1
+    },
+    {
+      "id": "li.burst",
+      "label": "引爆分支",
+      "role": "burst",
+      "parent": "li.mark",
+      "min_stage": 1
+    },
+    {
+      "id": "li.cycle",
+      "label": "回火分支",
+      "role": "cycle",
+      "parent": "li.mark",
+      "min_stage": 2
+    }
+  ],
+  "exclusive": [
+    [
+      "li.focus",
+      "li.burst",
+      "li.cycle"
+    ]
+  ],
+  "beads": [
+    {
+      "id": "lab-core",
+      "name": "离火·核心珠",
+      "element": "fire",
+      "role": "core",
+      "level": 1,
+      "xp": 0
+    },
+    {
+      "id": "lab-mark",
+      "name": "留痕·纹路珠",
+      "element": "fire",
+      "role": "mark",
+      "level": 1,
+      "xp": 0
+    },
+    {
+      "id": "lab-focus",
+      "name": "聚焰·分支珠",
+      "element": "fire",
+      "role": "focus",
+      "level": 1,
+      "xp": 0
+    },
+    {
+      "id": "lab-burst",
+      "name": "引爆·分支珠",
+      "element": "fire",
+      "role": "burst",
+      "level": 1,
+      "xp": 0
+    },
+    {
+      "id": "lab-cycle",
+      "name": "回火·分支珠",
+      "element": "fire",
+      "role": "cycle",
+      "level": 1,
+      "xp": 0
+    },
+    {
+      "id": "lab-water",
+      "name": "水行·不适配样本",
+      "element": "water",
+      "role": "core",
+      "level": 1,
+      "xp": 0
+    }
+  ],
+  "skill": {
+    "damage": 12,
+    "range": 180,
+    "qi": 12,
+    "cooldown": 1.2,
+    "max_marks": 3,
+    "focus_range": 110,
+    "focus_damage": 16,
+    "burn_seconds": 3,
+    "burn_damage": 4,
+    "burst_per_mark": 14,
+    "burst_qi": 24,
+    "burst_cooldown": 6
+  }
+}

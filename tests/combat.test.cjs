@@ -511,3 +511,37 @@ test("014 续关保持构筑和祭坛，前三敌不复活，后段敌人重置�
   assert.equal(new api.BattleGame("fire",{practice:true}).trial,null);
   assert.equal(new api.BattleGame("wood").trial,null);
 });
+
+function labConfiguration(roles) {
+  const config=require("../static/data/rules/array-lab-v1.json");
+  const rules=require("../static/js/array-lab-rules.js").createRuntime(config);
+  const state={ruleset_id:config.ruleset_id,schema_version:1,rules_version:1,stage:1,beads:structuredClone(config.beads),nodes:Object.fromEntries(config.nodes.map(n=>[n.id,null]))};
+  for(const role of roles)state.nodes["li."+role]="lab-"+role;
+  return rules.compile(state);
+}
+
+test("016 聚焰与引爆真实伤害链不同，不把试验珠叠到基础面板", () => {
+  const api=gameContext(),focus=new api.BattleGame("fire",{practice:true,labCompiled:labConfiguration(["core","mark","focus"])});
+  const target=focus.enemies[0],hp=target.hp;
+  assert.equal(focus.stats.primary,null);assert.equal(focus.stats.attack,new api.BattleGame("fire",{practice:true}).stats.attack);
+  focus.daoSkill(0);assert.equal(target.hp,hp-16);
+  for(let i=0;i<3;i++)focus.updateEnemies(1);
+  assert.equal(focus.labMetrics.direct,16);assert.equal(focus.labMetrics.burn,12);assert.equal(target.labMarks,1);
+  const burst=new api.BattleGame("fire",{practice:true,labCompiled:labConfiguration(["core","mark","burst"])}),other=burst.enemies[0],before=other.hp;
+  for(let i=0;i<4;i++){burst.player.skillCooldowns[0]=0;burst.player.qiCast=0;burst.daoSkill(0);}
+  assert.equal(other.labMarks,3);assert.equal(other.hp,before-48);
+  burst.player.qiCast=0;burst.daoSkill(1);assert.equal(other.hp,before-90);assert.equal(other.labMarks,0);
+  const qi=burst.player.qi;burst.player.qiCast=0;burst.player.skillCooldowns[1]=0;burst.daoSkill(1);assert.equal(burst.player.qi,qi);
+  assert.ok(burst.events.recent.some(event=>event.action_id==="lab_burst"&&event.element==="fire"));
+});
+
+test("016 拆核心停技、远距/背后不命中，试验不改旧档与奖励", () => {
+  const api=gameContext(),progress=JSON.stringify(api.getProgress());
+  const disabled=new api.BattleGame("fire",{practice:true,labCompiled:labConfiguration(["mark","burst"])});
+  const qi=disabled.player.qi,hp=disabled.enemies[0].hp;disabled.daoSkill(0);disabled.daoSkill(1);
+  assert.equal(disabled.player.qi,qi);assert.equal(disabled.enemies[0].hp,hp);
+  const focus=new api.BattleGame("fire",{practice:true,labCompiled:labConfiguration(["core","mark","focus"])});
+  focus.player.face=-1;focus.daoSkill(0);assert.equal(focus.enemies[0].hp,hp);
+  focus.player.face=1;focus.player.qiCast=0;focus.player.skillCooldowns[0]=0;focus.player.x=120;focus.daoSkill(0);assert.equal(focus.enemies[0].hp,hp);
+  focus.start();focus.quit();assert.equal(JSON.stringify(api.getProgress()),progress);
+});

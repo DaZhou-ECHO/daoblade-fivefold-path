@@ -15,6 +15,8 @@ from database import init_app as init_database
 from database import get_db, load_state_record, save_state
 from game_rules import default_state, validate_state
 from shared_rules import get_ruleset, rules_metadata
+from array_lab import CONFIG as LAB_CONFIG, default_lab_state, validate_lab_state, compile_lab
+from database import load_lab_record, save_lab_state
 
 
 def create_app(test_config: dict | None = None) -> Flask:
@@ -177,6 +179,31 @@ def create_app(test_config: dict | None = None) -> Flask:
         except ValueError as exc:
             return jsonify(error=str(exc)), 409
         return jsonify(ok=True, state=state, revision=revision, contract=rules_metadata())
+
+    @app.get("/api/lab/state")
+    def get_lab_state():
+        user = current_user()
+        record = load_lab_record(save_slot(user))
+        state = record["state"] if record else default_lab_state()
+        return jsonify(state=state, revision=record["revision"] if record else 0,
+                       config=LAB_CONFIG, compiled=compile_lab(state), owner_id=user["id"] if user else None)
+
+    @app.post("/api/lab/state")
+    def put_lab_state():
+        user = current_user()
+        if not csrf_ok(user):
+            return jsonify(error="会话校验失败"), 403
+        payload = request.get_json(silent=True)
+        if not isinstance(payload, dict) or type(payload.get("revision")) is not int or payload["revision"] < 0:
+            return jsonify(error="缺少有效的试验档版本号"), 400
+        if "owner_id" not in payload or type(payload["owner_id"]) is not type(user["id"] if user else None) or payload["owner_id"] != (user["id"] if user else None):
+            return jsonify(error="账号已变化，请重新读取试验档"), 409
+        try:
+            state = validate_lab_state(payload.get("state"))
+            revision = save_lab_state(state, save_slot(user), payload["revision"])
+        except ValueError as exc:
+            return jsonify(error=str(exc)), 409 if "其他窗口" in str(exc) else 400
+        return jsonify(state=state, revision=revision, compiled=compile_lab(state))
 
     @app.get("/api/health")
     def health():

@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>本命剑：八荒五行</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/game.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/array-lab.css') }}">
 </head>
 <body>
   <div class="ink-cloud cloud-a"></div>
@@ -27,6 +28,7 @@
     <button class="nav-button" data-panel="realms">五行秘境</button>
     <button class="nav-button" data-panel="inventory">灵珠匣 <span id="inventory-count">0</span></button>
     <button class="nav-button" data-panel="cultivation">八卦修行</button>
+    <button class="nav-button" data-panel="arraylab">阵盘试验</button>
     <button class="nav-button" data-panel="manual">剑诀</button>
   </nav>
 
@@ -71,6 +73,14 @@
       <div class="touch-controls" aria-label="触屏操作"><div><button data-touch="left">◀</button><button data-touch="right">▶</button><button data-touch="jump">跃</button><button data-touch="dash">闪</button></div><div><button data-touch="slash">斩</button><button data-touch="block">御</button><button data-touch="qi">气</button><button data-touch="dao">一</button><button data-touch="dao2">二</button></div></div>
     </section>
 
+    <section id="panel-arraylab" class="panel lab-panel">
+      <div class="lab-heading"><div><p class="eyebrow">独立试验档 · ARRAY LAB 01</p><h2>离火试阵</h2><p>同一颗珠，可拆、可换。连接核心，让组合成为招式。</p></div><span class="lab-seal">离 ☲<small>南 · 火</small></span></div>
+      <p class="lab-notice">试验阶段一 · 全局容量3珠。仅开放离宫；节点、容量与倍率仍在试验。样本珠不计战利品、不发经验，不改动旧永久档。</p>
+      <div class="lab-layout"><div><div id="lab-palaces" class="lab-palaces" aria-label="后天八卦阵盘，上南下北左东右西"></div><div class="lab-route-heading"><h3>离宫纹路</h3><span id="lab-capacity"></span></div><div id="lab-nodes" class="lab-nodes" aria-label="离宫连接图"></div></div>
+      <aside class="lab-aside"><p class="eyebrow">节点装配</p><h3 id="lab-node-title">读取试验档</h3><p id="lab-node-description"></p><label for="lab-bead">选择试验珠</label><select id="lab-bead"></select><div class="dialog-actions"><button id="lab-equip" class="pixel-button">装入所选珠</button><button id="lab-detach" class="pixel-button">拆下此珠</button></div><p id="lab-error" role="alert"></p><div id="lab-compiled" class="lab-compiled"></div></aside></div>
+      <div class="lab-bottom"><div><h3>同数量，两条路</h3><div class="dialog-actions"><button id="lab-focus-preset" class="pixel-button">聚焰方案 · 3珠</button><button id="lab-burst-preset" class="pixel-button">引爆方案 · 3珠</button></div><p>拆下核心只会断开连线；珠子身份、等级与经验保持。基础劈砍、格挡和剑气为中性。</p></div><div class="lab-save"><p id="lab-save-status" role="status">尚未读取</p><button id="lab-save" class="pixel-button primary">保存试验配置</button><button id="lab-reload" class="pixel-button">重新读取（覆盖草稿）</button><button id="lab-practice" class="pixel-button" disabled>按已保存配置试招</button></div></div>
+    </section>
+
     <section id="panel-inventory" class="panel">
       <div class="section-heading"><div><p class="eyebrow">战利品</p><h2>灵珠匣</h2></div><p>灵珠可暂存在这里。选中灵珠后前往八卦修行图，确认镶嵌后将无法取下。</p></div>
       <div class="inventory-layout"><div id="bead-list" class="bead-list"></div><aside id="bead-detail" class="bead-detail empty">选择一颗灵珠查看词条</aside></div>
@@ -112,9 +122,11 @@
   <script src="{{ url_for('static', filename='js/level-definitions.js') }}"></script>
   <script src="{{ url_for('static', filename='js/level-progress.js') }}"></script>
   <script src="{{ url_for('static', filename='js/trial-state.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/array-lab-rules.js') }}"></script>
   <script src="{{ url_for('static', filename='js/character-art.js') }}"></script>
   <script>globalThis.DaoBladeRuleset = {{ ruleset | tojson }};</script>
   <script src="{{ url_for('static', filename='js/rules.js') }}"></script>
   <script src="{{ url_for('static', filename='js/game.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/array-lab-ui.js') }}"></script>
 </body>
 </html>

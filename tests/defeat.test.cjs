@@ -268,3 +268,13 @@ test("015 失败后返回洞府保留剑碑，明确放弃或重开才清除", a
   h.api.restoreCheckpoint();assert.equal(h.api.active().trial.id,h.game.trial.id);
   h.api.active().quit();assert.equal(h.api.state().active_trial,null);
 });
+
+test("016 暂停重新挑战保持试验快照，退出返回阵盘且不增加旧档runs", () => {
+  const h=harness();h.api.bindUi();
+  const compiled={skill:Object.freeze({enabled:false,burst:false})};
+  const game=new h.api.BattleGame("fire",{practice:true,labCompiled:compiled});h.api.setActive(game);
+  h.nodes.get("#retry-run").handlers.click();
+  const restarted=h.api.active();assert.equal(restarted.lab,compiled);assert.equal(restarted.snapshot.ruleset_id,"array-lab-v1");
+  assert.equal(game.disposed,true);assert.equal(h.api.state().progress.runs,0);
+  restarted.quit();assert.equal(h.calls.panels.at(-1),"arraylab");
+});
