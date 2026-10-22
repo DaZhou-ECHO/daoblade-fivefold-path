@@ -125,7 +125,7 @@ def create_app(test_config: dict | None = None) -> Flask:
 
     @app.get("/")
     def index():
-        return render_template("index.html", ruleset=get_ruleset())
+        return render_template("index.html", ruleset=get_ruleset(), journey_maps=journey.MAPS_V2)
 
     @app.get("/api/rules")
     def get_rules():
@@ -231,7 +231,10 @@ def create_app(test_config: dict | None = None) -> Flask:
     def get_journey():
         user = current_user()
         state, revision = journey.read_journey(save_slot(user))
-        return jsonify(**journey.response(state, revision), config=journey.CONFIG, owner_id=user["id"] if user else None)
+        try:
+            return jsonify(**journey.response(state, revision), config=journey.CONFIG, owner_id=user["id"] if user else None)
+        except ValueError as exc:
+            return jsonify(error=str(exc)), 400
 
     @app.post("/api/journey")
     def journey_action():

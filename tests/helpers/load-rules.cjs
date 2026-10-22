@@ -4,6 +4,8 @@ const vm = require("node:vm");
 
 // 与页面一致，在同一JS realm中先加载共享规则，再运行游戏。
 module.exports = function loadRules(context) {
+  context.DaoBladeJourneyMaps = JSON.parse(fs.readFileSync(path.join(__dirname,"../../static/data/journey-maps-v2.json"),"utf8"));
+  vm.runInContext(fs.readFileSync(path.join(__dirname,"../../static/js/combat-controller.js"),"utf8"),context);
   const config = require("../../static/data/rules/legacy-v1.json");
   vm.runInContext(`globalThis.DaoBladeRuleset = ${JSON.stringify(config)};`, context);
   vm.runInContext(fs.readFileSync(path.join(__dirname, "../../static/js/rules.js"), "utf8"), context);

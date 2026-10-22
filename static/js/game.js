@@ -6,6 +6,7 @@ const { elements: ELEMENTS, trigrams: TRIGRAMS, affixes: AFFIXES, qualities: QUA
 const LEVELS = globalThis.DaoBladeLevels;
 const REALMS = LEVELS.realms;
 const TRIALS = globalThis.DaoBladeTrialState;
+const CONTROLLER = globalThis.DaoBladeController;
 
 const DEFAULT_STATE = () => RULES.defaultState();
 
@@ -21,11 +22,11 @@ let keepSocketPreview = false;
 let activeGame = null;
 let toastTimer = 0;
 let pendingRebindListener = null;
-const DEFAULT_CONTROLS = Object.freeze({ left: "KeyA", right: "KeyD", jump: "Space", slash: "KeyJ", block: "KeyK", qi: "KeyL", dao: "KeyQ", dao2: "KeyE", dash: "ShiftLeft", pause: "Escape" });
+const DEFAULT_CONTROLS = Object.freeze({ left: "KeyA", right: "KeyD", down: "KeyS", interact: "KeyF", jump: "Space", slash: "KeyJ", block: "KeyK", qi: "KeyL", dao: "KeyQ", dao2: "KeyE", dash: "ShiftLeft", pause: "Escape" });
 let controls = loadControls();
 let feedback = loadFeedback();
 let battleAudio = null;
-const ACTION_LABELS = { left: "左移", right: "右移", jump: "跳跃", slash: "劈砍", block: "格挡", qi: "剑气", dao: "技能一", dao2: "技能二", dash: "闪避", pause: "暂停" };
+const ACTION_LABELS = { left: "左移", right: "右移", down: "下落", interact: "交互/离境", jump: "跳跃", slash: "劈砍", block: "格挡", qi: "剑气", dao: "技能一", dao2: "技能二", dash: "闪避", pause: "暂停" };
 
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
@@ -37,7 +38,7 @@ const elementColor = key => key ? ELEMENTS[key].color : "#dce8ee";
 function loadControls() {
   try {
     const saved = JSON.parse(localStorage.getItem("daoblade-controls") || "null");
-    if (saved && Object.keys(DEFAULT_CONTROLS).filter(key => key !== "dao2").every(key => typeof saved[key] === "string" && saved[key])) return { ...DEFAULT_CONTROLS, ...saved };
+    if (saved && Object.keys(DEFAULT_CONTROLS).filter(key => !["dao2","down","interact"].includes(key)).every(key => typeof saved[key] === "string" && saved[key])) return { ...DEFAULT_CONTROLS, ...saved };
   } catch (_) { /* 损坏的本地设置使用默认按键。 */ }
   return { ...DEFAULT_CONTROLS };
 }
@@ -543,9 +544,15 @@ class BattleGame {
     this.labMetrics = { direct: 0, burn: 0, burst: 0 };
     this.skillInput=null; this.guardInput=0;
     this.journey=Boolean(this.lab?.campaign);
+    this.combatVersion=this.journey?(this.labTrial?.combat_version??1):1;
+    if(![1,2].includes(this.combatVersion))throw new Error("未知战斗版本，请保留存档");
+    if(this.journey&&(this.labTrial.map_version??1)!==this.combatVersion)throw new Error("地图/战斗版本不匹配，请保留存档");
+    this.combatV2=this.combatVersion===2;
+    this.intents={};this.lastActionResult=null;this.regenDelay=0;this.guardNotice="";
+    this.openedShortcuts=new Set(this.labTrial?.opened_shortcuts||[]);
     this.breakthrough=this.journey&&Boolean(this.labTrial?.breakthrough);
     this.runUI=this.journey?globalThis.DaoBladeJourneyUI:globalThis.DaoBladeArrayLabUI;
-    this.level = this.journey ? LEVELS.getJourneyDefinition(realmKey,this.labTrial.map_id) : LEVELS.getDefinition(realmKey);
+    this.level = this.journey ? LEVELS.getJourneyDefinition(realmKey,this.labTrial.map_id,this.breakthrough?1:this.labTrial.map_version??1) : LEVELS.getDefinition(realmKey);
     this.checkpoint=this.labRun ? this.level.checkpoint||this.level.lab_checkpoint : this.level.checkpoint;
     if(this.labRun && (!this.checkpoint || this.labTrial.realm_id!==realmKey))throw new Error("试炼秘境与地图不匹配");
     this.realm = REALMS[realmKey];
@@ -601,6 +608,7 @@ class BattleGame {
       return { id: altar.id, x: anchor.x, y: anchor.y - 28, taken: this.labRun ? this.labTrial.claimed_altars.includes(altar.id) : this.trial?.claimedAltars.has(altar.id) || false };
     });
     this.hazards = this.practice ? [] : this.level.hazards.map(hazard => ({ ...hazard }));
+    if(this.level.version===2)this.syncShortcuts();
     this.hazardTimer = 0;
     this.enemyZones = [];
     this.enemies = this.bossPractice ? this.makeEnemies().filter(e => e.kind === "boss") : this.practice ? [this.enemy("dummy", "试剑木桩", 620, 99999, "dummy")] : this.makeEnemies();
@@ -620,9 +628,35 @@ class BattleGame {
     this.boundPointerEnd = event => this.endTouchPointer(event.pointerId);
   }
 
+  syncShortcuts() {
+    const ids=new Set(this.platforms.map(p=>p.id));
+    for(const s of this.level.shortcuts||[])if(this.openedShortcuts.has(s.id)&&!ids.has(s.platform.id))this.platforms.push({...s.platform});
+  }
+
+  canExit() {
+    return this.level.version===2&&!this.breakthrough&&this.level.required_ids.every(id=>this.enemies.some(e=>e.id===id&&e.dead));
+  }
+
+  interactWorld() {
+    if(this.level.version!==2||this.breakthrough||this.finished||this.disposed||this.pause||this.labPending||this.labError)return;
+    const p=this.player;
+    if(p.hurt>0||p.dash>0||p.slash>0||p.qiCast>0||!p.onGround)return;
+    const shortcut=this.level.shortcuts.find(s=>!this.openedShortcuts.has(s.id)&&Math.abs(p.x-s.x)<75&&Math.abs(p.y+p.h-s.y)<45);
+    if(shortcut){
+      void this.labRecord("shortcut",{shortcut_id:shortcut.id},()=>{
+        this.openedShortcuts.add(shortcut.id);this.syncShortcuts();
+        showToast("捷径已开启并保存 · 可沿栈桥返回主路");
+      });return;
+    }
+    if(Math.abs(p.x-this.level.exit.x)<90&&Math.abs(p.y+p.h-this.level.exit.y)<20){
+      if(this.canExit())void this.finish(true);
+      else showToast("出口未开放：先完成主路关键遭遇与首领",true);
+    }
+  }
+
   makePlayer() {
     const spawn = this.level.anchors.spawn;
-    return { x: spawn.x, y: spawn.y - 70, w: 38, h: 70, vx: 0, vy: 0, face: 1, onGround: true, hp: this.stats.hpMax, qi: this.stats.qiMax, invuln: 0, slash: 0, slashDuration: .28, slashCooldown: 0, qiCast: 0, qiCooldown: 0, skillCooldowns: [0, 0], attackId: 0, combo: 0, lastSlashAt: -10, blocking: false, guardRecovery: false, blockStarted: -10, parryArmed: 0, parryLock: 0, counterWindow: 0, counterAttack: false, blockFlash: 0, dash: 0, dashCooldown: 0, dashDirection: 1, jumpCount: 0, jumpBuffer: 0, coyote: .1, queuedSlash: 0, hurt: 0, shield: 0, shieldTime: 0, flameBuff: 0, healCooldown: 0, animTime: 0 };
+    return { combatVersion:this.combatVersion,guardBreak:0, x: spawn.x, y: spawn.y - 70, w: 38, h: 70, vx: 0, vy: 0, face: 1, onGround: true, hp: this.stats.hpMax, qi: this.stats.qiMax, invuln: 0, slash: 0, slashDuration: .28, slashCooldown: 0, qiCast: 0, qiCooldown: 0, skillCooldowns: [0, 0], attackId: 0, combo: 0, lastSlashAt: -10, blocking: false, guardRecovery: false, blockStarted: -10, parryArmed: 0, parryLock: 0, counterWindow: 0, counterAttack: false, blockFlash: 0, dash: 0, dashCooldown: 0, dashDirection: 1, jumpCount: 0, jumpBuffer: 0, coyote: .1, queuedSlash: 0, hurt: 0, shield: 0, shieldTime: 0, flameBuff: 0, healCooldown: 0, animTime: 0 };
   }
 
   makeEnemies() {
@@ -632,6 +666,8 @@ class BattleGame {
       const enemy = this.enemy(spec.kind, name, anchor.x, spec.hp, spec.variant);
       enemy.y = anchor.y - enemy.h;
       enemy.spawn_anchor = spec.anchor_id;
+      enemy.leash=spec.leash;enemy.optional=Boolean(spec.optional);
+      enemy.homeX=anchor.x;enemy.homeY=anchor.y;
       return enemy;
     });
   }
@@ -703,6 +739,7 @@ class BattleGame {
   }
 
   clearInput() {
+    this.intents={};
     this.skillInput=null; this.guardInput=0;
     const pointers = [...this.touchPointers];
     this.touchPointers.clear(); this.keyboardKeys.clear(); this.keys.clear();
@@ -721,6 +758,7 @@ class BattleGame {
     this.touchPointers.delete(id);
     const { action, button } = pointer;
     if (!this.keyboardKeys.has(action) && ![...this.touchPointers.values()].some(item => item.action === action)) this.keys.delete(action);
+    if (this.combatV2 && action === "jump" && !this.keys.has("jump")) CONTROLLER.releaseJump(this.player);
     if (action === "block" && !this.keys.has("block")) { this.player.blocking = false; this.player.guardRecovery = false; this.guardInput = 0; }
     this.releaseTouchCapture(button, id);
   }
@@ -753,11 +791,18 @@ class BattleGame {
       this.keyboardKeys.delete(action);
       if (![...this.touchPointers.values()].some(pointer => pointer.action === action)) this.keys.delete(action);
     }
+    if (this.combatV2 && action === "jump" && !this.keys.has("jump")) CONTROLLER.releaseJump(this.player);
     if (action === "block" && !this.keys.has("block")) { this.player.blocking = false; this.player.guardRecovery = false; this.guardInput = 0; }
   }
 
   performAction(action) {
     if (this.disposed || this.finished || this.pause || this.labPending || this.labError) return;
+    if(this.combatV2){
+      if(action==="interact"){this.interactWorld();return;}
+      if(action==="jump"&&this.keys.has("down")&&CONTROLLER.drop(this.player,this.platforms))return;
+      this.lastActionResult=CONTROLLER.enqueue(this,action);
+      return;
+    }
     if(["slash","qi","block","dash"].includes(action))this.skillInput=null;
     if(["slash","qi","dao","dao2","dash"].includes(action)){this.player.guardRecovery=false;this.guardInput=0;}
     if (action === "jump") this.jump();
@@ -794,8 +839,9 @@ class BattleGame {
   tryJump() {
     const p = this.player;
     const first = p.onGround || p.coyote > 0;
-    if (!p.jumpBuffer || p.dash > 0 || p.hurt > 0 || (!first && (this.stats.mastery.xun < 1 || p.jumpCount >= 2))) return;
-    p.vy = -500; p.onGround = false; p.coyote = 0; p.jumpCount = first ? 1 : p.jumpCount + 1; p.jumpBuffer = 0;
+    if (!p.jumpBuffer || p.dash > 0 || p.hurt > 0 || (p.guardBreak||0)>0 || (!first && (this.stats.mastery.xun < 1 || p.jumpCount >= 2))) return;
+    p.vy = -(this.combatV2?CONTROLLER.config.jumpSpeed:500); p.onGround = false; p.coyote = 0; p.jumpCount = first ? 1 : p.jumpCount + 1; p.jumpBuffer = 0;
+    if(this.combatV2&&p.jumpReleased)CONTROLLER.releaseJump(p);
     this.burst(p.x + 16, p.y + p.h, "#dbe8ed", 7);
   }
 
@@ -808,14 +854,18 @@ class BattleGame {
 
   beginSlash() {
     const p = this.player;
+    if(this.combatV2){
+      const direction=Number(this.keys.has("right"))-Number(this.keys.has("left"));
+      if(direction)p.face=direction;
+    }
     p.blocking = false; p.parryArmed = 0;
     p.counterAttack = p.counterWindow > 0;
     p.counterWindow = 0;
     p.combo = this.elapsed - p.lastSlashAt < .68 ? p.combo % 3 + 1 : 1;
     p.lastSlashAt = this.elapsed;
-    p.slashDuration = p.combo === 3 ? .36 : .28;
+    p.slashDuration = this.combatV2?CONTROLLER.config.slash[p.combo-1].duration:p.combo === 3 ? .36 : .28;
     p.slash = p.slashDuration;
-    p.slashCooldown = (p.combo === 3 ? .47 : .32) * this.stats.cooldown;
+    p.slashCooldown = (this.combatV2?CONTROLLER.config.slash[p.combo-1].cooldown:p.combo === 3 ? .47 : .32) * this.stats.cooldown;
     p.queuedSlash = 0;
     p.attackId += 1;
     this.emitBattleEvent("slash_started", { action_id: "slash", attack_id: p.attackId, combo: p.combo, phase: "windup" });
@@ -825,6 +875,7 @@ class BattleGame {
 
   blockInputBlocked() {
     const p = this.player;
+    if(this.combatV2)return CONTROLLER.permit(p,"block").status!=="accepted";
     return p.dash > 0 || p.hurt > 0 || p.qiCast > 0 || p.slash > .12 || (p.slash > 0 && p.combo === 3);
   }
 
@@ -849,6 +900,7 @@ class BattleGame {
 
   dash() {
     const p = this.player;
+    if(this.combatV2&&CONTROLLER.permit(p,"dash").status!=="accepted")return;
     if (p.dashCooldown > 0 || p.dash > 0 || p.hurt > 0 || p.qiCast > 0 || (p.slash > 0 && (p.combo === 3 || p.slash > .12))) return;
     p.blocking = false; p.parryArmed = 0; p.slash = 0; p.queuedSlash = 0;
     p.dash = .2; p.dashCooldown = .88; p.dashDirection = (this.keys.has("right") ? 1 : 0) - (this.keys.has("left") ? 1 : 0) || p.face;
@@ -862,7 +914,7 @@ class BattleGame {
     p.qi -= 20; p.qiCooldown = .65 * this.stats.cooldown;
     p.skillPose = null;
     const damage = this.stats.attack * (.72 + this.stats.mastery.qian * .12) * (1 + (this.stats.affixes.qiPower || 0) / 100);
-    p.qiCast = .25;
+    p.qiCast = .25; p.castDuration=.25;
     p.vx -= p.face * 35;
     this.projectiles.push({ type: "swordQi", owner: "player", x: p.x + (p.face > 0 ? p.w : -38), y: p.y + 24, vx: p.face * (this.stats.primary === "earth" ? 430 : 640), vy: 0, w: this.stats.primary === "earth" ? 58 : 48, h: this.stats.primary === "earth" ? 26 : 20, damage, life: 1.8, maxLife: 1.8, pierce: (this.stats.primary === "metal" ? 2 : 0) + (this.stats.secondary === "metal" ? 1 : 0) + (this.stats.mastery.qian >= 1 ? 1 : 0), hitIds: new Set(), color: elementColor(this.stats.primary) });
     this.burst(p.x + p.w / 2 + p.face * 32, p.y + 33, "#dff6ff", 12);
@@ -870,6 +922,7 @@ class BattleGame {
 
   skillInputBlocked(slot) {
     const p=this.player;
+    if(this.combatV2)return CONTROLLER.permit(p,"dao").status!=="accepted"||p.skillCooldowns[slot]>0;
     return p.slash>0||p.hurt>0||p.qiCast>0||p.dash>0||p.skillCooldowns[slot]>0;
   }
 
@@ -898,9 +951,13 @@ class BattleGame {
     const skill=this.lab.skills[slot],p=this.player;
     if(!skill)return showToast("此出战宫未连接核心，技能停用",true);
     if(this.pause||this.finished||this.disposed||this.labPending||this.labError||this.skillInputBlocked(slot)||p.blocking||p.qi<skill.cost)return;
-    p.qi-=skill.cost;p.skillCooldowns[slot]=skill.cooldown*(this.lab.minds.includes("kan")?(.95-.05*this.journeyMindLevel("kan")):1);p.qiCast=.22;p.skillPose=skill.id;
+    p.qi-=skill.cost;p.skillCooldowns[slot]=skill.cooldown*(this.lab.minds.includes("kan")?(.95-.05*this.journeyMindLevel("kan")):1);p.qiCast=.22;p.castDuration=.22;p.skillPose=skill.id;
     const before=p.x,center=p.x+p.w/2;
-    if(skill.id==="xun"){p.x=clamp(p.x+p.face*180,0,this.worldWidth-p.w);p.invuln=Math.max(p.invuln,.2);}
+    if(skill.id==="xun"){
+      if(this.combatV2){const vx=p.vx;p.vx=p.face*180/.008;CONTROLLER.physics(p,this.platforms,.008,this.worldWidth);p.vx=vx;}
+      else p.x=clamp(p.x+p.face*180,0,this.worldWidth-p.w);
+      p.invuln=Math.max(p.invuln,.2);
+    }
     const targets=this.enemies.filter(e=>{
       if(e.dead||Math.abs(e.y+e.h/2-p.y-p.h/2)>105)return false;
       const dx=e.x+e.w/2-center;
@@ -1055,6 +1112,13 @@ class BattleGame {
   }
 
   update(dt) {
+    // New runs use bounded 120 Hz policy/physics slices, including direct test calls.
+    if(this.combatV2&&dt>1/120+1e-9){
+      let left=dt;while(left>1e-9&&!this.finished&&!this.pause&&!this.labPending&&!this.labError){
+        const step=Math.min(left,1/120);this.update(step);left-=step;
+      }return;
+    }
+    if(this.pause||this.disposed)return;
     if(this.labPending||this.labError)return;
     if (this.finished) return;
     const p = this.player;
@@ -1072,27 +1136,35 @@ class BattleGame {
       p.guardRecovery = false;
       if (this.keys.has("block") && p.slash <= 0 && p.dash <= 0 && p.qiCast <= 0) { p.blocking = true; p.parryArmed = 0; }
     }
-    this.flushGuardInput();
+    if(this.combatV2){
+      p.guardBreak=Math.max(0,(p.guardBreak||0)-dt);
+      this.regenDelay=Math.max(0,this.regenDelay-dt);
+      CONTROLLER.consume(this,dt);
+    }else this.flushGuardInput();
     p.shieldTime = Math.max(0, p.shieldTime - dt); if (!p.shieldTime) { p.shield = 0; p.skillShieldCounter = false; }
     p.flameBuff = Math.max(0, p.flameBuff - dt); p.healCooldown = Math.max(0, p.healCooldown - dt);
     p.slowTime = Math.max(0, (p.slowTime || 0) - dt);
-    if (p.queuedSlash > 0 && p.slashCooldown <= 0 && p.slash <= 0 && p.dash <= 0 && p.hurt <= 0 && p.qiCast <= 0) this.beginSlash();
-    p.qi = Math.min(this.stats.qiMax, p.qi + this.stats.qiRegen * dt);
+    if (!this.combatV2 && p.queuedSlash > 0 && p.slashCooldown <= 0 && p.slash <= 0 && p.dash <= 0 && p.hurt <= 0 && p.qiCast <= 0) this.beginSlash();
+    if(this.combatV2&&p.blocking)this.regenDelay=CONTROLLER.config.regenDelay;
+    if(!this.combatV2||(!p.blocking&&this.regenDelay<=0))
+      p.qi = Math.min(this.stats.qiMax, p.qi + this.stats.qiRegen * dt);
     const move = (this.keys.has("right") ? 1 : 0) - (this.keys.has("left") ? 1 : 0);
-    if (move && p.dash <= 0 && p.slash <= 0 && p.hurt <= 0 && !p.blocking) p.face = move;
-    this.flushSkillInput(dt);
+    if (move && p.dash <= 0 && p.slash <= 0 && p.hurt <= 0 && (!p.blocking||this.combatV2)) p.face = move;
+    if(!this.combatV2)this.flushSkillInput(dt);
     if (p.hurt > 0) p.vx *= Math.pow(.02, dt);
     else if (p.dash > 0) p.vx = p.dashDirection * 570;
     else {
       const speed = this.stats.speed * (p.slowTime > 0 ? .7 : 1);
       const target = p.blocking || p.qiCast > 0 ? move * speed * .35 : move * speed;
-      p.vx += (target - p.vx) * Math.min(1, dt * 11);
-      if (!move) p.vx *= Math.pow(.001, dt);
+      p.vx += (target - p.vx) * Math.min(1, dt * (this.combatV2?(p.onGround?CONTROLLER.config.groundAccel:CONTROLLER.config.airAccel):11));
+      if (!move) p.vx *= Math.pow(this.combatV2?CONTROLLER.config.friction:.001, dt);
     }
-    p.vy += 1250 * dt;
+    p.vy += (this.combatV2?CONTROLLER.config.gravity:1250) * dt;
+    const wasGrounded = p.onGround;
+    if(this.combatV2)CONTROLLER.physics(p,this.platforms,dt,this.worldWidth);
+    else {
     p.x = clamp(p.x + p.vx * dt, 0, this.worldWidth - p.w);
     p.y += p.vy * dt;
-    const wasGrounded = p.onGround;
     p.onGround = false;
     for (const platform of this.platforms) {
       const oldBottom = p.y + p.h - p.vy * dt;
@@ -1100,12 +1172,13 @@ class BattleGame {
         p.y = platform.y - p.h; p.vy = 0; p.onGround = true; p.jumpCount = 0;
       }
     }
-    p.coyote = p.onGround ? .11 : wasGrounded ? .11 : Math.max(0, p.coyote - dt);
+    }
+    p.coyote = p.onGround ? .11 : wasGrounded && !p.dropPlatform ? .11 : Math.max(0, p.coyote - dt);
     this.tryJump();
     this.hazardTimer = Math.max(0, this.hazardTimer - dt);
     if (p.onGround && Math.abs(p.y + p.h - this.floorY) < 1 && this.hazardTimer === 0 && this.hazards.some(h => p.x + p.w > h.x && p.x < h.x + h.w && DaoBladeLevels.hazardState(h, this.elapsed).phase === "active")) {
       this.hazardTimer = 1;
-      this.damagePlayer(9, p.x + (p.face > 0 ? 100 : -100));
+      this.damagePlayer(9, p.x + (p.face > 0 ? 100 : -100),"environment","hazard",{guardable:false});
     }
     if (this.finished) { this.updateHud(); return; }
     this.altars.forEach(altar => {
@@ -1133,8 +1206,8 @@ class BattleGame {
 
     if (p.slash > 0) {
       const progress = 1 - p.slash / p.slashDuration;
-      const active = progress > .18 && progress < .78;
-      const range = (p.combo === 3 ? (this.stats.primary === "metal" ? 132 : 104) : 82) + (this.stats.secondary === "metal" ? 10 : 0); const left = p.face > 0 ? p.x + p.w - 4 : p.x - range + 4;
+      const active = this.combatV2?CONTROLLER.phase(p)==="active":progress > .18 && progress < .78;
+      const range = this.combatV2?CONTROLLER.config.slash[p.combo-1].range:(p.combo === 3 ? (this.stats.primary === "metal" ? 132 : 104) : 82) + (this.stats.secondary === "metal" ? 10 : 0); const left = p.face > 0 ? p.x + p.w - 4 : p.x - range + 4;
       this.enemies.filter(e => active && !e.dead && e.lastHit !== p.attackId && this.overlap(left, p.y + 4, range, 62, e.x, e.y, e.w, e.h)).forEach(e => {
         e.lastHit = p.attackId;
         let damage = this.stats.attack * [1, 1, 1.12, 1.34][p.combo] * (1 + (this.stats.affixes.attack || 0) / 100);
@@ -1145,7 +1218,9 @@ class BattleGame {
         p.qi = Math.min(this.stats.qiMax, p.qi + 3 + (this.stats.secondary === "water" ? 1 : 0));
       });
     }
+    const enemyBefore=this.level.version===2?new Map(this.enemies.map(e=>[e.id,{x:e.x,y:e.y}])):null;
     this.updateEnemies(dt);
+    if(enemyBefore)this.resolveEnemyTerrain(enemyBefore,dt);
     if (this.finished) { this.updateHud(); return; }
     this.updateEnemyZones(dt);
     if (this.finished) { this.updateHud(); return; }
@@ -1154,10 +1229,34 @@ class BattleGame {
     this.particles = this.particles.filter(particle => particle.life > 0);
     this.skillEffects.forEach(effect => { effect.life -= dt; });
     this.skillEffects = this.skillEffects.filter(effect => effect.life > 0);
-    this.cameraX += (clamp(p.x - this.width * .42, 0, this.worldWidth - this.width) - this.cameraX) * Math.min(1, dt * 5);
+    const cameraTarget=p.x-this.width*.42+(this.combatV2?p.face*60:0);
+    const minCamera=this.level.version===2&&p.x>=2670?Math.max(0,2670-this.width*.2):0;
+    this.cameraX += (clamp(cameraTarget,minCamera,this.worldWidth-this.width)-this.cameraX)*Math.min(1,dt*5);
     this.updateCheckpoint();
     this.updateHud();
-    if ((!this.practice || this.bossPractice) && !this.finished && !this.labPending && this.enemies.every(enemy => enemy.dead)) this.finish(true);
+    if (this.level.version!==2 || this.breakthrough) {
+      if ((!this.practice || this.bossPractice) && !this.finished && !this.labPending && this.enemies.every(enemy => enemy.dead)) this.finish(true);
+    }
+  }
+
+  resolveEnemyTerrain(before,dt){
+    const solids=this.platforms.filter(s=>s.collision==="solid");
+    for(const e of this.enemies){
+      if(e.dead||e.kind==="dummy")continue;
+      const old=before.get(e.id);
+      if(e.leash){e.x=clamp(e.x,e.leash.min,e.leash.max);e.y=e.homeY-e.h;continue;}
+      // Basic ground pursuers can step onto low cover, never phase through walls.
+      const under=solids.find(s=>e.x+e.w>s.x&&e.x<s.x+s.w&&s.h<=48);
+      const support=under?under.y:this.floorY;
+      if(under&&old.y+e.h>=under.y&&old.y+e.h<=this.floorY+1)e.y=under.y-e.h;
+      else if(e.y+e.h<support){e.vy=(e.vy||0)+1250*dt;e.y=Math.min(support-e.h,e.y+e.vy*dt);}
+      else {e.y=support-e.h;e.vy=0;}
+      for(const s of solids.filter(s=>s.h>48)){
+        const proxy={...e,x:old.x,vx:(e.x-old.x)/dt,vy:0};
+        CONTROLLER.physics(proxy,[s],dt,this.worldWidth);e.x=proxy.x;
+      }
+      if(e.kind==="boss")e.x=clamp(e.x,2700,3030);
+    }
   }
 
   updateEnemies(dt) {
@@ -1165,6 +1264,11 @@ class BattleGame {
     for (const enemy of this.enemies) {
       if (this.finished) break;
       if (enemy.dead) continue;
+      if(this.level.version===2){
+        if(enemy.leash){enemy.x=clamp(enemy.x,enemy.leash.min,enemy.leash.max);enemy.y=enemy.homeY-enemy.h;}
+        const section=this.level.sections.find(s=>enemy.homeX>=s.x&&enemy.homeX<s.end);
+        if(enemy.attackState==="idle"&&!enemy.engaged&&(p.x<(section?.x||0)||enemy.x+enemy.w<this.cameraX+30||enemy.x>this.cameraX+this.width-50))continue;
+      }
       if (this.lab && enemy.labBurn > 0) {
         const active = Math.min(dt, enemy.labBurn);
         enemy.labBurn = Math.max(0, enemy.labBurn - dt); enemy.labBurnTick -= active;
@@ -1196,7 +1300,7 @@ class BattleGame {
           else {
             const reach = enemy.kind === "boss" ? 100 : enemy.variant === "crusher" ? 80 : 65;
             const attackX = enemy.attackDirection > 0 ? enemy.x + enemy.w - 5 : enemy.x - reach + 5;
-            if (this.overlap(attackX, enemy.y + 6, reach, enemy.h - 10, p.x, p.y, p.w, p.h)) this.damagePlayer(enemy.kind === "boss" ? 23 : enemy.variant === "crusher" ? 17 : 12, enemy.x + enemy.w / 2, enemy.id, enemy.attackType);
+            if (this.overlap(attackX, enemy.y + 6, reach, enemy.h - 10, p.x, p.y, p.w, p.h)) this.damagePlayer(enemy.kind === "boss" ? 23 : enemy.variant === "crusher" ? 17 : 12, enemy.x + enemy.w / 2, enemy.id, enemy.attackType,{guardable:true,guardCost:enemy.guardCost||12});
           }
         } else if (enemy.attackState === "recover" && enemy.attackTimer <= 0) enemy.attackState = "idle";
       } else if (enemy.kind === "ranged") {
@@ -1239,7 +1343,7 @@ class BattleGame {
         if (!move.projectile && move.id !== "vines" && !enemy.attackHit) {
           const reach = move.reach, x = enemy.attackDirection > 0 ? enemy.x + enemy.w - 5 : enemy.x - reach + 5;
           if (this.overlap(x, enemy.y + 6, reach, enemy.h - 10, p.x, p.y, p.w, p.h)) {
-            enemy.attackHit = true; this.damagePlayer(23, enemy.x + enemy.w / 2, enemy.id, move.id);
+            enemy.attackHit = true; this.damagePlayer(23, enemy.x + enemy.w / 2, enemy.id, move.id,{guardable:true,guardCost:move.id==="slam"||move.id==="rock"?20:12});
           }
         }
         if (enemy.attackTimer <= 0) { enemy.attackState = "recover"; enemy.attackTimer = move.recovery; }
@@ -1269,7 +1373,7 @@ class BattleGame {
       const p = this.player;
       if (!zone.hit && p.onGround && Math.abs(p.y + p.h - zone.y) < 12 && p.x + p.w > zone.x && p.x < zone.x + zone.w) {
         zone.hit = true;
-        if (this.damagePlayer(14, zone.x + zone.w / 2, zone.source_id, "vines")) p.slowTime = Math.max(p.slowTime || 0, .7);
+        if (this.damagePlayer(14, zone.x + zone.w / 2, zone.source_id, "vines",{guardable:false})) p.slowTime = Math.max(p.slowTime || 0, .7);
       }
     }
     this.enemyZones = this.enemyZones.filter(zone => zone.life > 0);
@@ -1290,7 +1394,7 @@ class BattleGame {
         const frontX = enemy.attackDirection > 0 ? enemy.x + enemy.w - 5 : enemy.x - reach + 5;
         if (!enemy.attackHit && ["slash", "dash"].includes(enemy.attackType) && this.overlap(frontX, enemy.y + 7, reach, enemy.h - 12, this.player.x, this.player.y, this.player.w, this.player.h)) {
           enemy.attackHit = true;
-          this.damagePlayer(enemy.kind === "boss" ? 24 : enemy.variant === "charger" ? 16 : 12, enemy.x + enemy.w / 2, enemy.id, enemy.attackType);
+          this.damagePlayer(enemy.kind === "boss" ? 24 : enemy.variant === "charger" ? 16 : 12, enemy.x + enemy.w / 2, enemy.id, enemy.attackType,{guardable:true,guardCost:enemy.guardCost||12});
         }
         if (enemy.attackTimer <= 0) {
           enemy.attackState = "recover";
@@ -1332,6 +1436,7 @@ class BattleGame {
   }
 
   beginEnemyAttack(enemy, type, windup) {
+    enemy.guardCost=type==="dash"||enemy.variant==="crusher"?20:12;
     enemy.attackType = type;
     enemy.attackState = "windup";
     enemy.attackTimer = windup;
@@ -1348,7 +1453,9 @@ class BattleGame {
     for (const shot of this.projectiles) {
       if (this.finished) break;
       shot.vy += (shot.gravity || 0) * dt;
+      const oldShotX=shot.x;
       shot.x += shot.vx * dt; shot.y += shot.vy * dt; shot.life -= dt;
+      if(this.level.version===2&&this.platforms.some(s=>(s.collision==="solid"||s.collision==="floor")&&shot.y<s.y+s.h&&shot.y+shot.h>s.y&&Math.min(oldShotX,shot.x)<s.x+s.w&&Math.max(oldShotX,shot.x)+shot.w>s.x)){shot.life=0;continue;}
       if (shot.owner === "player") {
         for (const enemy of this.enemies) {
           if (!enemy.dead && !shot.hitIds.has(enemy) && this.overlap(shot.x, shot.y, shot.w, shot.h, enemy.x, enemy.y, enemy.w, enemy.h)) {
@@ -1439,13 +1546,16 @@ class BattleGame {
     }
   }
 
-  damagePlayer(amount, sourceX, sourceId = "environment", actionId = "hazard") {
+  damagePlayer(amount, sourceX, sourceId = "environment", actionId = "hazard", damage = {}) {
     const p = this.player;
     if (this.finished || p.invuln > 0 || (p.dash > .08 && p.dash <= .2)) return;
     const attackFromFront = Math.sign(sourceX - (p.x + p.w / 2)) === p.face;
-    if (p.blocking && attackFromFront) {
+    let guardBroken=false;
+    const guardable=!this.combatV2||(damage.guardable??sourceId!=="environment");
+    if (p.blocking && attackFromFront && guardable && !(p.guardBreak>0)) {
       if (p.parryArmed > 0) {
         p.parryArmed = 0; p.invuln = .38; p.blockFlash = .32; p.counterWindow = .7;
+        if(this.combatV2)this.guardNotice="精准格挡 · 回气+8";
         if (p.skillParry) {
           this.enemies.filter(e => !e.dead && Math.abs(e.x - p.x) < 135).slice(0, 3).forEach(e => this.hitEnemy(e, this.stats.attack * .75, false, false, "counter"));
           p.skillParry = false;
@@ -1460,8 +1570,22 @@ class BattleGame {
         this.emitBattleEvent("player_parried", { source_id: sourceId, target_id: "player", action_id: actionId, element: this.realmKey, phase: "defense", amount });
         this.burst(p.x + p.w / 2, p.y + 30, "#fff0a5", 20); return;
       }
-      this.emitBattleEvent("player_blocked", { source_id: sourceId, target_id: "player", action_id: actionId, element: this.realmKey, phase: "defense", amount });
-      amount *= 1 - this.stats.block;
+      const guardCost=damage.guardCost??(["slam","rock","dash"].includes(actionId)?20:12);
+      if(this.combatV2){
+        this.regenDelay=CONTROLLER.config.regenDelay;
+        if(p.qi+1e-8<guardCost){
+          p.qi=0;p.guardBreak=CONTROLLER.config.guardBreak;p.hurt=CONTROLLER.config.guardBreak;p.blocking=false;guardBroken=true;
+          p.guardRecovery=this.keys.has("block");p.parryArmed=0;this.intents={};
+          this.guardNotice="破防";this.emitBattleEvent("player_guard_broken",{source_id:sourceId,target_id:"player",action_id:actionId,phase:"defense",amount:guardCost});
+        }else{
+          p.qi=Math.max(0,p.qi-guardCost);this.guardNotice="普通挡 · 剑意 -"+guardCost;
+          this.emitBattleEvent("player_blocked",{source_id:sourceId,target_id:"player",action_id:actionId,element:this.realmKey,phase:"defense",amount,guard_cost:guardCost});
+          amount*=1-this.stats.block;
+        }
+      }else{
+        this.emitBattleEvent("player_blocked", { source_id: sourceId, target_id: "player", action_id: actionId, element: this.realmKey, phase: "defense", amount });
+        amount *= 1 - this.stats.block;
+      }
     }
     amount = Math.max(1, amount - this.stats.defense);
     if (p.shield > 0) {
@@ -1472,13 +1596,17 @@ class BattleGame {
         p.skillShieldCounter = false;
       }
     }
-    if (amount <= 0) return;
+    if (amount <= 0) {
+      if(guardBroken){p.hurt=.45;p.slash=0;p.dash=0;p.qiCast=0;p.queuedSlash=0;p.jumpBuffer=0;}
+      return;
+    }
     p.hp -= amount; p.invuln = .65; p.vx = sourceX < p.x + p.w / 2 ? 180 : -180; this.burst(p.x + p.w / 2, p.y + 30, "#ef5c45", 10);
     this.screenShake = Math.max(this.screenShake, .2);
-    const heldGuard = (p.blocking || this.guardInput) && this.keys.has("block");
+    const heldGuard = (guardBroken || p.blocking || this.guardInput || this.intents?.block) && this.keys.has("block");
     this.skillInput=null; this.guardInput=0;
     p.guardRecovery = Boolean(heldGuard); p.parryArmed = 0;
-    p.hurt = .2; p.queuedSlash = 0; p.jumpBuffer = 0; p.slash = 0; p.dash = 0; p.qiCast = 0; p.blocking = false; p.skillGuard = 0; p.skillParry = false;
+    if(this.combatV2)this.intents={};
+    p.hurt = Math.max(.2,p.guardBreak||0); p.queuedSlash = 0; p.jumpBuffer = 0; p.slash = 0; p.dash = 0; p.qiCast = 0; p.blocking = false; p.skillGuard = 0; p.skillParry = false;
     this.emitBattleEvent("player_hurt", { source_id: sourceId, target_id: "player", action_id: actionId, element: this.realmKey, phase: "impact", amount });
     if (p.hp <= 0) this.finish(false);
     return true;
@@ -1589,7 +1717,7 @@ class BattleGame {
     this.labPending=true;
     try {
       if(this.labError){await this.runUI.load(true);this.labError=false;}
-      const payload=await this.runUI.trialAction("settle",{trial_id:this.labTrial.id,win,defeated_ids:this.defeatedIds()});
+      const payload=await this.runUI.trialAction("settle",{trial_id:this.labTrial.id,win,defeated_ids:this.defeatedIds(),...(this.level.version===2&&!this.breakthrough&&win?{exit_id:this.level.exit.id}:{})});
       if(this.disposed)return;
       this.labTrial=payload.state.active_trial;this.labPending=false;
       $("#result-title").textContent=win?`${this.element.realm} · 阵盘试炼成功`:"阵盘试炼 · 道心未折";
@@ -1646,6 +1774,11 @@ class BattleGame {
   journeyRouteReadout(){
     if(this.breakthrough)return "筑基心劫无支路、不发普通掉落，成功才扣24修为。";
     const center=this.player.x+this.player.w/2;
+    if(this.level.version===2){
+      const s=this.level.shortcuts.find(s=>!this.openedShortcuts.has(s.id)&&Math.abs(center-s.x)<160);
+      if(s&&Math.abs(this.player.y+this.player.h-s.y)<90)return "支路机关 · "+keyLabel(controls.interact)+"开启回环栈桥；"+keyLabel(controls.down)+"＋跳跃穿过单向平台下落";
+      if(this.canExit())return "出口已开放 · 前往右侧离境门，按"+keyLabel(controls.interact)+"确认离境；可选守卫不影响通关";
+    }
     const altar=this.altars.filter(a=>!a.taken).sort((a,b)=>Math.abs(a.x+14-center)-Math.abs(b.x+14-center))[0];
     const count=this.altars.filter(a=>a.taken).length;
     if(!altar||Math.abs(altar.x+14-center)>700)return `可选祭坛已领${count}/2 · 主路无需特定配珠；支路可返回。`;
@@ -1666,13 +1799,17 @@ class BattleGame {
 
   updateHud() {
     if (!this.practice) {
-      const objective = globalThis.DaoBladeLevelProgress?.objective(this.realmKey, this.player.x, this.enemies);
+      const objective = this.level.version===2
+        ? (this.level.sections.find(s=>this.player.x>=s.x&&this.player.x<s.end)?.label||"秘境")
+          +" · 主路"+this.level.required_ids.filter(id=>this.enemies.some(e=>e.id===id&&e.dead)).length+"/"+this.level.required_ids.length
+          +(this.canExit()?" · 出口已开放，按交互键离境":" · 可选支路不强制清怪")
+        : globalThis.DaoBladeLevelProgress?.objective(this.realmKey, this.player.x, this.enemies);
       if (objective) $("#objective-text").textContent = objective + (this.labRun ? (this.labTrial?.checkpoint ? " · 剑碑已保存" : " · 前段清场后前往剑碑") : this.trial
         ? this.trial.activated ? " · 剑碑已激活" : " · 前段清场后前往剑碑恢复"
         : "") + this.terrainReadout();
     }
     $("#hud-hp").textContent = `${Math.ceil(Math.max(0, this.player.hp))} / ${this.stats.hpMax}`;
-    $("#hud-qi").textContent = `${Math.floor(this.player.qi)} / ${this.stats.qiMax}`;
+    $("#hud-qi").textContent = Math.floor(this.player.qi)+" / "+this.stats.qiMax+(this.combatV2?" · "+(this.player.guardBreak>0?"破防 "+this.player.guardBreak.toFixed(1)+"s":this.player.blocking?"普通挡耗12 / 重击20 · 停止回气":this.guardNotice||"精准格挡回气；下＋跳跃下落"):"");
     $("#hud-enemies").textContent = this.enemies.filter(enemy => !enemy.dead).length;
     $("#skill-hud").textContent = this.stats.loadout.active.map((key, index) => `${index ? "E" : "Q"} ${key ? TRIGRAMS[key].skill : "未装备"}${this.player.skillCooldowns[index] > 0 ? ` ${this.player.skillCooldowns[index].toFixed(1)}s` : ""}`).join(" · ");
     if(this.journey){
@@ -1691,6 +1828,16 @@ class BattleGame {
     this.drawBackground(ctx, camera);
     ctx.save(); ctx.translate(-camera + (feedback.shake && this.screenShake > 0 ? (Math.random() - .5) * 6 : 0), feedback.shake && this.screenShake > 0 ? (Math.random() - .5) * 4 : 0);
     for (const platform of this.platforms) this.drawPlatform(ctx, platform);
+    if(this.level.version===2&&!this.breakthrough){
+      ctx.font="15px sans-serif";
+      for(const mark of this.level.landmarks){ctx.fillStyle="#d9c49b";ctx.fillText(mark.label,mark.x,230);}
+      for(const s of this.level.shortcuts){
+        ctx.fillStyle=this.openedShortcuts.has(s.id)?"#9bd3a7":"#d7ac69";ctx.fillRect(s.x,s.y-40,18,40);
+        ctx.fillText(this.openedShortcuts.has(s.id)?"回环栈桥已开":keyLabel(controls.interact)+" 开启回环栈桥",s.x-50,s.y-55);
+      }
+      const exit=this.level.exit;ctx.fillStyle=this.canExit()?"#99e7b0":"#737a92";ctx.fillRect(exit.x,exit.y-95,12,95);ctx.fillRect(exit.x+55,exit.y-95,12,95);ctx.fillRect(exit.x,exit.y-100,67,8);
+      ctx.fillText(this.canExit()?keyLabel(controls.interact)+" 确认离境":"主路与首领未完成",exit.x-35,exit.y-115);
+    }
     this.hazards.forEach(hazard => {
       const state = DaoBladeLevels.hazardState(hazard, this.elapsed);
       ctx.fillStyle = this.element.color; ctx.globalAlpha = state.phase === "active" ? .85 : state.phase === "warning" ? .55 : .2;

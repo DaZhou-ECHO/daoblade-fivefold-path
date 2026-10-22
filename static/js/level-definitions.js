@@ -129,7 +129,25 @@
   freeze(journeyDefinitions);
   freeze(definitions);
   const api = freeze({
-    getJourneyDefinition(realm,map="ridge"){
+    getJourneyDefinition(realm,map="ridge",version=1){
+      if(version===2){
+        const source=root.DaoBladeJourneyMaps||(typeof module!=="undefined"&&module.exports?require("../data/journey-maps-v2.json"):null);
+        const spec=source?.[realm+":"+map];if(!spec)throw new Error("未知v2地图");
+        const base=JSON.parse(JSON.stringify(journeyDefinitions[realm+":"+map]));
+        base.version=2;base.id="journey-v1:"+realm+":"+map+":v2";
+        for(const key of ["platforms","sections","shortcuts","exit","required_ids","landmarks","route_label"])base[key]=JSON.parse(JSON.stringify(spec[key]));
+        base.encounters.forEach((e,i)=>{
+          base.anchors[e.anchor_id]={x:spec.encounter_x[i],y:i===4?spec.optional_ground:474};
+          e.optional=i===4;e.leash=i===4?{min:spec.encounter_x[i]-65,max:spec.encounter_x[i]+65}:null;
+          if(i===4){e.kind="melee";e.name_index=0;e.variant="melee";}
+        });
+        base.altars=spec.altars.map(a=>{base.anchors[a.id]={x:a.x,y:a.y};return{id:a.id,anchor_id:a.id};});
+        base.hazards=spec.hazards.map((h,i)=>({...h,...HAZARD_RHYTHMS[realm],offset:i*HAZARD_RHYTHMS[realm].stagger}));
+        base.checkpoint={id:"swordstone",anchor_id:"swordstone",cleared_ids:spec.checkpoint.cleared_ids};
+        base.anchors.swordstone={x:spec.checkpoint.x,y:spec.checkpoint.y};
+        return freeze(base);
+      }
+      if(version!==1)throw new Error("未知地图版本");
       const value=journeyDefinitions[realm+":"+map];
       if(!value)throw new Error("未知正式秘境地图");
       return value;

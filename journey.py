@@ -2,7 +2,23 @@
 import json
 import uuid
 from copy import deepcopy
+from pathlib import Path
+
 from database import get_db
+
+MAPS_V2 = json.loads((Path(__file__).parent / "static/data/journey-maps-v2.json").read_text(encoding="utf-8"))
+
+def trial_layout(trial):
+    """缺字段按v1，拒绝未知版本，保留旧局。"""
+    version, combat = trial.get("map_version", 1), trial.get("combat_version", 1)
+    if (
+        type(version) is not int
+        or type(combat) is not int
+        or (version, combat) not in {(1, 1), (2, 2)}
+    ):
+        raise ValueError("未知试炼版本，请保留存档并联系维护者")
+    return MAPS_V2[trial["realm_id"]+":"+trial["map_id"]] if version == 2 else None
+
 
 PALACES = [
     ("xun", "巽", "wood", "东南", "☴", "贯风", "身法：速度+12"),
@@ -129,6 +145,8 @@ def xp(bead, amount):
 
 
 def response(state, revision, receipt=None, replayed=False):
+    if state["active_trial"]:
+        trial_layout(state["active_trial"])
     return {"state": state, "revision": revision, "compiled": compile_journey(state), "receipt": receipt, "replayed": replayed,
             "trial_compiled": state["active_trial"]["compiled"] if state["active_trial"] else None}
 
@@ -144,9 +162,9 @@ def transition(slot, revision, payload):
     try:
         state, current = read_journey(slot)
         action = payload.get("action")
-        if action not in {"build", "start", "checkpoint", "altar", "settle", "abandon"}:
+        if action not in {"build", "start", "checkpoint", "altar", "shortcut", "settle", "abandon"}:
             raise ValueError("征程操作无效")
-        if action in {"settle", "abandon", "checkpoint", "altar"}:
+        if action in {"settle", "abandon", "checkpoint", "altar", "shortcut"}:
             trial_id = payload.get("trial_id")
             if type(trial_id) is not str:
                 raise ValueError("缺少试炼编号")
@@ -181,20 +199,27 @@ def transition(slot, revision, payload):
             if not any(compiled["skills"]):
                 raise ValueError("请先连接并选入至少一个主动宫")
             state["active_trial"] = {"id": "journey-"+uuid.uuid4().hex, "realm_id": realm, "map_id": map_id,
-                                     "breakthrough": breakthrough, "rules_version": 1, "checkpoint": None, "claimed_altars": [],
+                                     "breakthrough": breakthrough, "rules_version": 1, "combat_version": 2, "map_version": 2, "checkpoint": None, "claimed_altars": [], "opened_shortcuts": [],
                                      "compiled": compiled, "effective_bead_ids": compiled["effective_bead_ids"]}
             state["progress"]["runs"] += 1
         else:
             if not trial or trial["id"] != trial_id:
                 raise ValueError("试炼编号与当前档不匹配")
+            layout = None if action == "abandon" else trial_layout(trial)
             if action in {"checkpoint", "settle"}:
                 defeated = payload.get("defeated_ids")
                 if not isinstance(defeated, list) or any(type(i) is not str or i not in {f"enemy-{n}" for n in range(1, 7)} for i in defeated) or len(set(defeated)) != len(defeated):
                     raise ValueError("战斗进度无效")
             if action == "checkpoint":
-                if trial["breakthrough"] or not {"enemy-1", "enemy-2", "enemy-3"}.issubset(defeated):
+                if trial["breakthrough"] or not set(layout["checkpoint"]["cleared_ids"] if layout else ["enemy-1", "enemy-2", "enemy-3"]).issubset(defeated):
                     raise ValueError("检查点条件未满足")
                 trial["checkpoint"] = "swordstone"
+            elif action == "shortcut":
+                shortcut = payload.get("shortcut_id")
+                if trial["breakthrough"] or not layout or type(shortcut) is not str or shortcut not in {s["id"] for s in layout["shortcuts"]}:
+                    raise ValueError("捷径标识无效")
+                if shortcut not in trial["opened_shortcuts"]:
+                    trial["opened_shortcuts"].append(shortcut)
             elif action == "altar":
                 altar = payload.get("altar_id")
                 if trial["breakthrough"] or type(altar) is not str or altar not in {"altar-1", "altar-2"}:
@@ -206,9 +231,11 @@ def transition(slot, revision, payload):
                 if action == "settle":
                     if type(win) is not bool:
                         raise ValueError("胜负必须为布尔值")
-                    required = {"enemy-6"} if trial["breakthrough"] else {f"enemy-{i}" for i in range(1, 7)}
-                    if win and set(defeated) != required:
-                        raise ValueError("尚未清场")
+                    required = {"enemy-6"} if trial["breakthrough"] else set(layout["required_ids"]) if layout else {f"enemy-{i}" for i in range(1, 7)}
+                    if win and not required.issubset(defeated):
+                        raise ValueError("关键遭遇尚未完成")
+                    if win and layout and not trial["breakthrough"] and payload.get("exit_id") != layout["exit"]["id"]:
+                        raise ValueError("请在出口确认离境")
                     if not win and trial["checkpoint"]:
                         db.commit()
                         return response(state, current)

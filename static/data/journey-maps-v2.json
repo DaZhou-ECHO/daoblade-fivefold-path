@@ -1,0 +1,1926 @@
+{
+  "fire:ridge": {
+    "version": 2,
+    "realm_id": "fire",
+    "map_id": "ridge",
+    "platforms": [
+      {
+        "id": "floor",
+        "x": 0,
+        "y": 474,
+        "w": 3200,
+        "h": 80,
+        "collision": "floor"
+      },
+      {
+        "id": "route-1",
+        "x": 480,
+        "y": 412,
+        "w": 210,
+        "h": 22,
+        "collision": "oneway"
+      },
+      {
+        "id": "route-2",
+        "x": 680,
+        "y": 354,
+        "w": 300,
+        "h": 22,
+        "collision": "oneway"
+      },
+      {
+        "id": "route-3",
+        "x": 1740,
+        "y": 412,
+        "w": 230,
+        "h": 22,
+        "collision": "oneway"
+      },
+      {
+        "id": "route-4",
+        "x": 1950,
+        "y": 354,
+        "w": 330,
+        "h": 22,
+        "collision": "oneway"
+      },
+      {
+        "id": "cover",
+        "x": 1220,
+        "y": 430,
+        "w": 80,
+        "h": 44,
+        "collision": "solid"
+      }
+    ],
+    "sections": [
+      {
+        "id": "section-1",
+        "label": "炉外山门",
+        "x": 0,
+        "end": 420
+      },
+      {
+        "id": "section-2",
+        "label": "炉台",
+        "x": 420,
+        "end": 900
+      },
+      {
+        "id": "section-3",
+        "label": "地火试道",
+        "x": 900,
+        "end": 1580
+      },
+      {
+        "id": "section-4",
+        "label": "剑碑庭",
+        "x": 1580,
+        "end": 1770
+      },
+      {
+        "id": "section-5",
+        "label": "炉后侧廊",
+        "x": 1770,
+        "end": 2420
+      },
+      {
+        "id": "section-6",
+        "label": "炉心前庭",
+        "x": 2420,
+        "end": 2670
+      },
+      {
+        "id": "section-7",
+        "label": "炉心剑魁",
+        "x": 2670,
+        "end": 3200
+      }
+    ],
+    "encounter_x": [
+      610,
+      1080,
+      1460,
+      2280,
+      2200,
+      2860
+    ],
+    "optional_ground": 354,
+    "required_ids": [
+      "enemy-1",
+      "enemy-2",
+      "enemy-3",
+      "enemy-4",
+      "enemy-6"
+    ],
+    "altars": [
+      {
+        "id": "altar-1",
+        "x": 810,
+        "y": 354
+      },
+      {
+        "id": "altar-2",
+        "x": 2120,
+        "y": 354
+      }
+    ],
+    "hazards": [
+      {
+        "id": "hazard-1",
+        "x": 820,
+        "w": 170
+      },
+      {
+        "id": "hazard-2",
+        "x": 1900,
+        "w": 190
+      }
+    ],
+    "exit": {
+      "id": "exit",
+      "x": 3110,
+      "y": 474
+    },
+    "shortcuts": [
+      {
+        "id": "return-path",
+        "label": "回环栈桥",
+        "x": 835,
+        "y": 354,
+        "platform": {
+          "id": "return-bridge",
+          "x": 900,
+          "y": 379,
+          "w": 310,
+          "h": 18,
+          "collision": "oneway",
+          "shortcut_id": "return-path"
+        }
+      }
+    ],
+    "checkpoint": {
+      "id": "swordstone",
+      "x": 1640,
+      "y": 474,
+      "cleared_ids": [
+        "enemy-1",
+        "enemy-2",
+        "enemy-3"
+      ]
+    },
+    "route_label": "炉后侧廊 · 高径捷径",
+    "landmarks": [
+      {
+        "x": 70,
+        "label": "炉外山门"
+      },
+      {
+        "x": 1600,
+        "label": "剑碑庭"
+      },
+      {
+        "x": 2690,
+        "label": "炉心剑魁"
+      }
+    ]
+  },
+  "fire:hollow": {
+    "version": 2,
+    "realm_id": "fire",
+    "map_id": "hollow",
+    "platforms": [
+      {
+        "id": "floor",
+        "x": 0,
+        "y": 474,
+        "w": 3200,
+        "h": 80,
+        "collision": "floor"
+      },
+      {
+        "id": "route-1",
+        "x": 450,
+        "y": 354,
+        "w": 300,
+        "h": 22,
+        "collision": "oneway"
+      },
+      {
+        "id": "route-2",
+        "x": 730,
+        "y": 412,
+        "w": 220,
+        "h": 22,
+        "collision": "oneway"
+      },
+      {
+        "id": "route-3",
+        "x": 1760,
+        "y": 354,
+        "w": 320,
+        "h": 22,
+        "collision": "oneway"
+      },
+      {
+        "id": "route-4",
+        "x": 2070,
+        "y": 412,
+        "w": 220,
+        "h": 22,
+        "collision": "oneway"
+      },
+      {
+        "id": "cover",
+        "x": 1270,
+        "y": 430,
+        "w": 80,
+        "h": 44,
+        "collision": "solid"
+      }
+    ],
+    "sections": [
+      {
+        "id": "section-1",
+        "label": "炉外山门",
+        "x": 0,
+        "end": 420
+      },
+      {
+        "id": "section-2",
+        "label": "炉台",
+        "x": 420,
+        "end": 900
+      },
+      {
+        "id": "section-3",
+        "label": "地火试道",
+        "x": 900,
+        "end": 1580
+      },
+      {
+        "id": "section-4",
+        "label": "剑碑庭",
+        "x": 1580,
+        "end": 1770
+      },
+      {
+        "id": "section-5",
+        "label": "炉后侧廊",
+        "x": 1770,
+        "end": 2420
+      },
+      {
+        "id": "section-6",
+        "label": "炉心前庭",
+        "x": 2420,
+        "end": 2670
+      },
+      {
+        "id": "section-7",
+        "label": "炉心剑魁",
+        "x": 2670,
+        "end": 3200
+      }
+    ],
+    "encounter_x": [
+      635,
+      1105,
+      1485,
+      2305,
+      1890,
+      2860
+    ],
+    "optional_ground": 354,
+    "required_ids": [
+      "enemy-1",
+      "enemy-2",
+      "enemy-3",
+      "enemy-4",
+      "enemy-6"
+    ],
+    "altars": [
+      {
+        "id": "altar-1",
+        "x": 510,
+        "y": 354
+      },
+      {
+        "id": "altar-2",
+        "x": 1810,
+        "y": 354
+      }
+    ],
+    "hazards": [
+      {
+        "id": "hazard-1",
+        "x": 820,
+        "w": 170
+      },
+      {
+        "id": "hazard-2",
+        "x": 1900,
+        "w": 190
+      }
+    ],
+    "exit": {
+      "id": "exit",
+      "x": 3110,
+      "y": 474
+    },
+    "shortcuts": [
+      {
+        "id": "return-path",
+        "label": "回环栈桥",
+        "x": 535,
+        "y": 354,
+        "platform": {
+          "id": "return-bridge",
+          "x": 540,
+          "y": 379,
+          "w": 310,
+          "h": 18,
+          "collision": "oneway",
+          "shortcut_id": "return-path"
+        }
+      }
+    ],
+    "checkpoint": {
+      "id": "swordstone",
+      "x": 1640,
+      "y": 474,
+      "cleared_ids": [
+        "enemy-1",
+        "enemy-2",
+        "enemy-3"
+      ]
+    },
+    "route_label": "炉后侧廊 · 折返支路",
+    "landmarks": [
+      {
+        "x": 70,
+        "label": "炉外山门"
+      },
+      {
+        "x": 1600,
+        "label": "剑碑庭"
+      },
+      {
+        "x": 2690,
+        "label": "炉心剑魁"
+      }
+    ]
+  },
+  "wood:ridge": {
+    "version": 2,
+    "realm_id": "wood",
+    "map_id": "ridge",
+    "platforms": [
+      {
+        "id": "floor",
+        "x": 0,
+        "y": 474,
+        "w": 3200,
+        "h": 80,
+        "collision": "floor"
+      },
+      {
+        "id": "route-1",
+        "x": 480,
+        "y": 412,
+        "w": 210,
+        "h": 22,
+        "collision": "oneway"
+      },
+      {
+        "id": "route-2",
+        "x": 680,
+        "y": 354,
+        "w": 300,
+        "h": 22,
+        "collision": "oneway"
+      },
+      {
+        "id": "route-3",
+        "x": 1740,
+        "y": 412,
+        "w": 230,
+        "h": 22,
+        "collision": "oneway"
+      },
+      {
+        "id": "route-4",
+        "x": 1950,
+        "y": 354,
+        "w": 330,
+        "h": 22,
+        "collision": "oneway"
+      },
+      {
+        "id": "cover",
+        "x": 1250,
+        "y": 430,
+        "w": 80,
+        "h": 44,
+        "collision": "solid"
+      },
+      {
+        "id": "root-overlook",
+        "x": 1250,
+        "y": 335,
+        "w": 210,
+        "h": 18,
+        "collision": "oneway"
+      }
+    ],
+    "sections": [
+      {
+        "id": "section-1",
+        "label": "青木山门",
+        "x": 0,
+        "end": 420
+      },
+      {
+        "id": "section-2",
+        "label": "根桥",
+        "x": 420,
+        "end": 900
+      },
+      {
+        "id": "section-3",
+        "label": "林间岔路",
+        "x": 900,
+        "end": 1580
+      },
+      {
+        "id": "section-4",
+        "label": "听风剑碑",
+        "x": 1580,
+        "end": 1770
+      },
+      {
+        "id": "section-5",
+        "label": "树根侧廊",
+        "x": 1770,
+        "end": 2420
+      },
+      {
+        "id": "section-6",
+        "label": "藤庭",
+        "x": 2420,
+        "end": 2670
+      },
+      {
+        "id": "section-7",
+        "label": "木灵古树",
+        "x": 2670,
+        "end": 3200
+      }
+    ],
+    "encounter_x": [
+      620,
+      1130,
+      1480,
+      2200,
+      2200,
+      2860
+    ],
+    "optional_ground": 354,
+    "required_ids": [
+      "enemy-1",
+      "enemy-2",
+      "enemy-3",
+      "enemy-4",
+      "enemy-6"
+    ],
+    "altars": [
+      {
+        "id": "altar-1",
+        "x": 810,
+        "y": 354
+      },
+      {
+        "id": "altar-2",
+        "x": 2120,
+        "y": 354
+      }
+    ],
+    "hazards": [
+      {
+        "id": "hazard-1",
+        "x": 880,
+        "w": 120
+      },
+      {
+        "id": "hazard-2",
+        "x": 2200,
+        "w": 140
+      }
+    ],
+    "exit": {
+      "id": "exit",
+      "x": 3110,
+      "y": 474
+    },
+    "shortcuts": [
+      {
+        "id": "return-path",
+        "label": "回环栈桥",
+        "x": 835,
+        "y": 354,
+        "platform": {
+          "id": "return-bridge",
+          "x": 900,
+          "y": 379,
+          "w": 310,
+          "h": 18,
+          "collision": "oneway",
+          "shortcut_id": "return-path"
+        }
+      }
+    ],
+    "checkpoint": {
+      "id": "swordstone",
+      "x": 1640,
+      "y": 474,
+      "cleared_ids": [
+        "enemy-1",
+        "enemy-2",
+        "enemy-3"
+      ]
+    },
+    "route_label": "树根侧廊 · 高径捷径",
+    "landmarks": [
+      {
+        "x": 70,
+        "label": "青木山门"
+      },
+      {
+        "x": 1600,
+        "label": "听风剑碑"
+      },
+      {
+        "x": 2690,
+        "label": "木灵古树"
+      }
+    ]
+  },
+  "wood:hollow": {
+    "version": 2,
+    "realm_id": "wood",
+    "map_id": "hollow",
+    "platforms": [
+      {
+        "id": "floor",
+        "x": 0,
+        "y": 474,
+        "w": 3200,
+        "h": 80,
+        "collision": "floor"
+      },
+      {
+        "id": "route-1",
+        "x": 450,
+        "y": 354,
+        "w": 300,
+        "h": 22,
+        "collision": "oneway"
+      },
+      {
+        "id": "route-2",
+        "x": 730,
+        "y": 412,
+        "w": 220,
+        "h": 22,
+        "collision": "oneway"
+      },
+      {
+        "id": "route-3",
+        "x": 1760,
+        "y": 354,
+        "w": 320,
+        "h": 22,
+        "collision": "oneway"
+      },
+      {
+        "id": "route-4",
+        "x": 2070,
+        "y": 412,
+        "w": 220,
+        "h": 22,
+        "collision": "oneway"
+      },
+      {
+        "id": "cover",
+        "x": 1300,
+        "y": 430,
+        "w": 80,
+        "h": 44,
+        "collision": "solid"
+      },
+      {
+        "id": "root-overlook",
+        "x": 1250,
+        "y": 335,
+        "w": 210,
+        "h": 18,
+        "collision": "oneway"
+      }
+    ],
+    "sections": [
+      {
+        "id": "section-1",
+        "label": "青木山门",
+        "x": 0,
+        "end": 420
+      },
+      {
+        "id": "section-2",
+        "label": "根桥",
+        "x": 420,
+        "end": 900
+      },
+      {
+        "id": "section-3",
+        "label": "林间岔路",
+        "x": 900,
+        "end": 1580
+      },
+      {
+        "id": "section-4",
+        "label": "听风剑碑",
+        "x": 1580,
+        "end": 1770
+      },
+      {
+        "id": "section-5",
+        "label": "树根侧廊",
+        "x": 1770,
+        "end": 2420
+      },
+      {
+        "id": "section-6",
+        "label": "藤庭",
+        "x": 2420,
+        "end": 2670
+      },
+      {
+        "id": "section-7",
+        "label": "木灵古树",
+        "x": 2670,
+        "end": 3200
+      }
+    ],
+    "encounter_x": [
+      645,
+      1155,
+      1505,
+      2225,
+      1890,
+      2860
+    ],
+    "optional_ground": 354,
+    "required_ids": [
+      "enemy-1",
+      "enemy-2",
+      "enemy-3",
+      "enemy-4",
+      "enemy-6"
+    ],
+    "altars": [
+      {
+        "id": "altar-1",
+        "x": 510,
+        "y": 354
+      },
+      {
+        "id": "altar-2",
+        "x": 1810,
+        "y": 354
+      }
+    ],
+    "hazards": [
+      {
+        "id": "hazard-1",
+        "x": 880,
+        "w": 120
+      },
+      {
+        "id": "hazard-2",
+        "x": 2200,
+        "w": 140
+      }
+    ],
+    "exit": {
+      "id": "exit",
+      "x": 3110,
+      "y": 474
+    },
+    "shortcuts": [
+      {
+        "id": "return-path",
+        "label": "回环栈桥",
+        "x": 535,
+        "y": 354,
+        "platform": {
+          "id": "return-bridge",
+          "x": 540,
+          "y": 379,
+          "w": 310,
+          "h": 18,
+          "collision": "oneway",
+          "shortcut_id": "return-path"
+        }
+      }
+    ],
+    "checkpoint": {
+      "id": "swordstone",
+      "x": 1640,
+      "y": 474,
+      "cleared_ids": [
+        "enemy-1",
+        "enemy-2",
+        "enemy-3"
+      ]
+    },
+    "route_label": "树根侧廊 · 折返支路",
+    "landmarks": [
+      {
+        "x": 70,
+        "label": "青木山门"
+      },
+      {
+        "x": 1600,
+        "label": "听风剑碑"
+      },
+      {
+        "x": 2690,
+        "label": "木灵古树"
+      }
+    ]
+  },
+  "earth:ridge": {
+    "version": 2,
+    "realm_id": "earth",
+    "map_id": "ridge",
+    "platforms": [
+      {
+        "id": "floor",
+        "x": 0,
+        "y": 474,
+        "w": 3200,
+        "h": 80,
+        "collision": "floor"
+      },
+      {
+        "id": "route-1",
+        "x": 480,
+        "y": 424,
+        "w": 210,
+        "h": 22,
+        "collision": "oneway"
+      },
+      {
+        "id": "route-2",
+        "x": 680,
+        "y": 366,
+        "w": 300,
+        "h": 22,
+        "collision": "oneway"
+      },
+      {
+        "id": "route-3",
+        "x": 1740,
+        "y": 424,
+        "w": 230,
+        "h": 22,
+        "collision": "oneway"
+      },
+      {
+        "id": "route-4",
+        "x": 1950,
+        "y": 366,
+        "w": 330,
+        "h": 22,
+        "collision": "oneway"
+      },
+      {
+        "id": "cover",
+        "x": 1190,
+        "y": 430,
+        "w": 140,
+        "h": 44,
+        "collision": "solid"
+      },
+      {
+        "id": "courtyard-step",
+        "x": 1790,
+        "y": 438,
+        "w": 150,
+        "h": 36,
+        "collision": "solid"
+      }
+    ],
+    "sections": [
+      {
+        "id": "section-1",
+        "label": "山门石阶",
+        "x": 0,
+        "end": 420
+      },
+      {
+        "id": "section-2",
+        "label": "石卫庭",
+        "x": 420,
+        "end": 900
+      },
+      {
+        "id": "section-3",
+        "label": "叠岩院",
+        "x": 900,
+        "end": 1580
+      },
+      {
+        "id": "section-4",
+        "label": "镇岳剑碑",
+        "x": 1580,
+        "end": 1770
+      },
+      {
+        "id": "section-5",
+        "label": "遗迹侧院",
+        "x": 1770,
+        "end": 2420
+      },
+      {
+        "id": "section-6",
+        "label": "重岩庭",
+        "x": 2420,
+        "end": 2670
+      },
+      {
+        "id": "section-7",
+        "label": "镇岳石魁",
+        "x": 2670,
+        "end": 3200
+      }
+    ],
+    "encounter_x": [
+      650,
+      1030,
+      1480,
+      2290,
+      2200,
+      2860
+    ],
+    "optional_ground": 366,
+    "required_ids": [
+      "enemy-1",
+      "enemy-2",
+      "enemy-3",
+      "enemy-4",
+      "enemy-6"
+    ],
+    "altars": [
+      {
+        "id": "altar-1",
+        "x": 810,
+        "y": 366
+      },
+      {
+        "id": "altar-2",
+        "x": 2120,
+        "y": 366
+      }
+    ],
+    "hazards": [
+      {
+        "id": "hazard-1",
+        "x": 1160,
+        "w": 130
+      },
+      {
+        "id": "hazard-2",
+        "x": 2320,
+        "w": 140
+      }
+    ],
+    "exit": {
+      "id": "exit",
+      "x": 3110,
+      "y": 474
+    },
+    "shortcuts": [
+      {
+        "id": "return-path",
+        "label": "回环栈桥",
+        "x": 835,
+        "y": 366,
+        "platform": {
+          "id": "return-bridge",
+          "x": 900,
+          "y": 391,
+          "w": 310,
+          "h": 18,
+          "collision": "oneway",
+          "shortcut_id": "return-path"
+        }
+      }
+    ],
+    "checkpoint": {
+      "id": "swordstone",
+      "x": 1640,
+      "y": 474,
+      "cleared_ids": [
+        "enemy-1",
+        "enemy-2",
+        "enemy-3"
+      ]
+    },
+    "route_label": "遗迹侧院 · 高径捷径",
+    "landmarks": [
+      {
+        "x": 70,
+        "label": "山门石阶"
+      },
+      {
+        "x": 1600,
+        "label": "镇岳剑碑"
+      },
+      {
+        "x": 2690,
+        "label": "镇岳石魁"
+      }
+    ]
+  },
+  "earth:hollow": {
+    "version": 2,
+    "realm_id": "earth",
+    "map_id": "hollow",
+    "platforms": [
+      {
+        "id": "floor",
+        "x": 0,
+        "y": 474,
+        "w": 3200,
+        "h": 80,
+        "collision": "floor"
+      },
+      {
+        "id": "route-1",
+        "x": 450,
+        "y": 366,
+        "w": 300,
+        "h": 22,
+        "collision": "oneway"
+      },
+      {
+        "id": "route-2",
+        "x": 730,
+        "y": 424,
+        "w": 220,
+        "h": 22,
+        "collision": "oneway"
+      },
+      {
+        "id": "route-3",
+        "x": 1760,
+        "y": 366,
+        "w": 320,
+        "h": 22,
+        "collision": "oneway"
+      },
+      {
+        "id": "route-4",
+        "x": 2070,
+        "y": 424,
+        "w": 220,
+        "h": 22,
+        "collision": "oneway"
+      },
+      {
+        "id": "cover",
+        "x": 1240,
+        "y": 430,
+        "w": 140,
+        "h": 44,
+        "collision": "solid"
+      },
+      {
+        "id": "courtyard-step",
+        "x": 1790,
+        "y": 438,
+        "w": 150,
+        "h": 36,
+        "collision": "solid"
+      }
+    ],
+    "sections": [
+      {
+        "id": "section-1",
+        "label": "山门石阶",
+        "x": 0,
+        "end": 420
+      },
+      {
+        "id": "section-2",
+        "label": "石卫庭",
+        "x": 420,
+        "end": 900
+      },
+      {
+        "id": "section-3",
+        "label": "叠岩院",
+        "x": 900,
+        "end": 1580
+      },
+      {
+        "id": "section-4",
+        "label": "镇岳剑碑",
+        "x": 1580,
+        "end": 1770
+      },
+      {
+        "id": "section-5",
+        "label": "遗迹侧院",
+        "x": 1770,
+        "end": 2420
+      },
+      {
+        "id": "section-6",
+        "label": "重岩庭",
+        "x": 2420,
+        "end": 2670
+      },
+      {
+        "id": "section-7",
+        "label": "镇岳石魁",
+        "x": 2670,
+        "end": 3200
+      }
+    ],
+    "encounter_x": [
+      675,
+      1055,
+      1505,
+      2315,
+      1890,
+      2860
+    ],
+    "optional_ground": 366,
+    "required_ids": [
+      "enemy-1",
+      "enemy-2",
+      "enemy-3",
+      "enemy-4",
+      "enemy-6"
+    ],
+    "altars": [
+      {
+        "id": "altar-1",
+        "x": 510,
+        "y": 366
+      },
+      {
+        "id": "altar-2",
+        "x": 1810,
+        "y": 366
+      }
+    ],
+    "hazards": [
+      {
+        "id": "hazard-1",
+        "x": 1160,
+        "w": 130
+      },
+      {
+        "id": "hazard-2",
+        "x": 2320,
+        "w": 140
+      }
+    ],
+    "exit": {
+      "id": "exit",
+      "x": 3110,
+      "y": 474
+    },
+    "shortcuts": [
+      {
+        "id": "return-path",
+        "label": "回环栈桥",
+        "x": 535,
+        "y": 366,
+        "platform": {
+          "id": "return-bridge",
+          "x": 540,
+          "y": 391,
+          "w": 310,
+          "h": 18,
+          "collision": "oneway",
+          "shortcut_id": "return-path"
+        }
+      }
+    ],
+    "checkpoint": {
+      "id": "swordstone",
+      "x": 1640,
+      "y": 474,
+      "cleared_ids": [
+        "enemy-1",
+        "enemy-2",
+        "enemy-3"
+      ]
+    },
+    "route_label": "遗迹侧院 · 折返支路",
+    "landmarks": [
+      {
+        "x": 70,
+        "label": "山门石阶"
+      },
+      {
+        "x": 1600,
+        "label": "镇岳剑碑"
+      },
+      {
+        "x": 2690,
+        "label": "镇岳石魁"
+      }
+    ]
+  },
+  "metal:ridge": {
+    "version": 2,
+    "realm_id": "metal",
+    "map_id": "ridge",
+    "platforms": [
+      {
+        "id": "floor",
+        "x": 0,
+        "y": 474,
+        "w": 3200,
+        "h": 80,
+        "collision": "floor"
+      },
+      {
+        "id": "route-1",
+        "x": 480,
+        "y": 420,
+        "w": 210,
+        "h": 22,
+        "collision": "oneway"
+      },
+      {
+        "id": "route-2",
+        "x": 680,
+        "y": 362,
+        "w": 300,
+        "h": 22,
+        "collision": "oneway"
+      },
+      {
+        "id": "route-3",
+        "x": 1740,
+        "y": 420,
+        "w": 230,
+        "h": 22,
+        "collision": "oneway"
+      },
+      {
+        "id": "route-4",
+        "x": 1950,
+        "y": 362,
+        "w": 330,
+        "h": 22,
+        "collision": "oneway"
+      },
+      {
+        "id": "cover",
+        "x": 1260,
+        "y": 430,
+        "w": 80,
+        "h": 44,
+        "collision": "solid"
+      },
+      {
+        "id": "sidestep-ledge",
+        "x": 2320,
+        "y": 420,
+        "w": 160,
+        "h": 18,
+        "collision": "oneway"
+      }
+    ],
+    "sections": [
+      {
+        "id": "section-1",
+        "label": "剑冢入口",
+        "x": 0,
+        "end": 420
+      },
+      {
+        "id": "section-2",
+        "label": "断剑廊",
+        "x": 420,
+        "end": 900
+      },
+      {
+        "id": "section-3",
+        "label": "穿云道",
+        "x": 900,
+        "end": 1580
+      },
+      {
+        "id": "section-4",
+        "label": "鸣金剑碑",
+        "x": 1580,
+        "end": 1770
+      },
+      {
+        "id": "section-5",
+        "label": "矿脉侧廊",
+        "x": 1770,
+        "end": 2420
+      },
+      {
+        "id": "section-6",
+        "label": "回锋庭",
+        "x": 2420,
+        "end": 2670
+      },
+      {
+        "id": "section-7",
+        "label": "金甲剑傀",
+        "x": 2670,
+        "end": 3200
+      }
+    ],
+    "encounter_x": [
+      700,
+      1110,
+      1480,
+      2350,
+      2200,
+      2860
+    ],
+    "optional_ground": 362,
+    "required_ids": [
+      "enemy-1",
+      "enemy-2",
+      "enemy-3",
+      "enemy-4",
+      "enemy-6"
+    ],
+    "altars": [
+      {
+        "id": "altar-1",
+        "x": 810,
+        "y": 362
+      },
+      {
+        "id": "altar-2",
+        "x": 2120,
+        "y": 362
+      }
+    ],
+    "hazards": [
+      {
+        "id": "hazard-1",
+        "x": 770,
+        "w": 130
+      },
+      {
+        "id": "hazard-2",
+        "x": 2040,
+        "w": 170
+      }
+    ],
+    "exit": {
+      "id": "exit",
+      "x": 3110,
+      "y": 474
+    },
+    "shortcuts": [
+      {
+        "id": "return-path",
+        "label": "回环栈桥",
+        "x": 835,
+        "y": 362,
+        "platform": {
+          "id": "return-bridge",
+          "x": 900,
+          "y": 387,
+          "w": 310,
+          "h": 18,
+          "collision": "oneway",
+          "shortcut_id": "return-path"
+        }
+      }
+    ],
+    "checkpoint": {
+      "id": "swordstone",
+      "x": 1640,
+      "y": 474,
+      "cleared_ids": [
+        "enemy-1",
+        "enemy-2",
+        "enemy-3"
+      ]
+    },
+    "route_label": "矿脉侧廊 · 高径捷径",
+    "landmarks": [
+      {
+        "x": 70,
+        "label": "剑冢入口"
+      },
+      {
+        "x": 1600,
+        "label": "鸣金剑碑"
+      },
+      {
+        "x": 2690,
+        "label": "金甲剑傀"
+      }
+    ]
+  },
+  "metal:hollow": {
+    "version": 2,
+    "realm_id": "metal",
+    "map_id": "hollow",
+    "platforms": [
+      {
+        "id": "floor",
+        "x": 0,
+        "y": 474,
+        "w": 3200,
+        "h": 80,
+        "collision": "floor"
+      },
+      {
+        "id": "route-1",
+        "x": 450,
+        "y": 362,
+        "w": 300,
+        "h": 22,
+        "collision": "oneway"
+      },
+      {
+        "id": "route-2",
+        "x": 730,
+        "y": 420,
+        "w": 220,
+        "h": 22,
+        "collision": "oneway"
+      },
+      {
+        "id": "route-3",
+        "x": 1760,
+        "y": 362,
+        "w": 320,
+        "h": 22,
+        "collision": "oneway"
+      },
+      {
+        "id": "route-4",
+        "x": 2070,
+        "y": 420,
+        "w": 220,
+        "h": 22,
+        "collision": "oneway"
+      },
+      {
+        "id": "cover",
+        "x": 1310,
+        "y": 430,
+        "w": 80,
+        "h": 44,
+        "collision": "solid"
+      },
+      {
+        "id": "sidestep-ledge",
+        "x": 2320,
+        "y": 420,
+        "w": 160,
+        "h": 18,
+        "collision": "oneway"
+      }
+    ],
+    "sections": [
+      {
+        "id": "section-1",
+        "label": "剑冢入口",
+        "x": 0,
+        "end": 420
+      },
+      {
+        "id": "section-2",
+        "label": "断剑廊",
+        "x": 420,
+        "end": 900
+      },
+      {
+        "id": "section-3",
+        "label": "穿云道",
+        "x": 900,
+        "end": 1580
+      },
+      {
+        "id": "section-4",
+        "label": "鸣金剑碑",
+        "x": 1580,
+        "end": 1770
+      },
+      {
+        "id": "section-5",
+        "label": "矿脉侧廊",
+        "x": 1770,
+        "end": 2420
+      },
+      {
+        "id": "section-6",
+        "label": "回锋庭",
+        "x": 2420,
+        "end": 2670
+      },
+      {
+        "id": "section-7",
+        "label": "金甲剑傀",
+        "x": 2670,
+        "end": 3200
+      }
+    ],
+    "encounter_x": [
+      725,
+      1135,
+      1505,
+      2375,
+      1890,
+      2860
+    ],
+    "optional_ground": 362,
+    "required_ids": [
+      "enemy-1",
+      "enemy-2",
+      "enemy-3",
+      "enemy-4",
+      "enemy-6"
+    ],
+    "altars": [
+      {
+        "id": "altar-1",
+        "x": 510,
+        "y": 362
+      },
+      {
+        "id": "altar-2",
+        "x": 1810,
+        "y": 362
+      }
+    ],
+    "hazards": [
+      {
+        "id": "hazard-1",
+        "x": 770,
+        "w": 130
+      },
+      {
+        "id": "hazard-2",
+        "x": 2040,
+        "w": 170
+      }
+    ],
+    "exit": {
+      "id": "exit",
+      "x": 3110,
+      "y": 474
+    },
+    "shortcuts": [
+      {
+        "id": "return-path",
+        "label": "回环栈桥",
+        "x": 535,
+        "y": 362,
+        "platform": {
+          "id": "return-bridge",
+          "x": 540,
+          "y": 387,
+          "w": 310,
+          "h": 18,
+          "collision": "oneway",
+          "shortcut_id": "return-path"
+        }
+      }
+    ],
+    "checkpoint": {
+      "id": "swordstone",
+      "x": 1640,
+      "y": 474,
+      "cleared_ids": [
+        "enemy-1",
+        "enemy-2",
+        "enemy-3"
+      ]
+    },
+    "route_label": "矿脉侧廊 · 折返支路",
+    "landmarks": [
+      {
+        "x": 70,
+        "label": "剑冢入口"
+      },
+      {
+        "x": 1600,
+        "label": "鸣金剑碑"
+      },
+      {
+        "x": 2690,
+        "label": "金甲剑傀"
+      }
+    ]
+  },
+  "water:ridge": {
+    "version": 2,
+    "realm_id": "water",
+    "map_id": "ridge",
+    "platforms": [
+      {
+        "id": "floor",
+        "x": 0,
+        "y": 474,
+        "w": 3200,
+        "h": 80,
+        "collision": "floor"
+      },
+      {
+        "id": "route-1",
+        "x": 480,
+        "y": 412,
+        "w": 210,
+        "h": 22,
+        "collision": "oneway"
+      },
+      {
+        "id": "route-2",
+        "x": 680,
+        "y": 354,
+        "w": 300,
+        "h": 22,
+        "collision": "oneway"
+      },
+      {
+        "id": "route-3",
+        "x": 1740,
+        "y": 412,
+        "w": 230,
+        "h": 22,
+        "collision": "oneway"
+      },
+      {
+        "id": "route-4",
+        "x": 1950,
+        "y": 354,
+        "w": 330,
+        "h": 22,
+        "collision": "oneway"
+      },
+      {
+        "id": "cover",
+        "x": 1200,
+        "y": 430,
+        "w": 80,
+        "h": 44,
+        "collision": "solid"
+      },
+      {
+        "id": "tide-rest",
+        "x": 1180,
+        "y": 395,
+        "w": 160,
+        "h": 18,
+        "collision": "oneway"
+      }
+    ],
+    "sections": [
+      {
+        "id": "section-1",
+        "label": "寒潭入口",
+        "x": 0,
+        "end": 420
+      },
+      {
+        "id": "section-2",
+        "label": "渡桥",
+        "x": 420,
+        "end": 900
+      },
+      {
+        "id": "section-3",
+        "label": "回潮栈道",
+        "x": 900,
+        "end": 1580
+      },
+      {
+        "id": "section-4",
+        "label": "听潮剑碑",
+        "x": 1580,
+        "end": 1770
+      },
+      {
+        "id": "section-5",
+        "label": "折水侧廊",
+        "x": 1770,
+        "end": 2420
+      },
+      {
+        "id": "section-6",
+        "label": "冰庭",
+        "x": 2420,
+        "end": 2670
+      },
+      {
+        "id": "section-7",
+        "label": "寒潭水魇",
+        "x": 2670,
+        "end": 3200
+      }
+    ],
+    "encounter_x": [
+      590,
+      1060,
+      1490,
+      2250,
+      2200,
+      2860
+    ],
+    "optional_ground": 354,
+    "required_ids": [
+      "enemy-1",
+      "enemy-2",
+      "enemy-3",
+      "enemy-4",
+      "enemy-6"
+    ],
+    "altars": [
+      {
+        "id": "altar-1",
+        "x": 810,
+        "y": 354
+      },
+      {
+        "id": "altar-2",
+        "x": 2120,
+        "y": 354
+      }
+    ],
+    "hazards": [
+      {
+        "id": "hazard-1",
+        "x": 920,
+        "w": 160
+      },
+      {
+        "id": "hazard-2",
+        "x": 2170,
+        "w": 150
+      }
+    ],
+    "exit": {
+      "id": "exit",
+      "x": 3110,
+      "y": 474
+    },
+    "shortcuts": [
+      {
+        "id": "return-path",
+        "label": "回环栈桥",
+        "x": 835,
+        "y": 354,
+        "platform": {
+          "id": "return-bridge",
+          "x": 900,
+          "y": 379,
+          "w": 310,
+          "h": 18,
+          "collision": "oneway",
+          "shortcut_id": "return-path"
+        }
+      }
+    ],
+    "checkpoint": {
+      "id": "swordstone",
+      "x": 1640,
+      "y": 474,
+      "cleared_ids": [
+        "enemy-1",
+        "enemy-2",
+        "enemy-3"
+      ]
+    },
+    "route_label": "折水侧廊 · 高径捷径",
+    "landmarks": [
+      {
+        "x": 70,
+        "label": "寒潭入口"
+      },
+      {
+        "x": 1600,
+        "label": "听潮剑碑"
+      },
+      {
+        "x": 2690,
+        "label": "寒潭水魇"
+      }
+    ]
+  },
+  "water:hollow": {
+    "version": 2,
+    "realm_id": "water",
+    "map_id": "hollow",
+    "platforms": [
+      {
+        "id": "floor",
+        "x": 0,
+        "y": 474,
+        "w": 3200,
+        "h": 80,
+        "collision": "floor"
+      },
+      {
+        "id": "route-1",
+        "x": 450,
+        "y": 354,
+        "w": 300,
+        "h": 22,
+        "collision": "oneway"
+      },
+      {
+        "id": "route-2",
+        "x": 730,
+        "y": 412,
+        "w": 220,
+        "h": 22,
+        "collision": "oneway"
+      },
+      {
+        "id": "route-3",
+        "x": 1760,
+        "y": 354,
+        "w": 320,
+        "h": 22,
+        "collision": "oneway"
+      },
+      {
+        "id": "route-4",
+        "x": 2070,
+        "y": 412,
+        "w": 220,
+        "h": 22,
+        "collision": "oneway"
+      },
+      {
+        "id": "cover",
+        "x": 1250,
+        "y": 430,
+        "w": 80,
+        "h": 44,
+        "collision": "solid"
+      },
+      {
+        "id": "tide-rest",
+        "x": 1180,
+        "y": 395,
+        "w": 160,
+        "h": 18,
+        "collision": "oneway"
+      }
+    ],
+    "sections": [
+      {
+        "id": "section-1",
+        "label": "寒潭入口",
+        "x": 0,
+        "end": 420
+      },
+      {
+        "id": "section-2",
+        "label": "渡桥",
+        "x": 420,
+        "end": 900
+      },
+      {
+        "id": "section-3",
+        "label": "回潮栈道",
+        "x": 900,
+        "end": 1580
+      },
+      {
+        "id": "section-4",
+        "label": "听潮剑碑",
+        "x": 1580,
+        "end": 1770
+      },
+      {
+        "id": "section-5",
+        "label": "折水侧廊",
+        "x": 1770,
+        "end": 2420
+      },
+      {
+        "id": "section-6",
+        "label": "冰庭",
+        "x": 2420,
+        "end": 2670
+      },
+      {
+        "id": "section-7",
+        "label": "寒潭水魇",
+        "x": 2670,
+        "end": 3200
+      }
+    ],
+    "encounter_x": [
+      615,
+      1085,
+      1515,
+      2275,
+      1890,
+      2860
+    ],
+    "optional_ground": 354,
+    "required_ids": [
+      "enemy-1",
+      "enemy-2",
+      "enemy-3",
+      "enemy-4",
+      "enemy-6"
+    ],
+    "altars": [
+      {
+        "id": "altar-1",
+        "x": 510,
+        "y": 354
+      },
+      {
+        "id": "altar-2",
+        "x": 1810,
+        "y": 354
+      }
+    ],
+    "hazards": [
+      {
+        "id": "hazard-1",
+        "x": 920,
+        "w": 160
+      },
+      {
+        "id": "hazard-2",
+        "x": 2170,
+        "w": 150
+      }
+    ],
+    "exit": {
+      "id": "exit",
+      "x": 3110,
+      "y": 474
+    },
+    "shortcuts": [
+      {
+        "id": "return-path",
+        "label": "回环栈桥",
+        "x": 535,
+        "y": 354,
+        "platform": {
+          "id": "return-bridge",
+          "x": 540,
+          "y": 379,
+          "w": 310,
+          "h": 18,
+          "collision": "oneway",
+          "shortcut_id": "return-path"
+        }
+      }
+    ],
+    "checkpoint": {
+      "id": "swordstone",
+      "x": 1640,
+      "y": 474,
+      "cleared_ids": [
+        "enemy-1",
+        "enemy-2",
+        "enemy-3"
+      ]
+    },
+    "route_label": "折水侧廊 · 折返支路",
+    "landmarks": [
+      {
+        "x": 70,
+        "label": "寒潭入口"
+      },
+      {
+        "x": 1600,
+        "label": "听潮剑碑"
+      },
+      {
+        "x": 2690,
+        "label": "寒潭水魇"
+      }
+    ]
+  }
+}

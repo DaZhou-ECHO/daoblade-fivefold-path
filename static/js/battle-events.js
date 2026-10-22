@@ -3,7 +3,7 @@
 // 局内事实通知：不拥有战斗判定、帧循环或持久化。
 (function (root) {
   let battleSequence = 0;
-  const types = new Set(["slash_started", "enemy_hit", "player_blocked", "player_parried", "player_hurt", "battle_ended"]);
+  const types = new Set(["slash_started", "enemy_hit", "player_blocked", "player_parried", "player_hurt", "battle_ended", "action_cancelled", "player_guard_broken"]);
   const number = value => Number.isFinite(value) ? value : 0;
   const text = value => typeof value === "string" ? value : null;
   function createChannel() {
@@ -28,7 +28,7 @@
           target_id: text(data.target_id), action_id: text(data.action_id),
           attack_id: number(data.attack_id), phase: text(data.phase), element: text(data.element),
           position: Object.freeze([number(data.position?.[0]), number(data.position?.[1])]),
-          amount: number(data.amount), critical: Boolean(data.critical), periodic: Boolean(data.periodic),
+          guard_cost: number(data.guard_cost), amount: number(data.amount), critical: Boolean(data.critical), periodic: Boolean(data.periodic),
           combo: number(data.combo), outcome: text(data.outcome),
         });
         history.push(event); if (history.length > 64) history.shift();

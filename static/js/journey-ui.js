@@ -35,7 +35,7 @@
     $("journey-loadout").innerHTML=['active','passive'].flatMap(kind=>[0,1].map(i=>`<label>${kind==='active'?(i?'E':'Q'):('心法'+(i+1))}<select data-slot="${kind}:${i}"><option value="">无</option>${config.palaces.map(p=>`<option value="${p.id}" ${edit.loadout[kind][i]===p.id?'selected':''}>${p.name} · ${kind==='active'?p.skill:mindDescription(p.id,s.beads.find(b=>b.id===p.id+'.mind')?.level||1)}${(kind==='active'?c.skills[i]?.id===p.id:c.minds.includes(p.id))?' · 已保存有效':''}</option>`).join('')}</select></label>`)).join('');
     $("journey-compiled").textContent=`实际主动：${c.skills.map((k,i)=>k?`${i?'E':'Q'} ${k.name}(${k.element}) 伤${k.damage}/耗${k.cost}/${k.variant}`:`${i?'E':'Q'}停用`).join('；')}。实际心法：${c.minds.map(p=>palace(p).name+' '+mindDescription(p,c.mind_levels?.[p]||1)).join('、')||'无'}。有效成长珠${c.effective_bead_ids.length}颗。`;
     $("journey-owned").textContent='珠匣 '+s.beads.length+'/40：'+s.beads.map(b=>b.name+' Lv'+b.level).join('、');
-    $("journey-route").textContent=active?`未完成${active.breakthrough?'筑基突破':active.realm_id+'境 '+active.map_id} · ${active.checkpoint?'剑碑已保存':'入口恢复'} · 已领支路${active.claimed_altars.length}/2 · 构筑冻结`:'主路可用基础移动单跳通过，支路祭坛可返回；领取回复12血18气，胜利额外修为。';
+    $("journey-route").textContent=active?`未完成${active.breakthrough?'筑基突破':active.realm_id+'境 '+active.map_id} · ${active.checkpoint?'剑碑已保存':'入口恢复'} · 已领支路${active.claimed_altars.length}/2 · 构筑冻结`:'新局v2：主路单跳通行，普通挡耗剑意；可选支路祭坛回复12血18气、捷径可保存；关键遭遇与首领后按F确认离境。';
     for(const id of ['journey-equip','journey-clear','journey-save','journey-start','journey-break'])$(id).disabled=busy||blocked||!!active;
     $("journey-start").disabled ||= dirty()||!c.skills.some(Boolean);
     $("journey-break").disabled ||= dirty()||s.rank!==0||s.progress.spirit<24||!c.skills.some(Boolean);
