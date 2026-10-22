@@ -2,6 +2,14 @@
 
 适用：2026-10-20起的初版分方向工作。补充旧《GitHub团队维护手册》；本文件中的当前候选与编号规则优先，旧检查记录保留为历史。
 
+## 2026-10-20接续更正（002）
+
+根目录[AGENTS.md](../AGENTS.md)为Agent开工入口；自主选题、留痕、额度接续及经授权的develop集成以该规范为准。成员无需领取任务，但须公开范围、检查开放PR、协调公共文件与编号。
+
+001通过[PR #3](https://github.com/DaZhou-ECHO/daoblade-fivefold-path/pull/3)进入develop，再经[PR #4](https://github.com/DaZhou-ECHO/daoblade-fivefold-path/pull/4)进入main；PR #2关闭未合并。下文“当前实际基线”为001当时历史，不再作为新轮次基线。独立新工作从最新确认的origin/develop开始。
+
+旧文“不自动合并主干”为001当时权限范围。负责人现已授权主维护Agent检查通过后串行集成develop；main、正式标签和发布仍由负责人决定。本次不授权修改保护、凭据或CI权限。
+
 ## 命名约定
 
 | 对象 | 格式 | 本轮示例 |
