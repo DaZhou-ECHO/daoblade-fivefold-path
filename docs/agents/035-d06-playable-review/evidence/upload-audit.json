@@ -1,0 +1,16 @@
+{
+  "checked_at": "2026-10-22 13:40 Asia/Shanghai",
+  "code_head": "1494d07",
+  "base": "origin/develop 2de9f28",
+  "changed_files_at_code_head": 380,
+  "new_blob_versions_scanned": 611,
+  "prohibited_artifacts": [],
+  "known_credential_pattern_hits": [],
+  "scan_scope": "new blobs from origin/main to1494d07; common token/private-key patterns, no secret values output",
+  "remote_heads": [
+    "develop",
+    "main",
+    "work/002-d01-agent-handoff"
+  ],
+  "pr5": "open draft; governance overlap noted; not changed"
+}

@@ -14,7 +14,7 @@
 
 完整规则与实际验收见[正式征程总清单](docs/implementation/正式征程总清单.md)、[游玩证据与限制](docs/implementation/正式征程验收.md)。页面仍保留“旧版修行”和“阵盘试验”，三种存档各自独立；下文永久镶嵌、随机词条、主副五行等内容仅描述旧版，不适用于正式征程。旧游客导入入口只导入旧版档，正式征程请从自己的账号开始。
 
-本地开发接续从[AGENTS.md](AGENTS.md)、[Agent任务索引](docs/agents/README.md)和[本地启动与统一自检](LOCAL_DEVELOPMENT.md)开始。2026-10-21起的003及后续轮次目前仅保存在本地，尚未上传；当前分支和完成情况以Git现场及任务交接为准。这不是正式发布说明。[当前功能进度](docs/implementation/本地功能进度.md)区分已实现与待开发内容。
+本地开发接续从[AGENTS.md](AGENTS.md)、[Agent任务索引](docs/agents/README.md)和[本地启动与统一自检](LOCAL_DEVELOPMENT.md)开始。003–034累计成果由035集成候选提交GitHub审核，上传与PR状态以[035交接](docs/agents/035-d06-playable-review/agents/agent-20261022-1339-p8a1/HANDOFF.md)为准；这是候选审核，不代表已合并或正式发布。审核者先读[审核入口](docs/agents/035-d06-playable-review/REVIEW.md)。[当前功能进度](docs/implementation/本地功能进度.md)区分已实现与待开发内容。
 
 既有001实现见[历史实施索引](docs/implementation/00-实施索引.md)；此前记录见[v0.3.0设计](docs/v0.3.0设计与实施说明.md)、[v0.3.0测试](docs/v0.3.0测试与交接.md)。未来修改按[初版分方向策划](docs/planning/first-playable/00-初版总纲与阅读入口.md)逐步实施。
 
