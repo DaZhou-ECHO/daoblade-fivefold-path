@@ -1,0 +1,90 @@
+✖ 025 实际贴身近战中心在前，五境普通挡与弹反有效，不按敌人左边缘错判 (19.3682ms)
+✖ 025 中心在后不能格挡，受伤后向远离攻击来源的方向击退 (6.2411ms)
+✖ 025 敌方投射物中心在前可挡，中心在后不可挡且击退一致 (11.2302ms)
+✖ 025 旧金行弹反反击也按中心识别贴身前敌 (10.3717ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 0
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 156.3657
+
+✖ failing tests:
+
+test at tests\combat.test.cjs:680:1
+✖ 025 实际贴身近战中心在前，五境普通挡与弹反有效，不按敌人左边缘错判 (19.3682ms)
+  AssertionError [ERR_ASSERTION]: fire/boss/block
+      at TestContext.<anonymous> (D:\desktop\研\gpt\学习与训练\.reading\daoblade-fivefold-path\tests\combat.test.cjs:683:12)
+      at Test.runInAsyncScope (node:async_hooks:228:14)
+      at Test.run (node:internal/test_runner/test:1118:25)
+      at Test.start (node:internal/test_runner/test:1015:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\combat.test.cjs:687:1
+✖ 025 中心在后不能格挡，受伤后向远离攻击来源的方向击退 (6.2411ms)
+  AssertionError [ERR_ASSERTION]: fire front recoil
+      at TestContext.<anonymous> (D:\desktop\研\gpt\学习与训练\.reading\daoblade-fivefold-path\tests\combat.test.cjs:689:84)
+      at Test.runInAsyncScope (node:async_hooks:228:14)
+      at Test.run (node:internal/test_runner/test:1118:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:787:18)
+      at Test.postRun (node:internal/test_runner/test:1247:19)
+      at Test.run (node:internal/test_runner/test:1175:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\combat.test.cjs:694:1
+✖ 025 敌方投射物中心在前可挡，中心在后不可挡且击退一致 (11.2302ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (D:\desktop\研\gpt\学习与训练\.reading\daoblade-fivefold-path\tests\combat.test.cjs:698:37)
+      at Test.runInAsyncScope (node:async_hooks:228:14)
+      at Test.run (node:internal/test_runner/test:1118:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:787:18)
+      at Test.postRun (node:internal/test_runner/test:1247:19)
+      at Test.run (node:internal/test_runner/test:1175:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:787:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\combat.test.cjs:703:1
+✖ 025 旧金行弹反反击也按中心识别贴身前敌 (10.3717ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(enemy.hp<hp)
+  
+      at TestContext.<anonymous> (D:\desktop\研\gpt\学习与训练\.reading\daoblade-fivefold-path\tests\combat.test.cjs:706:80)
+      at Test.runInAsyncScope (node:async_hooks:228:14)
+      at Test.run (node:internal/test_runner/test:1118:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:787:18)
+      at Test.postRun (node:internal/test_runner/test:1247:19)
+      at Test.run (node:internal/test_runner/test:1175:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:787:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

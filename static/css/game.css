@@ -12,7 +12,7 @@
 .pixel-dialog{width:min(520px,calc(100% - 28px));padding:0;color:var(--paper);background:var(--ink-2);border:2px solid var(--gold);box-shadow:10px 10px 0 rgba(0,0,0,.55)}.pixel-dialog::backdrop{background:rgba(2,6,11,.78)}.pixel-dialog form{padding:26px}.pixel-dialog h2{font-size:31px}.dialog-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}.danger-text{color:#ef9d8f}.reward-list{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:18px 0}.reward-item{padding:10px;text-align:center;border:1px solid var(--quality-color);background:var(--panel)}.reward-item b{color:var(--quality-color)}.toast{position:fixed;right:24px;bottom:24px;z-index:30;max-width:420px;padding:14px 18px;background:#1d344d;border-left:5px solid var(--gold);box-shadow:5px 5px 0 rgba(0,0,0,.4);opacity:0;transform:translateY(15px);pointer-events:none;transition:.2s}.toast.show{opacity:1;transform:translateY(0)}
 .pause-overlay{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;background:rgba(4,9,16,.84)}.pause-overlay h2{font-size:42px}.pause-overlay p{color:var(--muted)}.pause-overlay>div{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;max-width:560px}.dialog-body{padding:26px}.control-settings{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:16px}.control-settings button{display:flex;justify-content:space-between;gap:8px;text-align:left}.control-settings button.listening{border-color:var(--gold);color:var(--gold)}.practice-entry{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-top:16px;padding:16px 20px;border:1px solid var(--line);background:var(--panel)}.practice-entry p{margin:0;color:var(--muted)}.preview-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.preview-grid>div{padding:8px;border:1px solid var(--line);background:var(--panel)}.preview-grid small{display:block;color:var(--muted)}.preview-moves{padding-left:20px;line-height:1.7;color:var(--muted)}
 #socket-dialog{width:min(850px,calc(100% - 28px))}.build-preview{padding:12px;margin:12px 0;border:1px solid var(--line);background:var(--ink-2);font-size:13px;line-height:1.5}.build-preview p{margin:6px 0}.build-preview p:first-child{color:var(--gold);font-weight:700}.current-build .build-preview{margin-top:14px}.preview-grid>div{min-width:0}.preview-grid .build-preview{padding:0;border:0;background:transparent}.control-settings kbd{white-space:nowrap}
-.feedback-settings{display:flex;gap:22px;margin-top:18px;padding:12px;border:1px solid var(--line);color:var(--muted)}.feedback-settings label{cursor:pointer}
+.feedback-settings{display:flex;flex-wrap:wrap;gap:22px;margin-top:18px;padding:12px;border:1px solid var(--line);color:var(--muted)}.feedback-settings label{cursor:pointer}
 /* 限高时同步限制宽度，避免横向拉伸角色和倒地动画。 */
 #game-canvas{height:auto;max-height:none;max-width:calc((100vh - 250px) * 16 / 9);margin-inline:auto}
 @media(max-width:960px){.player-summary{display:none}.realm-grid{grid-template-columns:repeat(2,1fr)}.cultivation-layout{grid-template-columns:1fr}.bagua-board{min-height:580px}.inventory-layout{grid-template-columns:1fr}.bead-detail{position:static}.manual-grid{grid-template-columns:repeat(2,1fr)}.hero-copy{grid-template-columns:1fr}.sword-altar{min-height:330px}.touch-controls{display:flex}}
@@ -20,3 +20,56 @@
 @media(max-width:600px){.preview-grid{grid-template-columns:1fr}.practice-entry{align-items:stretch;flex-direction:column}.dialog-actions{flex-wrap:wrap}.pause-overlay h2{font-size:27px}.pause-overlay .pixel-button{padding:8px}.control-settings{grid-template-columns:1fr}}
 .account-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}.account-actions span{font-size:13px;color:var(--gold)}button[hidden]{display:none!important}#account-dialog .dialog-body{padding:25px}#account-dialog label{display:grid;gap:6px;margin:14px 0;color:var(--muted)}#account-dialog input,.loadout-panel select{width:100%;padding:10px;color:var(--paper);background:#07101d;border:1px solid #5b7088}.loadout-panel{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin:16px 0}.loadout-group{padding:15px;background:var(--panel);border:1px solid var(--line)}.loadout-group h3{margin:0 0 12px;color:var(--gold)}.loadout-group>div{display:grid;gap:10px}.loadout-group label{display:grid;grid-template-columns:72px 1fr;gap:8px;align-items:center;color:var(--muted);font-size:13px}#skill-hud{color:var(--gold)}
 @media(max-width:960px){.topbar{flex-wrap:wrap}.account-actions{margin-left:auto}}@media(max-width:600px){.loadout-panel{grid-template-columns:1fr}.topbar{gap:8px}.account-actions{width:100%;justify-content:space-between}}
+
+#enemy-readout{margin:0;padding:8px 12px;border-bottom:1px solid var(--line);color:var(--paper);background:var(--panel);font-size:14px;line-height:1.5}
+
+/* 操作区按可用宽度换行，避免375宽屏的剑气和两技能被横向裁切。 */
+@media(max-width:960px){
+  .control-bar{display:none}
+  .touch-controls{flex-wrap:wrap;justify-content:center;padding:8px 0;background:var(--ink)}
+  .touch-controls div{flex-wrap:wrap;justify-content:center;max-width:100%}
+  .touch-controls button{touch-action:none;user-select:none;-webkit-user-select:none}
+}
+@media(max-width:960px){
+  body:has(#panel-game.active) .topbar,body:has(#panel-game.active) .main-nav{display:none}
+  .shell:has(#panel-game.active){margin-top:8px}
+  .game-heading{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:8px}
+  .game-heading>div:nth-child(2){grid-column:1/-1;grid-row:1;min-width:0}
+  .game-heading small{display:block;margin:4px 0 0;font-size:12px;line-height:1.4}
+  .game-stats{grid-column:1/-1;grid-row:2;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+  .game-stats span{min-width:0;padding:4px;font-size:12px}
+  #skill-hud{grid-column:1/-1}
+  #enemy-readout,#route-readout{font-size:12px;padding:6px 8px;margin-block:0}
+  .pause-overlay{gap:6px;overflow:auto;padding:8px}
+  .pause-overlay h2,.pause-overlay p{margin:2px 0}
+}
+@media(max-height:500px) and (max-width:960px){
+  body:has(#panel-game.active) .topbar,body:has(#panel-game.active) .main-nav{display:none}
+  .shell:has(#panel-game.active){margin-top:6px}
+  .game-heading{padding:6px;display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:6px}
+  .game-heading>div:nth-child(2){grid-column:1;grid-row:1;min-width:0}
+  .game-heading small{display:block;margin:0;font-size:11px;line-height:1.2}
+  .game-heading .pixel-button{padding:6px;font-size:12px}
+  .game-stats{grid-column:1/-1;grid-row:2;display:flex;flex-wrap:wrap;gap:4px}
+  .game-stats span{padding:3px;font-size:11px}
+  #enemy-readout,#route-readout{font-size:11px;padding:4px 6px;margin-block:0}
+  .touch-controls{padding:5px 0;gap:6px}
+  .pause-overlay{gap:4px;overflow:auto;padding:4px}
+  .pause-overlay h2{font-size:20px;margin:0}
+  .pause-overlay p{font-size:11px;margin:0}
+  .pause-overlay .pixel-button{padding:5px;font-size:11px}
+}
+
+@media(max-width:360px){
+  .game-heading small{font-size:11px}
+  .game-stats span{font-size:11px}
+  #enemy-readout,#route-readout{font-size:11px;padding:4px 6px}
+}
+/* 画布使用HUD和操作区剩余高度，不用屏幕高度减固定数猜测。 */
+@media(max-width:960px){
+  #panel-game.active{display:flex;flex-direction:column;height:calc(100vh - 16px);height:calc(100dvh - 16px)}
+  #panel-game>.game-heading,#panel-game>#enemy-readout,#panel-game>#route-readout,#panel-game>.touch-controls{flex-shrink:0}
+  #panel-game>.canvas-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center}
+  #panel-game #game-canvas{width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain}
+  #panel-game .game-heading small{max-height:4.2em;overflow:auto}
+}

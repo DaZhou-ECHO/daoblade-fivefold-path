@@ -1,0 +1,41 @@
+# Agent 任务索引
+
+2026-10-22：用户已授权将003–034累计成果上传供审核。本次状态以035为准；旧任务行的“仅本地”和历史交接保留当时事实，不代表035之后的远端状态。
+
+| 任务ID | 任务目标 | 状态 | 当前接续Agent | 分支/基线 | 最新交接链接 | 依赖或阻塞 |
+|---|---|---|---|---|---|---|
+| 035-d06-playable-review | 集成003–034候选上传与审核入口 | 待验收 | agent-20261022-1339-p8a1 | work/035-d06-playable-review / 1494d07 | [交接](035-d06-playable-review/agents/agent-20261022-1339-p8a1/HANDOFF.md) | [PR #6](https://github.com/DaZhou-ECHO/daoblade-fivefold-path/pull/6)已开放，目标develop；已请求DaZhou-ECHO审核；110/186通过，未合并 |
+| 034-journey-defect-audit | 构筑编辑与窄屏操作缺陷排查 | 已完成 | agent-20261022-1215-d4a1 | work/034-journey-defect-audit-local / fcf644f | [交接](034-journey-defect-audit/agents/agent-20261022-1215-d4a1/HANDOFF.md) | 110/186通过；草稿/窄屏/暂停/换号修复；四视口/屏幕按钮剑碑与战败恢复；v58无活跃局，实体设备未验，仅本地 |
+| 033-journey-usability | 正式征程成长收益与可用性收尾 | 已完成 | agent-20261021-0031-c8e4 | work/033-journey-usability-local / 7f7237d | [交接](033-journey-usability/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 110/180通过；非核心真实升级/启动/新手引导；十图实际胜利、五境支路、重登v51；设备限制详交接，仅本地 |
+| 032-eight-palace-journey | 正式八宫、突破掉落、五境双图支路与新档验收 | 已完成 | agent-20261021-0031-c8e4 | work/032-eight-palace-journey-local / 61c2786→f8afac5→21a0c21，随后文档整理 | [交接](032-eight-palace-journey/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 109/177通过；新档五境→突破→8珠双心法→另一图支路/胜利→重登v36；局限详交接，仅本地 |
+| 031-d07-hazard-rhythm | 五境机关预警与高台避险 | 已完成 | agent-20261021-0031-c8e4 | work/031-d07-hazard-rhythm-local / 85f8d7e | [交接](031-d07-hazard-rhythm/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 104/169全检；五境三帧率单跳/高台安全；火境浏览器提示；支路另续，仅本地 |
+| 030-d06-five-realm-browser | 五境正式浏览器通关与成长 | 已完成 | agent-20261021-0031-c8e4 | work/030-d06-five-realm-browser-local / 5e697f4 | [交接](030-d06-five-realm-browser/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 104/166全检；五境正式浏览器胜利/成长/重登全部通过；本地未上传 |
+| 029-d05-five-realm-encounters | 五境首轮独有首领与完整流程验证 | 已完成 | agent-20261021-0031-c8e4 | work/029-d05-five-realm-encounters-local / 1023f11 | [交接](029-d05-five-realm-encounters/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 104/164全检；15路引擎+真实SQLite；五境浏览器演练胜利；030后续正式五境通关已通过，仅本地 |
+| 028-d02-guard-input-buffer | 初次普通格挡短缓冲 | 已完成 | agent-20261021-0031-c8e4 | work/028-d02-guard-input-buffer-local / ca0c240 | [交接](028-d02-guard-input-buffer/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 99/154通过；历史0.18秒普通挡；030已改持续持有普通挡并正式五境通过；仅本地 |
+| 027-d06-water-playtest | 水境真实主路与首领验证 | 已完成 | agent-20261021-0031-c8e4 | work/027-d06-water-playtest-local / e62987d | [交接](030-d06-five-realm-browser/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 030已正式水境胜利/成长/重登验收，历史记录保留；仅本地 |
+| 026-d02-held-guard | 持续防守受击恢复与输入清理 | 已完成 | agent-20261021-0031-c8e4 | work/026-d02-held-guard-local / 64f48ac | [交接](026-d02-held-guard/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 99/150通过；真实水境持续K对照；普通挡恢复不自动弹反，仅本地 |
+| 025-d02-defense-origin | 贴身格挡与击退方向修正 | 已完成 | agent-20261021-0031-c8e4 | work/025-d02-defense-origin-local / 470dca3 | [交接](025-d02-defense-origin/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 99/146通过；同夹具旧代码4失败，新代码通过；持续K另转026，仅本地 |
+| 024-d05-enemy-readout | 近敌方位血量与出招信息 | 已完成 | agent-20261021-0031-c8e4 | work/024-d05-enemy-readout-local / 8e0ed74 | [交接](024-d05-enemy-readout/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 99/142通过；真实绕背/水鬼预警文字验证；方向来源疑点转025，仅本地 |
+| 023-d02-skill-input-buffer | Q/E短输入缓冲与操作衔接 | 已完成 | agent-20261021-0031-c8e4 | work/023-d02-skill-input-buffer-local / 3259b41 | [交接](023-d02-skill-input-buffer/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 99/140通过；实际J接Q/格挡取消验证通过，仅本地 |
+| 022-d06-five-realm-array | 新阵盘土金水与五境流程 | 已完成 | agent-20261021-0031-c8e4 | work/022-d06-five-realm-array-local / 0c30a29 | [交接](030-d06-five-realm-browser/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 029两招差异+030五境正式胜利/保存/重登验收完成；仅本地 |
+| 021-d06-wood-array-trial | 新阵盘第二秘境木境 | 已完成 | agent-20261021-0031-c8e4 | work/021-d06-wood-array-trial-local / 38a82f6 | [交接](030-d06-five-realm-browser/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 030已正式木境胜利/剑碑/保存验收；旧交接为历史，仅本地 |
+| 020-d03-return-flame | 回火第三组合与研习 | 已完成 | agent-20261021-0031-c8e4 | work/020-d03-return-flame-local / 0ae362f | [交接](020-d03-return-flame/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 90/128通过；真实研习/回火试招/刷新重登；仅本地 |
+| 019-d05-ranged-engagement | 修复警戒外受击不追击漏洞 | 已完成 | agent-20261021-0031-c8e4 | work/019-d05-ranged-engagement-local / fb3ac2e | [交接](019-d05-ranged-engagement/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 修前失败/修后3条回归及真实追击通过；平衡继续，仅本地 |
+| 018-d03-playable-trial | 新阵盘真实火境与成长闭环 | 已完成 | agent-20261021-0031-c8e4 | work/018-d03-playable-trial-local / def7e07 | [交接](018-d03-playable-trial/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 真实六敌/剑碑刷新/失败续关/胜利成长/拆换重登通过；首领远距漏洞待修；仅本地 |
+| 017-d03-trial-growth | 新规则试炼与成长结算服务 | 已完成 | agent-20261021-0031-c8e4 | work/017-d03-trial-growth-local / 55d0c8d | [交接](017-d03-trial-growth/agents/agent-20261021-0031-c8e4/HANDOFF.md) | Python88/Node117及API事务/成长试招通过；018须接真实挑战；仅本地 |
+| 016-d03-array-lab | 独立测试档与离宫可拆换组合 | 已完成 | agent-20261021-0031-c8e4 | work/016-d03-array-lab-local / bce6616 | [交接](016-d03-array-lab/agents/agent-20261021-0031-c8e4/HANDOFF.md) | Python75/Node115与实际两方案/拆装/刷新/重登/冲突通过；仅本地 |
+| 015-d10-checkpoint-save | 剑碑持久化与刷新恢复 | 已完成 | agent-20261021-0031-c8e4 | work/015-d10-checkpoint-save-local / 041c697 | [交接](015-d10-checkpoint-save/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 依赖014；Python61/Node105与真实刷新恢复通过；完整通关继续；仅本地 |
+| 014-d06-fire-checkpoint | 火境剑碑会话内续关 | 已完成 | agent-20261021-0031-c8e4 | work/014-d06-fire-checkpoint-local / ba82f57 | [交接](014-d06-fire-checkpoint/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 依赖013；Python48/Node96及真实战败续关通过；刷新恢复后续；仅本地 |
+| 013-d06-fire-guidance | 火境分段目标引导 | 已完成 | agent-20261021-0031-c8e4 | work/013-d06-fire-guidance-local / 0954346 | [交接](013-d06-fire-guidance/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 依赖012；Python48/Node91与浏览器通过；仅本地；检查点另续 |
+| 012-d01-level-definitions | 旧五境定义与稳定位置引用 | 已完成 | agent-20261021-0031-c8e4 | work/012-d01-level-definitions-local / a0ee0b1 | [交接](012-d01-level-definitions/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 依赖本地011；五境基线相等，Python48/Node89通过；仅本地 |
+| 011-d01-local-checks | 本地入口与可重复自检 | 已完成 | agent-20261021-0031-c8e4 | work/011-d01-local-checks-local / df73305 | [交接](011-d01-local-checks/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 依赖本地010；统一检查Python48/Node85通过；仅本地 |
+| 010-d10-unsynced-battle | 已知失同步时保护正式开战 | 已完成 | agent-20261021-0031-c8e4 | work/010-d10-unsynced-battle-local / 7c25a87 | [交接](010-d10-unsynced-battle/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 依赖本地009；入口先复现后修复，Node85通过；仅本地 |
+| 009-d05-enemy-death-boundary | 燃烧致死同帧停止攻击 | 已完成 | agent-20261021-0031-c8e4 | work/009-d05-enemy-death-boundary-local / 0afa767 | [交接](009-d05-enemy-death-boundary/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 依赖本地008；先复现后修复，Node84通过；仅本地 |
+| 008-d08-combat-feedback | 事件驱动命中与防守文字 | 已完成 | agent-20261021-0031-c8e4 | work/008-d08-combat-feedback-local / cb66145 | [交接](008-d08-combat-feedback/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 依赖本地007；Node82/Python43及命中/格挡实测通过；仅本地 |
+| 007-d09-battle-audio | 五类短音效及有界声音调度 | 已完成 | agent-20261021-0031-c8e4 | work/007-d09-battle-audio-local / bd0ad73 | [交接](007-d09-battle-audio/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 依赖本地006；Node75/Python43及设置流程通过；仅本地 |
+| 006-d01-battle-events | 战斗事实事件及已有声音接入 | 已完成 | agent-20261021-0031-c8e4 | work/006-d01-battle-events-local / aa9509e | [交接](006-d01-battle-events/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 依赖本地005；Node69/Python43及页面检查通过；仅本地 |
+| 005-d02-pointer-lifecycle | D02指针与混合输入释放 | 已完成 | agent-20261021-0031-c8e4 | work/005-d02-pointer-lifecycle-local / 1f2be87 | [交接](005-d02-pointer-lifecycle/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 依赖本地004；Node64及窄屏拖出松手通过；仅本地 |
+| 004-d01-action-state | D01只读动作视图及角色接入 | 已完成 | agent-20261021-0031-c8e4 | work/004-d01-action-state-local / 9033e53 | [交接](004-d01-action-state/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 依赖本地003；Node61/Python43及浏览器通过；仅本地 |
+| 003-d04-airborne-pose | U02跳跃/下落腿部姿态子任务 | 已完成 | agent-20261021-0031-c8e4 | work/003-d04-airborne-pose-local / c3cb5f5 | [交接](003-d04-airborne-pose/agents/agent-20261021-0031-c8e4/HANDOFF.md) | Python43/Node55通过及浏览器实玩；仅本地，通知后才上传 |
+
+2026-10-21 00:31 Asia/Shanghai：远端002仅为Agent治理文档，PR#5开放；本轮不改其文件。003是本地编号，未公开占号，上传前须再检查编号竞争。长期准则来自本工作区根目录AGENTS.md及用户直接提供的同文指令。

@@ -1,0 +1,31 @@
+Browser tab: 6, Title: "本命剑：八荒五行", URL: "http://127.0.0.1:5064/".
+1 AXWebArea 本命剑：八荒五行, URL: 127.0.0.1:5064/
+	2 container result-dialog
+		3 container
+			4 text 秘境结算
+			5 heading 熔岩天宫 · 正式征程胜利, Value: 2, ID: result-title
+				6 text 熔岩天宫 · 正式征程胜利
+			7 text 已保存 · 修为+16 · 基础12 / 支路4 / 重复珠0；新珠已入匣
+			8 container reward-list
+				9 container
+					10 text 艮·核心珠 经验 +0 → Lv3
+				11 container
+					12 text 艮·心法珠 经验 +0 → Lv3
+				13 container
+					14 text 坤·核心珠 经验 +20 → Lv2
+				15 container
+					16 text 坤·心法珠 经验 +20 → Lv2
+				17 container
+					18 text 乾·核心珠 经验 +20 → Lv3
+				19 container
+					20 text 乾·纹路珠 经验 +20 → Lv2
+				21 container
+					22 text 坎·核心珠 经验 +20 → Lv2
+				23 container
+					24 text 坎·纹路珠 经验 +20 → Lv2
+				25 container
+					26 text 离·流式珠 新珠已入匣
+			27 button 重新挑战, ID: retry-result
+			28 button 返回阵盘, ID: return-sanctuary
+
+The focused UI element is 2 container result-dialog

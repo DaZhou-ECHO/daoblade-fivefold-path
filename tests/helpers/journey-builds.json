@@ -1,0 +1,330 @@
+[
+  {
+    "campaign": true,
+    "ruleset_id": "journey-v1",
+    "used": 3,
+    "capacity": 6,
+    "rank": 0,
+    "connected": [
+      "xun.core",
+      "xun.trace",
+      "xun.mind"
+    ],
+    "inactive": {},
+    "skills": [
+      {
+        "id": "xun",
+        "name": "贯风",
+        "element": "wood",
+        "damage": 22,
+        "cost": 12,
+        "cooldown": 1.5,
+        "range": 170,
+        "variant": "基础"
+      },
+      null
+    ],
+    "minds": [
+      "xun"
+    ],
+    "mind_levels": {
+      "xun": 1
+    },
+    "effective_bead_ids": [
+      "xun.core",
+      "xun.mind",
+      "xun.trace"
+    ],
+    "skill": {
+      "enabled": true,
+      "burn_damage": 4
+    }
+  },
+  {
+    "campaign": true,
+    "ruleset_id": "journey-v1",
+    "used": 3,
+    "capacity": 6,
+    "rank": 0,
+    "connected": [
+      "li.core",
+      "li.trace",
+      "li.mind"
+    ],
+    "inactive": {},
+    "skills": [
+      {
+        "id": "li",
+        "name": "离火",
+        "element": "fire",
+        "damage": 22,
+        "cost": 12,
+        "cooldown": 1.5,
+        "range": 170,
+        "variant": "基础"
+      },
+      null
+    ],
+    "minds": [
+      "li"
+    ],
+    "mind_levels": {
+      "li": 1
+    },
+    "effective_bead_ids": [
+      "li.core",
+      "li.mind",
+      "li.trace"
+    ],
+    "skill": {
+      "enabled": true,
+      "burn_damage": 4
+    }
+  },
+  {
+    "campaign": true,
+    "ruleset_id": "journey-v1",
+    "used": 3,
+    "capacity": 6,
+    "rank": 0,
+    "connected": [
+      "kun.core",
+      "kun.trace",
+      "kun.mind"
+    ],
+    "inactive": {},
+    "skills": [
+      {
+        "id": "kun",
+        "name": "承岳",
+        "element": "earth",
+        "damage": 22,
+        "cost": 12,
+        "cooldown": 1.5,
+        "range": 170,
+        "variant": "基础"
+      },
+      null
+    ],
+    "minds": [
+      "kun"
+    ],
+    "mind_levels": {
+      "kun": 1
+    },
+    "effective_bead_ids": [
+      "kun.core",
+      "kun.mind",
+      "kun.trace"
+    ],
+    "skill": {
+      "enabled": true,
+      "burn_damage": 4
+    }
+  },
+  {
+    "campaign": true,
+    "ruleset_id": "journey-v1",
+    "used": 3,
+    "capacity": 6,
+    "rank": 0,
+    "connected": [
+      "zhen.core",
+      "zhen.trace",
+      "zhen.mind"
+    ],
+    "inactive": {},
+    "skills": [
+      {
+        "id": "zhen",
+        "name": "震荡",
+        "element": "wood",
+        "damage": 22,
+        "cost": 12,
+        "cooldown": 1.5,
+        "range": 170,
+        "variant": "基础"
+      },
+      null
+    ],
+    "minds": [
+      "zhen"
+    ],
+    "mind_levels": {
+      "zhen": 1
+    },
+    "effective_bead_ids": [
+      "zhen.core",
+      "zhen.mind",
+      "zhen.trace"
+    ],
+    "skill": {
+      "enabled": true,
+      "burn_damage": 4
+    }
+  },
+  {
+    "campaign": true,
+    "ruleset_id": "journey-v1",
+    "used": 3,
+    "capacity": 6,
+    "rank": 0,
+    "connected": [
+      "dui.core",
+      "dui.trace",
+      "dui.mind"
+    ],
+    "inactive": {},
+    "skills": [
+      {
+        "id": "dui",
+        "name": "回锋",
+        "element": "metal",
+        "damage": 22,
+        "cost": 12,
+        "cooldown": 1.5,
+        "range": 170,
+        "variant": "基础"
+      },
+      null
+    ],
+    "minds": [
+      "dui"
+    ],
+    "mind_levels": {
+      "dui": 1
+    },
+    "effective_bead_ids": [
+      "dui.core",
+      "dui.mind",
+      "dui.trace"
+    ],
+    "skill": {
+      "enabled": true,
+      "burn_damage": 4
+    }
+  },
+  {
+    "campaign": true,
+    "ruleset_id": "journey-v1",
+    "used": 3,
+    "capacity": 6,
+    "rank": 0,
+    "connected": [
+      "gen.core",
+      "gen.trace",
+      "gen.mind"
+    ],
+    "inactive": {},
+    "skills": [
+      {
+        "id": "gen",
+        "name": "止戈",
+        "element": "earth",
+        "damage": 22,
+        "cost": 12,
+        "cooldown": 1.5,
+        "range": 170,
+        "variant": "基础"
+      },
+      null
+    ],
+    "minds": [
+      "gen"
+    ],
+    "mind_levels": {
+      "gen": 1
+    },
+    "effective_bead_ids": [
+      "gen.core",
+      "gen.mind",
+      "gen.trace"
+    ],
+    "skill": {
+      "enabled": true,
+      "burn_damage": 4
+    }
+  },
+  {
+    "campaign": true,
+    "ruleset_id": "journey-v1",
+    "used": 3,
+    "capacity": 6,
+    "rank": 0,
+    "connected": [
+      "kan.core",
+      "kan.trace",
+      "kan.mind"
+    ],
+    "inactive": {},
+    "skills": [
+      {
+        "id": "kan",
+        "name": "寒流",
+        "element": "water",
+        "damage": 22,
+        "cost": 12,
+        "cooldown": 1.5,
+        "range": 220,
+        "variant": "基础"
+      },
+      null
+    ],
+    "minds": [
+      "kan"
+    ],
+    "mind_levels": {
+      "kan": 1
+    },
+    "effective_bead_ids": [
+      "kan.core",
+      "kan.mind",
+      "kan.trace"
+    ],
+    "skill": {
+      "enabled": true,
+      "burn_damage": 4
+    }
+  },
+  {
+    "campaign": true,
+    "ruleset_id": "journey-v1",
+    "used": 3,
+    "capacity": 6,
+    "rank": 0,
+    "connected": [
+      "qian.core",
+      "qian.trace",
+      "qian.mind"
+    ],
+    "inactive": {},
+    "skills": [
+      {
+        "id": "qian",
+        "name": "贯剑",
+        "element": "metal",
+        "damage": 22,
+        "cost": 12,
+        "cooldown": 1.5,
+        "range": 300,
+        "variant": "基础"
+      },
+      null
+    ],
+    "minds": [
+      "qian"
+    ],
+    "mind_levels": {
+      "qian": 1
+    },
+    "effective_bead_ids": [
+      "qian.core",
+      "qian.mind",
+      "qian.trace"
+    ],
+    "skill": {
+      "enabled": true,
+      "burn_damage": 4
+    }
+  }
+]

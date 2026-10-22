@@ -1,0 +1,58 @@
+Browser tab: 6, Title: "本命剑：八荒五行", URL: "http://127.0.0.1:5064/".
+1 AXWebArea 本命剑：八荒五行, URL: 127.0.0.1:5064/
+	2 container panel-game
+		3 button 返回阵盘（保留剑碑）, ID: leave-run
+		55 text 正式征程 · 熔岩天宫
+		88 text 综合段 · 清除剩余守卫 0/2；留意地面火焰 · 剑碑已保存 · 炉台高径 · 观察地火窗口
+		6 text 生命
+		89 text 111 / 122
+		8 text 剑意
+		90 text 73 / 73
+		10 text 敌人
+		91 text 3
+		92 text Q 离火(fire) 0.0s · E 寒流(water) 0.0s · 心法gen/kun · 护盾0
+		13 button 暂停, ID: pause-run
+		93 text 近敌 火羽术士 · 右侧 · 相距203 · 气血 58/58 · 观察中
+		94 text 可选祭坛 · 右侧相距368 · 上层，沿阶台单跳 · 回复12血/18气，胜利另+4修为 · 已领0/2
+		95 container
+			96 image Description: 横版战斗画面, ID: game-canvas
+			97 container pause-overlay
+				98 heading 暂歇剑锋, Value: 2
+					99 text 暂歇剑锋
+				100 text 按 Esc 或继续按钮返回战斗
+				101 button 继续, ID: resume-run
+				102 button 重新挑战, ID: retry-run
+				103 button 按键设置, ID: settings-run
+				104 button 退出, ID: quit-run
+		36 text A
+		37 text D
+		38 text  移动
+		39 text 空格
+		40 text  跳跃
+		41 text J
+		42 text  劈砍
+		43 text K
+		44 text  格挡
+		45 text L
+		46 text  剑气
+		47 text Shift
+		48 text  闪避
+		49 text Q
+		50 text  技能一
+		51 text E
+		52 text  技能二
+		53 text Esc
+		54 text  暂停
+		26 container 触屏操作
+			27 button ◀
+			28 button ▶
+			29 button 跃
+			30 button 闪
+			31 button 斩
+			32 button 御
+			33 button 气
+			34 button 一
+			35 button 二
+	87 text 剑碑已保存：原配珠冻结，失败或刷新可从此续关
+
+The focused UI element is 13 button 暂停, ID: pause-run

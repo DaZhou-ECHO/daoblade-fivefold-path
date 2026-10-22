@@ -1,10 +1,24 @@
 # 本命剑：八荒五行
 
-**DaoBlade: Fivefold Path** 是一个可在浏览器运行的像素风横版修仙动作游戏。玩家使用相同的移动、跳跃、三段劈砍、格挡、剑气与短闪避；通关五行秘境获得灵珠，再把灵珠永久镶入本命剑的八卦修行图。五行决定招式属性，八卦决定修行方向。
+**DaoBlade: Fivefold Path** 是一个可在浏览器运行的横版修仙动作游戏。当前主要玩法从“正式征程”进入：挑战五境各两张地图、领取支路奖励、获得本位灵珠，在八宫中自由拆换，选择两主动与两心法出战，并突破筑基提升容量。
 
-Agent开工先读根目录[AGENTS.md](AGENTS.md)，按规范检查规划、远端PR、留痕和交接。001已通过PR #3集成develop，再通过PR #4进入main；日常从最新确认的develop接续，工作轮次不等于发布版本。本轮实现、契约、测试与交接见[实施索引](docs/implementation/00-实施索引.md)；此前记录见[v0.3.0设计](docs/v0.3.0设计与实施说明.md)、[v0.3.0测试](docs/v0.3.0测试与交接.md)。未来修改按[初版分方向策划](docs/planning/first-playable/00-初版总纲与阅读入口.md)逐步实施。
+## 第一次玩
 
-## 已实现玩法
+1. 按下文启动本地服务，打开页面；推荐先注册账号，避免多人共用同一个游客档。
+2. 点击“开始正式征程”。赠珠已装好，Q离火与艮心法可直接出战；先进入火境高径。
+3. A/D移动，Space跳跃，J近战，L剑气，K朝向敌人格挡，Shift闪避；Q/E使用出战技能。留意近敌距离、前摇和地面机关倒计时。
+4. 前三敌击败后到剑碑保存。失败可续关；离开或刷新后在正式征程点击“恢复未完成挑战”。进行中不可改装，放弃不会返还本局已消耗的战斗状态，也不会发胜利奖励。
+5. 胜利得到对应元素灵珠。选择宫位，装核心及相连节点，再选Q/E与两心法，点击“保存全部改动”一次提交。切宫保留草稿；有未保存改动时不可开战，放弃草稿可还原已保存构筑。核对下方“实际主动/心法”；未连接或未选入的节点不提供效果。
+6. 累积24修为后挑战筑基心劫，实际击败首领才扣修为并把容量6提升到10。所有珠最高3级，选中有效珠随胜利成长，非核心珠升级也改变真实效果。
+7. 每境可选高径/回廊。祭坛是可选支路，领取补给并在胜利后额外得修为；主路不用特定配珠即可通过。筑基是当前有限首版的境界终点。
+
+完整规则与实际验收见[正式征程总清单](docs/implementation/正式征程总清单.md)、[游玩证据与限制](docs/implementation/正式征程验收.md)。页面仍保留“旧版修行”和“阵盘试验”，三种存档各自独立；下文永久镶嵌、随机词条、主副五行等内容仅描述旧版，不适用于正式征程。旧游客导入入口只导入旧版档，正式征程请从自己的账号开始。
+
+本地开发接续从[AGENTS.md](AGENTS.md)、[Agent任务索引](docs/agents/README.md)和[本地启动与统一自检](LOCAL_DEVELOPMENT.md)开始。003–034累计成果已提交[审核PR #6](https://github.com/DaZhou-ECHO/daoblade-fivefold-path/pull/6)（目标develop，尚未合并），上传与PR状态以[035交接](docs/agents/035-d06-playable-review/agents/agent-20261022-1339-p8a1/HANDOFF.md)为准；这是候选审核，不代表已合并或正式发布。审核者先读[审核入口](docs/agents/035-d06-playable-review/REVIEW.md)。[当前功能进度](docs/implementation/本地功能进度.md)区分已实现与待开发内容。
+
+既有001实现见[历史实施索引](docs/implementation/00-实施索引.md)；此前记录见[v0.3.0设计](docs/v0.3.0设计与实施说明.md)、[v0.3.0测试](docs/v0.3.0测试与交接.md)。未来修改按[初版分方向策划](docs/planning/first-playable/00-初版总纲与阅读入口.md)逐步实施。
+
+## 旧版保留玩法
 
 - 金、木、水、火、土五座手工配置的秘境，各有背景、平台支路、可选祭坛奖励和地面危险区；普通敌人以近战为主，有攻击前摇，另有远程单位和首领。
 - 程序绘制的江湖剑客、敌人、剑招轨迹、技能光圈与击中特效；桌面键盘和手机触屏按钮均可操作。
@@ -17,10 +31,9 @@ Agent开工先读根目录[AGENTS.md](AGENTS.md)，按规范检查规划、远�
 
 需要 Python 3.11 或更新版本。游戏运行不需要 Node.js；Node.js 仅用于可选的前端自动测试。
 
-在 VS Code 终端选择 PowerShell，执行：
+在项目根目录打开 VS Code 终端并选择 PowerShell，执行：
 
 ```powershell
-cd D:\acode\xju_code\daoblade-fivefold-path
 py -3.11 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
@@ -68,6 +81,11 @@ node --test tests/combat.test.cjs
 node --test tests/character-art.test.cjs
 node --test tests/defeat.test.cjs
 node --test tests/rules.test.cjs
+node --test tests/action-state.test.cjs
+node --test tests/battle-events.test.cjs
+node --test tests/battle-audio.test.cjs
+node --test tests/combat-feedback.test.cjs
+node --test tests/level-definitions.test.cjs
 ```
 
 在受限环境中如果 pytest 无法创建系统临时目录，可为它指定一个**可写的临时目录**，例如 `--basetemp D:\acode\codex\pytest-daoblade-v03`。这不是游戏运行要求。
@@ -79,6 +97,13 @@ app.py                     Flask 页面、认证和存档 API
 shared_rules.py            读取共享规则、默认档、五行和出战契约
 static/data/rules/         规则集JSON（当前legacy-v1，兼容旧玩法）
 static/js/rules.js         前端纯计算、进度视图与不可变战斗快照
+static/js/action-state.js  从战斗实体生成冻结动作视图，供角色渲染消费
+static/js/battle-events.js 每局只读战斗事实事件、有限历史与反馈订阅
+static/js/battle-audio.js  事件驱动短合成音、并发预算及静音清理
+static/js/combat-feedback.js 真实命中/防守文字，数量寿命预算与关闭支持
+static/js/level-definitions.js 冻结旧五境布局/敌人配置与稳定位置引用
+static/js/level-progress.js 火境分段目标投影
+static/js/trial-state.js 剑碑试炼构筑快照序列化与恢复
 database.py                SQLite 初始化、迁移、按账号存档和版本检查
 game_rules.py              灵珠、八卦、出战配置与不可逆选择校验
 templates/index.html       主界面和对话框

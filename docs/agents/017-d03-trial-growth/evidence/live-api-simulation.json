@@ -1,0 +1,58 @@
+{
+  "evidence_kind": "API simulated combat report; not a real gameplay victory",
+  "test_account": "lab_fixture017_110454",
+  "legacy_unchanged": true,
+  "frozen_start_levels": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+  ],
+  "progress": {
+    "runs": 1,
+    "spirit": 12,
+    "victories": 1
+  },
+  "awards": [
+    {
+      "amount": 20,
+      "id": "lab-core",
+      "level": 2,
+      "xp": 0
+    },
+    {
+      "amount": 20,
+      "id": "lab-mark",
+      "level": 2,
+      "xp": 0
+    },
+    {
+      "amount": 20,
+      "id": "lab-burst",
+      "level": 2,
+      "xp": 0
+    }
+  ],
+  "compiled_skill": {
+    "burn_damage": 4,
+    "burn_seconds": 3,
+    "burst": true,
+    "burst_cooldown": 6,
+    "burst_per_mark": 16,
+    "burst_qi": 24,
+    "cooldown": 1.2,
+    "damage": 14,
+    "element": "fire",
+    "enabled": true,
+    "focus": false,
+    "focus_damage": 18,
+    "focus_range": 110,
+    "mark": true,
+    "max_marks": 3,
+    "qi": 11,
+    "range": 180
+  },
+  "replay_same_revision": true
+}

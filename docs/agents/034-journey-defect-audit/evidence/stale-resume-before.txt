@@ -1,0 +1,25 @@
+✖ 034 恢复试炼读档期间换号，旧恢复操作不能启动新账号试炼 (8.4788ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 105.7786
+
+✖ failing tests:
+
+test at tests\journey-ui.test.cjs:105:1
+✖ 034 恢复试炼读档期间换号，旧恢复操作不能启动新账号试炼 (8.4788ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (D:\desktop\研\gpt\学习与训练\.reading\daoblade-fivefold-path\tests\journey-ui.test.cjs:108:33)
+      at async Test.run (node:internal/test_runner/test:1125:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /账号已变化/,
+    operator: 'rejects',
+    diff: 'simple'
+  }

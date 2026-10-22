@@ -102,6 +102,19 @@ function closePoint(actual, expected) {
     `${actual} 应当与 ${expected} 重合`));
 }
 
+test("004提取动作视图后86个已提交003姿态基线保持一致", async () => {
+  const baseline = require("./fixtures/action-pose-baseline.json");
+  const renderer = await readyRenderer(baseline.manifest);
+  function compare(actual, expected, name) {
+    if (typeof expected === "number") return assert.ok(Math.abs(actual - expected) < 1e-9, name);
+    if (expected && typeof expected === "object") {
+      assert.deepEqual(Object.keys(actual), Object.keys(expected), name);
+      for (const key of Object.keys(expected)) compare(actual[key], expected[key], `${name}.${key}`);
+    } else assert.equal(actual, expected, name);
+  }
+  for (const sample of baseline.cases) compare(renderer.frame(sample.input), sample.frame, sample.name);
+});
+
 function gameContext(art, realm = "fire", state) {
   const ctx = recordingContext();
   const canvas = { width: 960, height: 540, getContext: () => ctx };
@@ -119,6 +132,24 @@ function gameContext(art, realm = "fire", state) {
   vm.runInContext(`${source}\nthis.BattleGame = BattleGame; this.defaultState = DEFAULT_STATE;`, context);
   return { game: new context.BattleGame(realm, { practice: true, state }), ctx, defaultState: context.defaultState };
 }
+
+test("真实游戏入口向渲染器传入冻结动作视图，后续战斗变化不改旧视图", async () => {
+  const renderer = await readyRenderer();
+  const { game, ctx } = gameContext(renderer);
+  let captured;
+  const draw = renderer.drawState.bind(renderer);
+  renderer.drawState = (context, state, color) => { captured = state; return draw(context,state,color); };
+  game.player.slash = .14;
+  game.player.slashDuration = .28;
+  game.drawPlayer(ctx,game.player);
+  assert.equal(captured.action_id,"slash");
+  assert.equal(captured.progress,.5);
+  assert.equal(Object.isFrozen(captured),true);
+  assert.equal(captured.player,undefined);
+  game.player.slash=0;
+  assert.equal(captured.progress,.5);
+  assert.equal(captured.action_id,"slash");
+});
 
 test("三段剑双向逐相位握点对齐、脚底固定、收招回位且渲染不写入战斗数据", async () => {
   const renderer = await readyRenderer();
@@ -285,12 +316,45 @@ test("全部战斗状态使用同一人物和独立剑，优先级覆盖空中�
     const ctx = recordingContext();
     assert.equal(selectAction(current), action);
     assert.equal(renderer.draw(ctx, current), true);
-    assert.equal(ctx.images.length, 4);
+    assert.equal(ctx.images.length, current.onGround || current.hp <= 0 ? 4 : 7);
     assert.equal(ctx.images[0].image, renderer.images.idle);
-    assert.equal(ctx.images[2].image, renderer.images.weapon);
+    assert.equal(ctx.images.at(-2).image, renderer.images.weapon);
     assert.equal(ctx.saveDepth, 0);
   }
   assert.equal(renderer.draw({}, player()), false);
+});
+
+test("U02 空中腿部连续、双向镜像，攻击受击覆盖后保留腿姿且落地恢复", async () => {
+  const renderer = await readyRenderer();
+  for (const face of [-1, 1]) for (const vy of [-500, -100, -.001, 0, .001, 100, 500]) {
+    for (const extra of [{}, { slash: .15, slashDuration: .28, combo: 2 }, { hurt: .1 }]) {
+      const current = player({ face, vy, onGround: false, ...extra });
+      const before = structuredClone(current), ctx = recordingContext();
+      assert.equal(renderer.draw(ctx, current), true);
+      const frame = renderer.frame(current);
+      assert.equal(ctx.images.length, 7);
+      const [thigh, shin] = ctx.images;
+      closePoint(worldPoint(thigh, 0, 11), worldPoint(shin, 0, 0));
+      const body = ctx.images.at(-3), sword = ctx.images.at(-2);
+      closePoint(worldPoint(sword, sword.args[0] + 10, sword.args[1] + 54),
+        worldPoint(body, frame.hand[0] - 32, frame.hand[1] - 90));
+      assert.deepEqual(current, before);
+      assert.equal(ctx.saveDepth, 0);
+      if (Math.abs(vy) < .01) assert.ok(Math.abs(frame.legs[0].thigh) < .0001);
+    }
+  }
+  const right = recordingContext(), left = recordingContext();
+  renderer.draw(right, player({ onGround: false, vy: -500 }));
+  renderer.draw(left, player({ face: -1, onGround: false, vy: -500 }));
+  for (let index = 0; index < 4; index++) {
+    const r = worldPoint(right.images[index], 0, 0), l = worldPoint(left.images[index], 0, 0);
+    closePoint(l, [278 - r[0], r[1]]);
+  }
+  const grounded = recordingContext();
+  renderer.draw(grounded, player());
+  assert.equal(grounded.images.length, 3);
+  const dead = renderer.frame(player({ hp: 0, onGround: false, vy: 300 }));
+  assert.equal(dead.legs, null, "空中死亡继续使用完整倒地链");
 });
 
 test("左右全部动画帧脚底固定，旋转后的剑柄与每帧握点重合", async () => {

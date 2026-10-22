@@ -1,0 +1,346 @@
+{
+  "source": "read-only SQLite after ordinary UI abandon and atomic build save; no gameplay writes",
+  "revision": 58,
+  "state": {
+    "ruleset_id": "journey-v1",
+    "schema_version": 1,
+    "rank": 1,
+    "beads": [
+      {
+        "id": "li.core",
+        "name": "离·核心珠",
+        "element": "fire",
+        "role": "core",
+        "palace": "li",
+        "level": 3,
+        "xp": 0
+      },
+      {
+        "id": "li.trace",
+        "name": "离·纹路珠",
+        "element": "fire",
+        "role": "trace",
+        "palace": "li",
+        "level": 3,
+        "xp": 0
+      },
+      {
+        "id": "li.edge",
+        "name": "离·锐式珠",
+        "element": "fire",
+        "role": "edge",
+        "palace": "li",
+        "level": 3,
+        "xp": 0
+      },
+      {
+        "id": "gen.core",
+        "name": "艮·核心珠",
+        "element": "earth",
+        "role": "core",
+        "palace": "gen",
+        "level": 3,
+        "xp": 0
+      },
+      {
+        "id": "gen.mind",
+        "name": "艮·心法珠",
+        "element": "earth",
+        "role": "mind",
+        "palace": "gen",
+        "level": 3,
+        "xp": 0
+      },
+      {
+        "id": "li.mind",
+        "name": "离·心法珠",
+        "element": "fire",
+        "role": "mind",
+        "palace": "li",
+        "level": 1,
+        "xp": 0
+      },
+      {
+        "id": "xun.core",
+        "name": "巽·核心珠",
+        "element": "wood",
+        "role": "core",
+        "palace": "xun",
+        "level": 1,
+        "xp": 0
+      },
+      {
+        "id": "xun.trace",
+        "name": "巽·纹路珠",
+        "element": "wood",
+        "role": "trace",
+        "palace": "xun",
+        "level": 1,
+        "xp": 0
+      },
+      {
+        "id": "xun.mind",
+        "name": "巽·心法珠",
+        "element": "wood",
+        "role": "mind",
+        "palace": "xun",
+        "level": 1,
+        "xp": 0
+      },
+      {
+        "id": "zhen.core",
+        "name": "震·核心珠",
+        "element": "wood",
+        "role": "core",
+        "palace": "zhen",
+        "level": 3,
+        "xp": 0
+      },
+      {
+        "id": "zhen.trace",
+        "name": "震·纹路珠",
+        "element": "wood",
+        "role": "trace",
+        "palace": "zhen",
+        "level": 1,
+        "xp": 0
+      },
+      {
+        "id": "zhen.mind",
+        "name": "震·心法珠",
+        "element": "wood",
+        "role": "mind",
+        "palace": "zhen",
+        "level": 1,
+        "xp": 0
+      },
+      {
+        "id": "kun.core",
+        "name": "坤·核心珠",
+        "element": "earth",
+        "role": "core",
+        "palace": "kun",
+        "level": 3,
+        "xp": 0
+      },
+      {
+        "id": "kun.trace",
+        "name": "坤·纹路珠",
+        "element": "earth",
+        "role": "trace",
+        "palace": "kun",
+        "level": 1,
+        "xp": 0
+      },
+      {
+        "id": "kun.mind",
+        "name": "坤·心法珠",
+        "element": "earth",
+        "role": "mind",
+        "palace": "kun",
+        "level": 3,
+        "xp": 0
+      },
+      {
+        "id": "gen.trace",
+        "name": "艮·纹路珠",
+        "element": "earth",
+        "role": "trace",
+        "palace": "gen",
+        "level": 1,
+        "xp": 0
+      },
+      {
+        "id": "dui.core",
+        "name": "兑·核心珠",
+        "element": "metal",
+        "role": "core",
+        "palace": "dui",
+        "level": 1,
+        "xp": 0
+      },
+      {
+        "id": "dui.trace",
+        "name": "兑·纹路珠",
+        "element": "metal",
+        "role": "trace",
+        "palace": "dui",
+        "level": 1,
+        "xp": 0
+      },
+      {
+        "id": "dui.mind",
+        "name": "兑·心法珠",
+        "element": "metal",
+        "role": "mind",
+        "palace": "dui",
+        "level": 1,
+        "xp": 0
+      },
+      {
+        "id": "qian.core",
+        "name": "乾·核心珠",
+        "element": "metal",
+        "role": "core",
+        "palace": "qian",
+        "level": 3,
+        "xp": 0
+      },
+      {
+        "id": "qian.trace",
+        "name": "乾·纹路珠",
+        "element": "metal",
+        "role": "trace",
+        "palace": "qian",
+        "level": 3,
+        "xp": 0
+      },
+      {
+        "id": "qian.mind",
+        "name": "乾·心法珠",
+        "element": "metal",
+        "role": "mind",
+        "palace": "qian",
+        "level": 1,
+        "xp": 0
+      },
+      {
+        "id": "kan.core",
+        "name": "坎·核心珠",
+        "element": "water",
+        "role": "core",
+        "palace": "kan",
+        "level": 3,
+        "xp": 0
+      },
+      {
+        "id": "kan.trace",
+        "name": "坎·纹路珠",
+        "element": "water",
+        "role": "trace",
+        "palace": "kan",
+        "level": 3,
+        "xp": 0
+      },
+      {
+        "id": "kan.mind",
+        "name": "坎·心法珠",
+        "element": "water",
+        "role": "mind",
+        "palace": "kan",
+        "level": 1,
+        "xp": 0
+      },
+      {
+        "id": "li.flow",
+        "name": "离·流式珠",
+        "element": "fire",
+        "role": "flow",
+        "palace": "li",
+        "level": 1,
+        "xp": 0
+      },
+      {
+        "id": "kun.edge",
+        "name": "坤·锐式珠",
+        "element": "earth",
+        "role": "edge",
+        "palace": "kun",
+        "level": 1,
+        "xp": 0
+      },
+      {
+        "id": "xun.edge",
+        "name": "巽·锐式珠",
+        "element": "wood",
+        "role": "edge",
+        "palace": "xun",
+        "level": 1,
+        "xp": 0
+      },
+      {
+        "id": "dui.edge",
+        "name": "兑·锐式珠",
+        "element": "metal",
+        "role": "edge",
+        "palace": "dui",
+        "level": 1,
+        "xp": 0
+      },
+      {
+        "id": "kan.edge",
+        "name": "坎·锐式珠",
+        "element": "water",
+        "role": "edge",
+        "palace": "kan",
+        "level": 1,
+        "xp": 0
+      }
+    ],
+    "nodes": {
+      "dui.core": null,
+      "dui.edge": null,
+      "dui.flow": null,
+      "dui.mind": null,
+      "dui.trace": null,
+      "gen.core": "gen.core",
+      "gen.edge": null,
+      "gen.flow": null,
+      "gen.mind": "gen.mind",
+      "gen.trace": null,
+      "kan.core": "kan.core",
+      "kan.edge": null,
+      "kan.flow": null,
+      "kan.mind": null,
+      "kan.trace": "kan.trace",
+      "kun.core": "kun.core",
+      "kun.edge": null,
+      "kun.flow": null,
+      "kun.mind": "kun.mind",
+      "kun.trace": null,
+      "li.core": null,
+      "li.edge": null,
+      "li.flow": null,
+      "li.mind": null,
+      "li.trace": null,
+      "qian.core": "qian.core",
+      "qian.edge": null,
+      "qian.flow": null,
+      "qian.mind": null,
+      "qian.trace": "qian.trace",
+      "xun.core": null,
+      "xun.edge": null,
+      "xun.flow": null,
+      "xun.mind": null,
+      "xun.trace": null,
+      "zhen.core": null,
+      "zhen.edge": null,
+      "zhen.flow": null,
+      "zhen.mind": null,
+      "zhen.trace": null
+    },
+    "loadout": {
+      "active": [
+        "qian",
+        "kan"
+      ],
+      "passive": [
+        "gen",
+        "kun"
+      ]
+    },
+    "progress": {
+      "runs": 13,
+      "victories": 10,
+      "spirit": 120,
+      "clears": {
+        "fire": 2,
+        "wood": 2,
+        "earth": 2,
+        "metal": 2,
+        "water": 2
+      }
+    },
+    "active_trial": null
+  }
+}

@@ -1,0 +1,3 @@
+Browser tab: 6, Title: "本命剑：八荒五行", URL: "http://127.0.0.1:5064/".
+There has been no change in the accessibility tree.
+The focused UI element is 32 button 重新挑战, ID: retry-result

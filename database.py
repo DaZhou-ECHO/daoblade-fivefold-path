@@ -53,6 +53,15 @@ def init_db() -> None:
     if "user_id" not in columns:
         database.execute("ALTER TABLE game_saves ADD COLUMN user_id INTEGER REFERENCES users(id)")
     database.execute("CREATE UNIQUE INDEX IF NOT EXISTS saves_user_idx ON game_saves(user_id)")
+    database.execute("""CREATE TABLE IF NOT EXISTS array_lab_saves (
+        slot TEXT PRIMARY KEY, state_json TEXT NOT NULL, revision INTEGER NOT NULL
+    )""")
+    database.execute("""CREATE TABLE IF NOT EXISTS array_lab_results (
+        trial_id TEXT NOT NULL, slot TEXT NOT NULL, receipt_json TEXT NOT NULL,
+        PRIMARY KEY(trial_id, slot)
+    )""")
+    database.execute("CREATE TABLE IF NOT EXISTS journey_saves (slot TEXT PRIMARY KEY, state_json TEXT NOT NULL, revision INTEGER NOT NULL)")
+    database.execute("CREATE TABLE IF NOT EXISTS journey_results (slot TEXT NOT NULL, trial_id TEXT NOT NULL, receipt_json TEXT NOT NULL, PRIMARY KEY(slot,trial_id))")
     database.commit()
 
 
@@ -105,4 +114,24 @@ def init_app(app) -> None:
     app.teardown_appcontext(close_db)
     with app.app_context():
         init_db()
+
+
+def load_lab_record(slot: str):
+    row = get_db().execute("SELECT state_json, revision FROM array_lab_saves WHERE slot=?", (slot,)).fetchone()
+    return {"state": json.loads(row["state_json"]), "revision": row["revision"]} if row else None
+
+
+def save_lab_state(state, slot: str, revision: int) -> int:
+    database = get_db()
+    payload = json.dumps(state, ensure_ascii=False, separators=(",", ":"))
+    if revision == 0:
+        cursor = database.execute("INSERT OR IGNORE INTO array_lab_saves VALUES (?, ?, 1)", (slot, payload))
+    else:
+        cursor = database.execute("UPDATE array_lab_saves SET state_json=?, revision=revision+1 WHERE slot=? AND revision=?",
+                                  (payload, slot, revision))
+    if cursor.rowcount != 1:
+        database.rollback()
+        raise ValueError("试验档已被其他窗口更新，请重新读取")
+    database.commit()
+    return revision + 1
 
