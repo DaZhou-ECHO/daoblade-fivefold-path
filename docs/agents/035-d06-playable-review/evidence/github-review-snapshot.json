@@ -1,0 +1,20 @@
+{
+  "number": 6,
+  "html_url": "https://github.com/DaZhou-ECHO/daoblade-fivefold-path/pull/6",
+  "state": "open",
+  "draft": false,
+  "merged": false,
+  "mergeable": true,
+  "author": "hesitatde",
+  "api_account": "hesitatde",
+  "head": "work/035-d06-playable-review",
+  "head_sha": "bc5f75c19be3b8f5b905ea12e3a7068b502ddf43",
+  "base": "develop",
+  "observed_at": "2026-10-22 13:47 Asia/Shanghai",
+  "requested_reviewers": [
+    "DaZhou-ECHO"
+  ],
+  "head_sha_scope": "first upload, before final review-document commit",
+  "main_unchanged": "c3cb5f5e32e1573718c658f36179b299ce63b18b",
+  "develop_unchanged": "2de9f28f048f98e36b5dbf1e4efd1d1d346ddcda"
+}

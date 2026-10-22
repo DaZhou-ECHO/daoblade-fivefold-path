@@ -16,3 +16,11 @@
 - 验证：tools/check-project.ps1实际110 Python/186 Node/14JS/Agent链接/Git空白全部通过，输出evidence/pre-push-checks.txt。普通push dry-run成功；远端develop仍2de9f28，035分支尚不存在，无编号竞争。扫描结果见upload-audit.json。
 - 未完成或阻塞：本条记录后提交并实际推送、创建PR和请求reviewer；未声称已发布或审核通过。
 - 下一步：普通推送035候选，再核对远端SHA和PR状态。
+
+## 2026-10-22 13:47 Asia/Shanghai — 已推送并建立审核PR
+- 目标：让仓库维护者直接审核完整候选。
+- 基线：代码1494d07，035上传准备bc5f75c19be3b8f5b905ea12e3a7068b502ddf43。
+- 操作与文件：普通push创建work/035-d06-playable-review，ls-remote与本地完整SHA相同。GitHub连接器创建PR和请求reviewer均403（integration权限不足），改用刚用于正常push的本机现有Git认证调用标准REST完成；凭据只在内存使用，不输出/写盘，不扩权限。创建PR#6后已attach_artifact，作者hesitatde，请求DaZhou-ECHO审核。
+- 验证：GitHub连接器随后只读核对PR#6 open、draft=false、merged=false、mergeable=true、base=develop、head=035且SHA=bc5f75c，requested_reviewers含DaZhou-ECHO。035/evidence/github-review-snapshot.json保存非敏感结果；未合并/发布，不变更旧PR#5。
+- 未完成或阻塞：独立审核仍待对方处理；本条后只提交PR链接和交接记录，再普通推送并终端核对最后SHA，不为文档自身提交号循环提交。
+- 下一步：等待审核意见；若后续继续修复，在同一PR候选分支提交，按授权推送，不能把审核请求当作审核通过。
