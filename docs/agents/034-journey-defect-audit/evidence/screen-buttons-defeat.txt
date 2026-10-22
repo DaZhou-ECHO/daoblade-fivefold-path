@@ -1,0 +1,14 @@
+Browser tab: 6, Title: "本命剑：八荒五行", URL: "http://127.0.0.1:5064/".
+1 AXWebArea 本命剑：八荒五行, URL: 127.0.0.1:5064/
+	2 container
+		3 text 秘境结算
+		4 heading 正式征程 · 道心未折, Value: 2, ID: result-title
+			5 text 正式征程 · 道心未折
+		6 text 剑碑已保留，可按原构筑续关，无失败奖励
+		7 container Description: 未获得奖励, ID: reward-list
+			8 text 未获得奖励
+		9 button 从剑碑继续, ID: continue-checkpoint
+		10 button 重新挑战, ID: retry-result
+		11 button 返回阵盘, ID: return-sanctuary
+
+The focused UI element is 7 container Description: 未获得奖励, ID: reward-list

@@ -1,0 +1,56 @@
+[
+  {
+    "action": "left",
+    "right": 57,
+    "width": 48,
+    "x": 9
+  },
+  {
+    "action": "right",
+    "right": 112,
+    "width": 48,
+    "x": 64
+  },
+  {
+    "action": "jump",
+    "right": 167,
+    "width": 48,
+    "x": 119
+  },
+  {
+    "action": "dash",
+    "right": 222,
+    "width": 48,
+    "x": 174
+  },
+  {
+    "action": "slash",
+    "right": 280,
+    "width": 48,
+    "x": 232
+  },
+  {
+    "action": "block",
+    "right": 335,
+    "width": 48,
+    "x": 287
+  },
+  {
+    "action": "qi",
+    "right": 390,
+    "width": 48,
+    "x": 342
+  },
+  {
+    "action": "dao",
+    "right": 445,
+    "width": 48,
+    "x": 397
+  },
+  {
+    "action": "dao2",
+    "right": 500,
+    "width": 48,
+    "x": 452
+  }
+]

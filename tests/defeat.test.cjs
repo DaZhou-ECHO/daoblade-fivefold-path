@@ -426,3 +426,12 @@ test("032 突破成功不再邀请重复突破，结算未确认时仍可重试�
   await bad.game.finish(true);assert.equal(bad.nodes.get('#retry-result').hidden,false);assert.match(bad.nodes.get('#result-title').textContent,/未确认/);
   const normal=new h.api.BattleGame('fire',{practice:true});normal.start();assert.equal(h.nodes.get('#retry-result').hidden,false);
 });
+
+test('034 暂停按钮幂等：自动暂停后再点暂停不能恢复战斗，继续和Esc才恢复',()=>{
+ const h=harness({practice:true});h.api.bindUi();
+ h.game.setPause(true);h.nodes.get('#pause-run').handlers.click();assert.equal(h.game.pause,true);
+ h.nodes.get('#pause-run').handlers.click();assert.equal(h.game.pause,true);
+ h.nodes.get('#resume-run').handlers.click();assert.equal(h.game.pause,false);
+ h.nodes.get('#pause-run').handlers.click();assert.equal(h.game.pause,true);
+ h.game.keyDown({code:'Escape',preventDefault(){}});assert.equal(h.game.pause,false);
+});

@@ -1976,7 +1976,7 @@ function bindUi() {
   $("#socket-dialog").addEventListener("close", () => { if (!keepSocketPreview) pendingSocket = null; keepSocketPreview = false; });
   $("#preview-practice").addEventListener("click", () => { keepSocketPreview = true; startRealm("fire", { practice: true, state: previewSocketState() }); });
   $("#practice-run").addEventListener("click", () => startRealm("fire", { practice: true, state: previewSocketState() }));
-  $("#pause-run").addEventListener("click", () => activeGame?.setPause(!activeGame.pause));
+  $("#pause-run").addEventListener("click", () => activeGame?.setPause(true));
   $("#resume-run").addEventListener("click", () => activeGame?.setPause(false));
   $("#retry-run").addEventListener("click", () => { if(activeGame?.labRun){void activeGame.restartLab();return;} if (activeGame) startRealm(activeGame.realmKey, { practice: activeGame.practice, bossPractice: activeGame.bossPractice, labCompiled: activeGame.lab, state: activeGame.practice ? previewSocketState() : saveData }); });
   $("#quit-run").addEventListener("click", () => activeGame?.quit());

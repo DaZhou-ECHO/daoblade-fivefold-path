@@ -2,6 +2,7 @@
 
 | 任务ID | 任务目标 | 状态 | 当前接续Agent | 分支/基线 | 最新交接链接 | 依赖或阻塞 |
 |---|---|---|---|---|---|---|
+| 034-journey-defect-audit | 构筑编辑与窄屏操作缺陷排查 | 已完成 | agent-20261022-1215-d4a1 | work/034-journey-defect-audit-local / fcf644f | [交接](034-journey-defect-audit/agents/agent-20261022-1215-d4a1/HANDOFF.md) | 110/186通过；草稿/窄屏/暂停/换号修复；四视口/屏幕按钮剑碑与战败恢复；v58无活跃局，实体设备未验，仅本地 |
 | 033-journey-usability | 正式征程成长收益与可用性收尾 | 已完成 | agent-20261021-0031-c8e4 | work/033-journey-usability-local / 7f7237d | [交接](033-journey-usability/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 110/180通过；非核心真实升级/启动/新手引导；十图实际胜利、五境支路、重登v51；设备限制详交接，仅本地 |
 | 032-eight-palace-journey | 正式八宫、突破掉落、五境双图支路与新档验收 | 已完成 | agent-20261021-0031-c8e4 | work/032-eight-palace-journey-local / 61c2786→f8afac5→21a0c21，随后文档整理 | [交接](032-eight-palace-journey/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 109/177通过；新档五境→突破→8珠双心法→另一图支路/胜利→重登v36；局限详交接，仅本地 |
 | 031-d07-hazard-rhythm | 五境机关预警与高台避险 | 已完成 | agent-20261021-0031-c8e4 | work/031-d07-hazard-rhythm-local / 85f8d7e | [交接](031-d07-hazard-rhythm/agents/agent-20261021-0031-c8e4/HANDOFF.md) | 104/169全检；五境三帧率单跳/高台安全；火境浏览器提示；支路另续，仅本地 |

@@ -1,0 +1,191 @@
+Browser tab: 6, Title: "本命剑：八荒五行", URL: "http://127.0.0.1:5064/".
+1 AXWebArea 本命剑：八荒五行, URL: 127.0.0.1:5064/
+	2 container
+		3 text 剑
+		4 heading 本命剑：八荒五行, Value: 1
+			5 text 本命剑：八荒五行
+		6 text 剑客 play018_1123
+		7 button 导入游客存档, ID: account-import
+		8 button 退出登录, ID: account-logout
+	9 container 主要页面
+		10 button 洞府
+		11 button 正式征程
+		12 button 五行秘境
+		13 button 灵珠匣 0
+			14 text 灵珠匣
+			15 text 0
+		16 button 八卦修行
+		17 button 阵盘试验
+		18 button 剑诀
+	19 container panel-journey
+		20 heading 八宫征程 · 独立正式档, Value: 2
+			21 text 八宫征程 · 独立正式档
+		22 text 旧永久档与离宫试验档保留。J/K/L中性；Q/E各用自己的本宫元素；只生效两项主动与两项心法。先用赠珠挑战，取得各行新珠后拆换。
+		23 text 有未保存改动：切宫时保留。保存将一次提交所有宫位与出战栏；下方实际效果仍为已保存构筑。
+		24 text 筑基 · 已装8/10 · 修为120 · 通关10 · 版本53 · 未保存草稿
+		25 text 征程进度：五境首通5/5 · 八宫藏珠30/40 · 筑基容量已解锁。下一步：已完成五境首通，可换地图找支路、收集变式，尝试不同两主动两心法构筑。
+		26 button 选择推荐：火境高径（不立即开战）, ID: journey-next
+		27 button (collapsed) 首次游玩与存档说明, Secondary Actions: Expand
+			28 text 首次游玩与存档说明
+		29 container Description: 后天八卦阵盘，上南下北左东右西, ID: journey-palaces
+			30 checkbox ☴ 巽 · 东南 木行 · 已开放, Value: 0
+				31 text ☴
+				32 text 巽 · 东南
+				33 text 木行 · 已开放
+			34 checkbox ☲ 离 · 南 火行 · 已开放, Value: 1
+				35 text ☲
+				36 text 离 · 南
+				37 text 火行 · 已开放
+			38 checkbox ☷ 坤 · 西南 土行 · 已开放, Value: 0
+				39 text ☷
+				40 text 坤 · 西南
+				41 text 土行 · 已开放
+			42 checkbox ☳ 震 · 东 木行 · 已开放, Value: 0
+				43 text ☳
+				44 text 震 · 东
+				45 text 木行 · 已开放
+			46 text 剑
+			47 text 本命剑心
+			48 checkbox ☱ 兑 · 西 金行 · 已开放, Value: 0
+				49 text ☱
+				50 text 兑 · 西
+				51 text 金行 · 已开放
+			52 checkbox ☶ 艮 · 东北 土行 · 已开放, Value: 0
+				53 text ☶
+				54 text 艮 · 东北
+				55 text 土行 · 已开放
+			56 checkbox ☵ 坎 · 北 水行 · 已开放, Value: 0
+				57 text ☵
+				58 text 坎 · 北
+				59 text 水行 · 已开放
+			60 checkbox ☰ 乾 · 西北 金行 · 已开放, Value: 0
+				61 text ☰
+				62 text 乾 · 西北
+				63 text 金行 · 已开放
+		64 heading 离宫 · 离火, Value: 3, ID: journey-palace-title
+			65 text 离宫 · 离火
+		66 text 前方直击并灼烧3秒，每秒4伤；心法Lv1：技能直击+2。纹路Lv1/2/3加4/5/6伤；锐式加6/8/10伤、耗16；流式减伤3/2/1、耗8/7/6（互斥）。核心每级加2伤；心法仅选入才生效。
+		67 container journey-nodes
+			68 container
+				69 text 离·核心
+				70 pop up button (collapsed, settable) 离·核心 已保存：未装 · 根节点, Value: 离·核心珠 Lv3/XP0, Secondary Actions: Expand
+					71 menu
+						72 空位
+						73 (selected) 离·核心珠 Lv3/XP0
+				74 text 已保存：未装 · 根节点
+			75 container
+				76 text 离·纹路
+				77 pop up button (collapsed, settable) 离·纹路 已保存：未装 · 连接 li.core, Value: 离·纹路珠 Lv3/XP0, Secondary Actions: Expand
+					78 menu
+						79 空位
+						80 (selected) 离·纹路珠 Lv3/XP0
+				81 text 已保存：未装 · 连接 li.core
+			82 container
+				83 text 离·锐式
+				84 pop up button (collapsed, settable) 离·锐式 已保存：未装 · 连接 li.trace, Value: 空位, Secondary Actions: Expand
+					85 menu
+						86 (selected) 空位
+						87 离·锐式珠 Lv3/XP0
+				88 text 已保存：未装 · 连接 li.trace
+			89 container
+				90 text 离·流式
+				91 pop up button (collapsed, settable) 离·流式 已保存：未装 · 连接 li.trace, Value: 离·流式珠 Lv1/XP0, Secondary Actions: Expand
+					92 menu
+						93 空位
+						94 (selected) 离·流式珠 Lv1/XP0
+				95 text 已保存：未装 · 连接 li.trace
+			96 container
+				97 text 离·心法
+				98 pop up button (collapsed, settable) 离·心法 已保存：未装 · 连接 li.core, Value: 空位, Secondary Actions: Expand
+					99 menu
+						100 (selected) 空位
+						101 离·心法珠 Lv1/XP0
+				102 text 已保存：未装 · 连接 li.core
+		103 button 保存全部改动, ID: journey-equip
+		104 button 草拟拆下全盘, ID: journey-clear
+		105 button 放弃未保存改动, ID: journey-discard
+		106 heading 出战栏 · 两主动＋两心法, Value: 3
+			107 text 出战栏 · 两主动＋两心法
+		108 container journey-loadout
+			109 container
+				110 text Q
+				111 pop up button (collapsed, settable) Q, Value: 离 · 离火, Secondary Actions: Expand
+					112 menu
+						113 无
+						114 巽 · 贯风
+						115 (selected) 离 · 离火
+						116 坤 · 承岳
+						117 震 · 震荡
+						118 兑 · 回锋
+						119 艮 · 止戈
+						120 坎 · 寒流
+						121 乾 · 贯剑 · 已保存有效
+			122 container
+				123 text E
+				124 pop up button (collapsed, settable) E, Value: 坎 · 寒流 · 已保存有效, Secondary Actions: Expand
+					125 menu
+						126 无
+						127 巽 · 贯风
+						128 离 · 离火
+						129 坤 · 承岳
+						130 震 · 震荡
+						131 兑 · 回锋
+						132 艮 · 止戈
+						133 (selected) 坎 · 寒流 · 已保存有效
+						134 乾 · 贯剑
+			135 container
+				136 text 心法1
+				137 pop up button (collapsed, settable) 心法1, Value: 艮 · 防御+4 · 已保存有效, Secondary Actions: Expand
+					138 menu
+						139 无
+						140 巽 · 速度+12
+						141 离 · 技能直击+2
+						142 坤 · 生命+25 · 已保存有效
+						143 震 · 基础劈砍击退10，首领2
+						144 兑 · 回气+1/秒
+						145 (selected) 艮 · 防御+4 · 已保存有效
+						146 坎 · 技能冷却×0.90
+						147 乾 · 基础攻击+2
+			148 container
+				149 text 心法2
+				150 pop up button (collapsed, settable) 心法2, Value: 坤 · 生命+25 · 已保存有效, Secondary Actions: Expand
+					151 menu
+						152 无
+						153 巽 · 速度+12
+						154 离 · 技能直击+2
+						155 (selected) 坤 · 生命+25 · 已保存有效
+						156 震 · 基础劈砍击退10，首领2
+						157 兑 · 回气+1/秒
+						158 艮 · 防御+4 · 已保存有效
+						159 坎 · 技能冷却×0.90
+						160 乾 · 基础攻击+2
+		161 button 保存全部改动, ID: journey-save
+		162 button (disabled) 重新读取服务存档, ID: journey-reload
+		163 text 实际主动：Q 贯剑(metal) 伤28/耗12/基础；E 寒流(water) 伤28/耗12/基础。实际心法：艮 防御+4、坤 生命+25。有效成长珠8颗。
+		164 text 珠匣 30/40：离·核心珠 Lv3、离·纹路珠 Lv3、离·锐式珠 Lv3、艮·核心珠 Lv3、艮·心法珠 Lv3、离·心法珠 Lv1、巽·核心珠 Lv1、巽·纹路珠 Lv1、巽·心法珠 Lv1、震·核心珠 Lv3、震·纹路珠 Lv1、震·心法珠 Lv1、坤·核心珠 Lv3、坤·纹路珠 Lv1、坤·心法珠 Lv3、艮·纹路珠 Lv1、兑·核心珠 Lv1、兑·纹路珠 Lv1、兑·心法珠 Lv1、乾·核心珠 Lv3、乾·纹路珠 Lv3、乾·心法珠 Lv1、坎·核心珠 Lv3、坎·纹路珠 Lv3、坎·心法珠 Lv1、离·流式珠 Lv1、坤·锐式珠 Lv1、巽·锐式珠 Lv1、兑·锐式珠 Lv1、坎·锐式珠 Lv1
+		165 heading 挑战与支路, Value: 3
+			166 text 挑战与支路
+		167 text 首次胜利必得对应元素各宫的核心/纹路/心法；后续补未有变式。重复珠+5珠经验，满级改+2修为。胜利12修为，每个支路祭坛另+4；只冻结出战有效珠获20经验。
+		168 container
+			169 text 秘境
+			170 pop up button (collapsed, settable) 秘境, Value: 火境, ID: journey-realm, Secondary Actions: Expand
+				171 menu
+					172 (selected) 火境
+					173 木境
+					174 土境
+					175 金境
+					176 水境
+		177 container
+			178 text 地图
+			179 pop up button (collapsed, settable) 地图, Value: 高径 · 上行祭坛, ID: journey-map, Secondary Actions: Expand
+				180 menu
+					181 (selected) 高径 · 上行祭坛
+					182 回廊 · 折返祭坛
+		183 text 主路可用基础移动单跳通过，支路祭坛可返回；领取回复12血18气，胜利额外修为。
+		184 button (disabled) 进入秘境, ID: journey-start
+		185 button (disabled) 恢复未完成挑战, ID: journey-resume
+		186 button (disabled) 放弃当前挑战, ID: journey-abandon
+		187 button (disabled) 筑基已达 · 首版境界终点, ID: journey-break
+		188 text 练气容量6 → 筑基容量10。突破须独立击败离火剑魁，失败不扣修为、不毁珠，不发普通掉落；成功才扣24修为。研习阶段与正式境界分开。
+
+The focused UI element is 1 AXWebArea 本命剑：八荒五行, URL: 127.0.0.1:5064/

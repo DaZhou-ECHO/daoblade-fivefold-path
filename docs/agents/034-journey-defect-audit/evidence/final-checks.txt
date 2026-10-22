@@ -1,0 +1,253 @@
+
+[Python tests]
+........................................................................ [ 65%]
+......................................                                   [100%]
+110 passed in 11.62s
+
+[Frontend tests (automatically discovered)]
+✔ 动作视图只包含独立冻结数据，不泄漏实体/冷却/HP且后续实体变化不污染旧视图 (2.397ms)
+✔ 动作优先级和三段剑有效窗口沿用现有判定，不创建第二个战斗时钟 (0.4761ms)
+✔ 动作模块缺失时人物安全返回false，不能重新猜测战斗计时 (2.986ms)
+✔ 游戏/预览脚本先加载动作适配器，实际绘制使用显式只读视图 (3.9845ms)
+✔ 016 共享编译样例 empty (3.0962ms)
+✔ 016 共享编译样例 focus (1.9942ms)
+✔ 016 共享编译样例 burst (0.3858ms)
+✔ 016 共享编译样例 detached (0.3657ms)
+✔ 016 共享编译样例 grown-focus (0.4318ms)
+✔ 016 共享编译样例 grown-burst (0.4195ms)
+✔ 016 可拆换不复制资源，错误元素/功能/锁定/互斥/容量严格拒绝 (1.7598ms)
+✔ 016 真实UI状态机：保存成功才可试招，冲突保留草稿并禁止覆盖 (15.5052ms)
+✔ 016 换账号后忽略迟到读取，不把旧草稿带进新作用域 (2.3679ms)
+✔ 018 真实UI动作队列逐次使用ACK版本，冻结配珠并在放弃后解锁 (9.4767ms)
+✔ 018 冲突阻止队列后续写入，保留服务试炼供重读恢复 (7.1914ms)
+✔ 021 真实选关UI发送木境，恢复继续使用服务realm，活动中不能换境 (7.2368ms)
+✔ 029 五境演练只读已保存配珠，草稿/冲突禁入，有正式试炼也不改它 (7.2704ms)
+✔ 五类战斗音色短促有别，无声音资源和DOM依赖 (2.5589ms)
+✔ 事件去重、同类限频、持续伤害和未知类型不制造重复声音 (0.4507ms)
+✔ 最多4声并发，完美格挡优先于挥空，停止会取消排程并断开节点 (0.6485ms)
+✔ 静音不创建上下文且不补播旧事件；结束释放资源、历史有界 (0.5231ms)
+✔ 浏览器禁音、恢复拒绝或节点创建失败不会抛入战斗主链 (0.858ms)
+✔ 事件唯一、有序且复制冻结载荷，不能泄漏可变实体 (2.6238ms)
+✔ 失败监听隔离，解除订阅和关闭后不调用，历史有界 (2.1428ms)
+✔ 004提取动作视图后86个已提交003姿态基线保持一致 (16.9905ms)
+✔ 真实游戏入口向渲染器传入冻结动作视图，后续战斗变化不改旧视图 (31.3638ms)
+✔ 三段剑双向逐相位握点对齐、脚底固定、收招回位且渲染不写入战斗数据 (4.1581ms)
+✔ 真实三连击、格挡反击、跳跃、闪避、剑气与受击结束后恢复新人物 (27.108ms)
+✔ 五境重建与序列化存档恢复保留五行快照，复用同一美术与38×70碰撞箱 (80.0786ms)
+✔ 无 Image 或 fetch 时保留可用的未加载回退状态 (0.325ms)
+✔ 素材加载只请求一次，校验精灵表与独立剑的尺寸 (0.3912ms)
+✔ 清单拒绝外部路径、越界锚点及不合法帧数据 (0.4998ms)
+▶ 网络、JSON、图像下载和图像尺寸失败不会使加载 Promise 抛错
+  ✔ 网络错误 (0.3522ms)
+  ✔ HTTP错误 (0.2338ms)
+  ✔ 非法JSON (0.2259ms)
+  ✔ 非法字段 (0.1419ms)
+  ✔ 图像错误 (0.2357ms)
+  ✔ 精灵表尺寸不符 (0.2033ms)
+  ✔ 剑素材尺寸不符 (0.1999ms)
+✔ 网络、JSON、图像下载和图像尺寸失败不会使加载 Promise 抛错 (2.4052ms)
+✔ 待机跑动按动画时间选帧，帧循环和异常时间均不越界 (0.3261ms)
+✔ 全部战斗状态使用同一人物和独立剑，优先级覆盖空中攻击与受击打断 (0.5957ms)
+✔ U02 空中腿部连续、双向镜像，攻击受击覆盖后保留腿姿且落地恢复 (4.2706ms)
+✔ 左右全部动画帧脚底固定，旋转后的剑柄与每帧握点重合 (0.7846ms)
+✔ 渲染不改变玩家数据，并恢复透明度和图像平滑状态 (0.4868ms)
+✔ 剑图绘制异常关闭 PNG 渲染并完整恢复嵌套 Canvas 状态 (0.4283ms)
+✔ 真实游戏入口在模块缺省和资源未就绪时使用完整 Canvas 角色 (20.2164ms)
+✔ 真实游戏入口攻击保持新人物和独立剑，不回到旧角色且不改变战斗状态 (10.1619ms)
+✔ 真实游戏入口遇到剑图绘制异常立即回退，下一次绘制仍能继续 (10.1269ms)
+✔ 倒地逐阶段双向旋转整个人与同一把剑，握点重合且不改实体状态 (0.9254ms)
+✔ 模块缺省时倒地也能安全绘制且不会改动碰撞箱 (17.5703ms)
+✔ 只有真实命中/防守有反馈，挥空与持续伤害不刷屏，同一事件不重复 (2.9466ms)
+✔ 格挡穿透伤害合并显示，完美格挡独立可辨，不混入下一次攻击 (0.4922ms)
+✔ 数量与寿命有界，绘制不推进时间或制造新反馈，恢复Canvas状态 (1.2598ms)
+✔ 关闭不补播，清空后旧事件也不会重新出现 (0.3767ms)
+✔ 005 滑出按钮后窗口松手清方向，指针捕获失败时也不遗留 (50.7898ms)
+✔ 005 同动作的多指和键盘独立释放，不误清仍按住的方向和格挡 (28.1038ms)
+✔ 005 捕获丢失、暂停、销毁清理指针和输入，旧按钮不会唤醒已销毁局 (14.01ms)
+✔ 012 五境实际构造与已提交a0ee0b1的物理/敌人布局基线一致 (18.8964ms)
+✔ 012 当局地图/敌人与冻结定义隔离，重试和另一局不继承旧局修改 (11.0086ms)
+✔ 010 失同步拒绝正式开战且保留原局与计数，练功允许，恢复后正式入场 (10.8925ms)
+✔ 009 五境敌人燃烧致死后不再完成同帧攻击 (50.5635ms)
+✔ 009 非致死燃烧不冻结活敌人，继续正常攻击并标记燃烧事件 (18.3952ms)
+✔ 008 旧设置默认开启视觉提示，显式关闭可保留且不改声音默认值 (20.356ms)
+✔ 008 实际命中生成视觉，暂停冻结、倒地阶段消退、销毁清空 (9.6214ms)
+✔ 008 视觉反馈故障独立隔离，仍能播放事件声音且不改变伤害 (8.9045ms)
+✔ 007 实际事件音效消费者在暂停和结束时停止，销毁后的输入不补播 (8.8773ms)
+✔ 006 挥空只有起手，命中按真实判定发一次事件，持续伤害独立标记 (9.1299ms)
+✔ 006 普通格挡、完美格挡和真实受伤分类，不把无敌闪避当命中 (8.285ms)
+✔ 006 监听故障不改伤害，暂停不发攻击，销毁/结算只结束一次且新局隔离 (10.5664ms)
+✔ 未镶珠时主副五行都未定，战斗仍可创建 (8.1647ms)
+✔ 实际战斗读取开战快照，关外对象修改不会改变本局或另一局 (9.6237ms)
+✔ 短输入缓冲只接下一剑，不堆积多次攻击 (7.89ms)
+✔ 完美格挡仅开启由玩家按 J 发动的反击 (8.5057ms)
+✔ 短闪避不消耗剑意，离开平台后短时间仍可起跳 (8.0694ms)
+✔ 穿透剑气同一投射物只命中同一敌人一次 (8.2965ms)
+✔ 临时试镶不修改正式灵珠与修行图 (8.0367ms)
+✔ 五种主修分别影响穿透、续航、控制、爆发与守御 (10.0154ms)
+✔ 暂停清除按键，火关突进锁定起手方向 (7.6005ms)
+✔ 八条卦路均可装备并施展，第三层加强同一技能 (14.3164ms)
+✔ 两项技能独立冷却，受击期间不能施法 (8.4554ms)
+✔ 已学但未装备的心法不会暗中提供被动效果 (7.9513ms)
+✔ 五境布局各异且支路祭坛位置可达，非火关敌人有攻击前摇 (8.5636ms)
+✔ 014 剑碑仅前段清场且在附近地面激活一次 (12.3103ms)
+✔ 014 续关保持构筑和祭坛，前三敌不复活，后段敌人重置；完整重开独立 (8.4298ms)
+✔ 016 聚焰与引爆真实伤害链不同，不把试验珠叠到基础面板 (13.9568ms)
+✔ 016 拆核心停技、远距/背后不命中，试验不改旧档与奖励 (9.1299ms)
+✔ 019 真实远距剑气命中后首领追击，警戒外未受击敌人不跟随且不隔空出招 (49.6747ms)
+✔ 019 实际受击的远程与近战也追近原射程，空挥与零伤害不拉怪 (9.1686ms)
+✔ 019 交战敌人进入原范围仍先前摇，剑碑续关不继承上次仇恨 (7.9489ms)
+✔ 020 回火低伤害留痕，E单次有界回气护体且不伤敌、不叠护盾 (8.534ms)
+✔ 020 回火珠成长只改本分支护盾，时间到失效且停用连线 (12.3226ms)
+✔ 023 挥剑收招前短按Q在窗口内施放一次，不提前扣费 (9.8532ms)
+✔ 023 缓冲有时限，短冷却可接上、长动作不会延迟自动施放 (56.7445ms)
+✔ 023 单槽最新Q/E覆盖，后按J/L/防守/闪避取消旧技能 (46.4272ms)
+✔ 023 真正施放时重验剑意、前方火痕和当前朝向，不预付费不追踪离场目标 (24.7854ms)
+✔ 023 暂停、清理、销毁、致命/非致命伤与服务等待不遗留幽灵施法 (50.2092ms)
+✔ 023 键盘短按和触屏松手共用同一缓冲，松手不取消一次技能意图 (19.3499ms)
+✔ 023 旧永久档主动技能同样经过缓冲，不提前扣30剑意 (8.7263ms)
+✔ 024 近敌战况只读真实方位/气血/预警，转身后取消身后提示 (8.9583ms)
+✔ 024 死敌不抢信息，远处只提示方向，清场与贴身无虚构左右 (7.9932ms)
+✔ 025 实际贴身近战中心在前，五境普通挡与弹反有效，不按敌人左边缘错判 (174.3329ms)
+✔ 025 中心在后不能格挡，受伤后向远离攻击来源的方向击退 (32.7582ms)
+✔ 025 敌方投射物中心在前可挡，中心在后不可挡且击退一致 (17.0395ms)
+✔ 025 旧金行弹反反击也按中心识别贴身前敌 (12.8636ms)
+✔ 026 按住K格挡受击后恢复普通挡，不自动重开弹反 (10.4482ms)
+✔ 026 松手、暂停、销毁与新攻击意图取消受击后的防守恢复 (67.559ms)
+✔ 026 混合持有来源独立释放，最后一个松开才取消恢复 (16.4274ms)
+✔ 026 未持有输入的技能格挡不延续，背击只恢复普通挡且死亡不残留 (26.5007ms)
+✔ 028 收招末尾持有K在窗口内恢复普通挡，不提前打断且不弹反 (40.6286ms)
+✔ 030 持有普通挡不因等待过期而丢失，新攻击/暂停仍取消 (92.634ms)
+✔ 028 触控与键盘持有共用缓冲，最后来源松开取消，短按不遗留 (26.7434ms)
+✔ 028 立即合法的K保留原弹反，第三段未结束不可提前取消，帧率不改普通挡语义 (36.3428ms)
+✔ 029 四境各两招共享循环，预警期间不命中，收招有空当且有效段只打一次 (100.3779ms)
+✔ 029 木境缠根阵起手锁落点、有预警，可跳起/离开，源敌死亡取消 (32.418ms)
+✔ 029 土境正面守势仅闲置/蓄力减伤，背击/收招/持续燃烧不被减免 (51.0078ms)
+✔ 029 金境突刺锁方向，远程招式锁起手目标，死敌不再出招 (56.3746ms)
+✔ 029 水境实际受伤才减速，弹反/闪避/无敌不被慢弹附带命中 (49.3014ms)
+✔ 029 四境首领远距主动使用第二招并追击，高台目标记录高度且不追踪转向 (30.6973ms)
+✔ 030 近敌水平距离为只读中心距离，帮助判断短射程与绕背 (7.3195ms)
+✔ 030 持续K跨长动作/新受击仍待普通防守，松开后绝不自动举盾 (48.9788ms)
+✔ 031 地面机关仅在生效且足底接地时伤害，上方平台/空中/预警安全 (208.5221ms)
+✔ 031 五境基础单跳通过危险段后落地，不需要巽卦或技能 (135.5175ms)
+✔ 032 八宫选中技能进入真实引擎，各自元素/机制，拆核心停用 (65.3274ms)
+✔ 032 十张地图两条支路基础单跳到达并双向返回主路 (1349.3746ms)
+✔ 032 低帧率小步补算保留可玩速度，长停顿有上限，暂停不追赶 (42.326ms)
+✔ 032 震心法实际改变中性基础劈砍击退，未选与非劈砍无效 (84.0482ms)
+✔ 032 支路导航只读位置与领取，说明方向/高度/奖励，不改变世界 (11.5528ms)
+✔ 033 心法等级进入真实属性/伤害/冷却/击退，旧冻结快照仍按一级 (229.1588ms)
+✔ U01 致命伤立即结束判定，完整倒地后才打开一次结果窗口 (45.7885ms)
+✔ U01 隐藏页面冻结视觉，大掉帧被截断，暂停标记不会卡住战败结算 (13.6637ms)
+✔ U01 空中死亡仅移动美术落点，不更改实体坐标或38×70碰撞箱 (17.4888ms)
+✔ U01 动画中退出会取消旧结果窗口且不会重复经验和存档 (14.4549ms)
+✔ U01 动画中通过导航离开关卡也会取消旧弹窗 (11.7658ms)
+✔ U01 保存较慢时等待保存；重试销毁旧局后不出现迟到弹窗 (14.3257ms)
+✔ U01 练功场死亡不奖励不保存，胜利仍即时结算一次 (22.0679ms)
+✔ U01 结算页重新挑战启动干净的新局，返回洞府正常清理 (11.9757ms)
+✔ 014 仅检查点失败可续，胜利或已销毁不可续且同试炼不重复结算 (10.4871ms)
+✔ 014 结果按钮续关只消费一次入口且不新增闯关次数 (9.4226ms)
+✔ 014 保存失同步时续关入口保留结果和原试炼，不假装开战 (9.8533ms)
+✔ 015 刷新式JSON重载由洞府按钮恢复原试炼，放弃删除记录 (10.5103ms)
+✔ 015 胜利奖励和试炼清除一起保存，失同步时不恢复旧局 (11.731ms)
+✔ 015 Esc不能静默关掉结果并把玩家困在死亡画面 (9.1962ms)
+✔ 015 失败后返回洞府保留剑碑，明确放弃或重开才清除 (9.5371ms)
+✔ 016 暂停重新挑战保持试验快照，退出返回阵盘且不增加旧档runs (9.2055ms)
+✔ 018 新阵盘正式战六敌、剑碑恢复与冻结技能，不写旧永久档 (14.7163ms)
+✔ 018 剑碑必须实际清场到地面，等待保存时冻结且ACK后只回血一次 (11.502ms)
+✔ 018 网络错误不发奖，重读重试同ID；销毁后迟到ACK不弹结算 (17.957ms)
+✔ 018 检查点失败保留同ID，无检查点失败关闭；都不发旧档经验 (19.5165ms)
+✔ 021 木境使用木敌人与专属检查点，结果不串火且不写旧档 (9.1283ms)
+✔ 022 土金水新阵盘恢复原构筑与各自地图，胜利仅独立回执，旧档无检查点 (24.4604ms)
+✔ 029 全五境真实引擎输入驱动从入口至结算，不改血量位置或敌人死亡 (1153.0656ms)
+ℹ {"realm":"wood","fps":30,"seed":2901,"seconds":23,"outcome":"victory","hp":89,"checkpoint":true,"living":[],"x":2755,"actions":[{"action":"checkpoint","trial_id":"test-array","defeated_ids":["enemy-1","enemy-2","enemy-3"]},{"action":"settle","trial_id":"test-array","win":true,"defeated_ids":["enemy-1","enemy-2","enemy-3","enemy-4","enemy-5","enemy-6"]}]}
+ℹ {"realm":"fire","fps":30,"seed":2901,"seconds":29,"outcome":"victory","hp":53,"checkpoint":true,"living":[],"x":2531,"actions":[{"action":"checkpoint","trial_id":"test-array","defeated_ids":["enemy-1","enemy-2","enemy-3"]},{"action":"settle","trial_id":"test-array","win":true,"defeated_ids":["enemy-1","enemy-2","enemy-3","enemy-4","enemy-5","enemy-6"]}]}
+ℹ {"realm":"earth","fps":30,"seed":2901,"seconds":25,"outcome":"victory","hp":91,"checkpoint":true,"living":[],"x":2743,"actions":[{"action":"checkpoint","trial_id":"test-array","defeated_ids":["enemy-1","enemy-2","enemy-3"]},{"action":"settle","trial_id":"test-array","win":true,"defeated_ids":["enemy-1","enemy-2","enemy-3","enemy-4","enemy-5","enemy-6"]}]}
+ℹ {"realm":"metal","fps":30,"seed":2901,"seconds":26,"outcome":"victory","hp":62,"checkpoint":true,"living":[],"x":2772,"actions":[{"action":"checkpoint","trial_id":"test-array","defeated_ids":["enemy-1","enemy-2","enemy-3"]},{"action":"settle","trial_id":"test-array","win":true,"defeated_ids":["enemy-1","enemy-2","enemy-3","enemy-4","enemy-5","enemy-6"]}]}
+ℹ {"realm":"water","fps":30,"seed":2901,"seconds":23,"outcome":"victory","hp":91,"checkpoint":true,"living":[],"x":2738,"actions":[{"action":"checkpoint","trial_id":"test-array","defeated_ids":["enemy-1","enemy-2","enemy-3"]},{"action":"settle","trial_id":"test-array","win":true,"defeated_ids":["enemy-1","enemy-2","enemy-3","enemy-4","enemy-5","enemy-6"]}]}
+ℹ {"realm":"wood","fps":60,"seed":2902,"seconds":23,"outcome":"victory","hp":89,"checkpoint":true,"living":[],"x":2753,"actions":[{"action":"checkpoint","trial_id":"test-array","defeated_ids":["enemy-1","enemy-2","enemy-3"]},{"action":"settle","trial_id":"test-array","win":true,"defeated_ids":["enemy-1","enemy-2","enemy-3","enemy-4","enemy-5","enemy-6"]}]}
+ℹ {"realm":"fire","fps":60,"seed":2902,"seconds":29,"outcome":"victory","hp":43,"checkpoint":true,"living":[],"x":2561,"actions":[{"action":"checkpoint","trial_id":"test-array","defeated_ids":["enemy-1","enemy-2","enemy-3"]},{"action":"settle","trial_id":"test-array","win":true,"defeated_ids":["enemy-1","enemy-2","enemy-3","enemy-4","enemy-5","enemy-6"]}]}
+ℹ {"realm":"earth","fps":60,"seed":2902,"seconds":25,"outcome":"victory","hp":74,"checkpoint":true,"living":[],"x":2745,"actions":[{"action":"checkpoint","trial_id":"test-array","defeated_ids":["enemy-1","enemy-2","enemy-3"]},{"action":"settle","trial_id":"test-array","win":true,"defeated_ids":["enemy-1","enemy-2","enemy-3","enemy-4","enemy-5","enemy-6"]}]}
+ℹ {"realm":"metal","fps":60,"seed":2902,"seconds":25,"outcome":"victory","hp":53,"checkpoint":true,"living":[],"x":2789,"actions":[{"action":"checkpoint","trial_id":"test-array","defeated_ids":["enemy-1","enemy-2","enemy-3"]},{"action":"settle","trial_id":"test-array","win":true,"defeated_ids":["enemy-1","enemy-2","enemy-3","enemy-4","enemy-5","enemy-6"]}]}
+ℹ {"realm":"water","fps":60,"seed":2902,"seconds":23,"outcome":"victory","hp":82,"checkpoint":true,"living":[],"x":2741,"actions":[{"action":"checkpoint","trial_id":"test-array","defeated_ids":["enemy-1","enemy-2","enemy-3"]},{"action":"settle","trial_id":"test-array","win":true,"defeated_ids":["enemy-1","enemy-2","enemy-3","enemy-4","enemy-5","enemy-6"]}]}
+ℹ {"realm":"wood","fps":120,"seed":2903,"seconds":23,"outcome":"victory","hp":89,"checkpoint":true,"living":[],"x":2758,"actions":[{"action":"checkpoint","trial_id":"test-array","defeated_ids":["enemy-1","enemy-2","enemy-3"]},{"action":"settle","trial_id":"test-array","win":true,"defeated_ids":["enemy-1","enemy-2","enemy-3","enemy-4","enemy-5","enemy-6"]}]}
+ℹ {"realm":"fire","fps":120,"seed":2903,"seconds":28,"outcome":"victory","hp":48,"checkpoint":true,"living":[],"x":2551,"actions":[{"action":"checkpoint","trial_id":"test-array","defeated_ids":["enemy-1","enemy-2","enemy-3"]},{"action":"settle","trial_id":"test-array","win":true,"defeated_ids":["enemy-1","enemy-2","enemy-3","enemy-4","enemy-5","enemy-6"]}]}
+ℹ {"realm":"earth","fps":120,"seed":2903,"seconds":25,"outcome":"victory","hp":74,"checkpoint":true,"living":[],"x":2748,"actions":[{"action":"checkpoint","trial_id":"test-array","defeated_ids":["enemy-1","enemy-2","enemy-3"]},{"action":"settle","trial_id":"test-array","win":true,"defeated_ids":["enemy-1","enemy-2","enemy-3","enemy-4","enemy-5","enemy-6"]}]}
+ℹ {"realm":"metal","fps":120,"seed":2903,"seconds":26,"outcome":"victory","hp":62,"checkpoint":true,"living":[],"x":2790,"actions":[{"action":"checkpoint","trial_id":"test-array","defeated_ids":["enemy-1","enemy-2","enemy-3"]},{"action":"settle","trial_id":"test-array","win":true,"defeated_ids":["enemy-1","enemy-2","enemy-3","enemy-4","enemy-5","enemy-6"]}]}
+ℹ {"realm":"water","fps":120,"seed":2903,"seconds":23,"outcome":"victory","hp":82,"checkpoint":true,"living":[],"x":2748,"actions":[{"action":"checkpoint","trial_id":"test-array","defeated_ids":["enemy-1","enemy-2","enemy-3"]},{"action":"settle","trial_id":"test-array","win":true,"defeated_ids":["enemy-1","enemy-2","enemy-3","enemy-4","enemy-5","enemy-6"]}]}
+✔ 029 五境首领演练实际输入击败首领，无保存奖励，结果/暂停重试不转正式战 (103.5766ms)
+✔ 032 突破成功不再邀请重复突破，结算未确认时仍可重试确认 (18.2576ms)
+✔ 034 暂停按钮幂等：自动暂停后再点暂停不能恢复战斗，继续和Esc才恢复 (7.9514ms)
+✔ 032 保存期间锁住下拉框，ACK后恢复；旧账号延迟回复不能重建已清空界面 (10.772ms)
+✔ 033 重读开始立即锁定操作，防止返回阵盘后快速点击被静默忽略 (3.7373ms)
+✔ 033 下一步按真实首通与进行中状态推荐，选择不自动开战，换号清空旧目标 (5.7249ms)
+✔ 032 突破失败关闭试炼后，重新挑战保持原境/地图/突破类型 (8.1032ms)
+✔ 034 草稿切宫保留且阻止误开战，节点与出战栏一次提交 (8.6127ms)
+✔ 034 拆全盘仅草稿，放弃可还原；失败保存保留编辑并要求重读 (8.8965ms)
+✔ 034 换号后旧保存按钮的延迟错误不能污染新账号界面 (5.9229ms)
+✔ 034 恢复试炼读档期间换号，旧恢复操作不能启动新账号试炼 (5.7508ms)
+✔ 五境定义冻结且位置引用完整，平台/危险区在原世界范围内 (2.9009ms)
+✔ 未知秘境明确拒绝，不返回对象原型或另一张地图 (0.8393ms)
+✔ 029 四境首领配置各两招且深冻结，火境沿用既有行为 (0.4896ms)
+✔ 031 五境机关安全/预警/生效边界及错峰循环一致 (0.79ms)
+✔ 火境目标依据稳定敌人ID，绕过守卫不跳过教学清场 (1.6076ms)
+✔ 目标投影不修改敌人且其他秘境保持原提示 (0.3132ms)
+✔ 021 木境目标从入境到药王，不继承火焰提示 (0.3789ms)
+✔ 022 土金水各自目标、守境者和清场提示，不投影成火境 (0.4549ms)
+✔ 共享基线样例 default：五行/配装/完整数值与提取前相同 (3.9778ms)
+✔ 共享基线样例 equipped：五行/配装/完整数值与提取前相同 (0.6229ms)
+✔ 共享基线样例 tied-primary：五行/配装/完整数值与提取前相同 (0.3892ms)
+✔ 共享基线样例 old-no-loadout：五行/配装/完整数值与提取前相同 (0.408ms)
+✔ 共享非法配装 unlearned-active：拒绝创建战斗快照 (1.0309ms)
+✔ 配置/默认存档/战斗快照均不引用调用方可变数据 (1.4516ms)
+✔ 快照明确标记旧适配器，未把全局旧元素伪装成新阵盘独立元素 (1.2774ms)
+✔ 错误规则集/结构/规则版本失败，不自动降级旧规则 (0.6211ms)
+✔ 服务端JSON按字母重排键后，元素/卦路展示和默认状态顺序不变 (0.5902ms)
+✔ 015 实际保存队列失败返回false，游客也阻止继续正式开战 (33.0305ms)
+✔ 015 退出已结束试炼销毁旧实例，再载入新账号作用域 (13.9929ms)
+✔ 015 浏览器备份空间耗尽仍能保存SQLite主存档 (9.4828ms)
+✔ 015 序列化只保存检查点与原构筑，JSON重载后战斗属性不漂移 (4.6821ms)
+✔ 015 不支持或损坏记录拒绝，禁止重解释成新试炼 (0.718ms)
+ℹ tests 185
+ℹ suites 0
+ℹ pass 185
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6918.2501
+
+[JS syntax: action-state.js]
+
+[JS syntax: array-lab-rules.js]
+
+[JS syntax: array-lab-ui.js]
+
+[JS syntax: battle-audio.js]
+
+[JS syntax: battle-events.js]
+
+[JS syntax: character-art.js]
+
+[JS syntax: character-preview.js]
+
+[JS syntax: combat-feedback.js]
+
+[JS syntax: game.js]
+
+[JS syntax: journey-ui.js]
+
+[JS syntax: level-definitions.js]
+
+[JS syntax: level-progress.js]
+
+[JS syntax: rules.js]
+
+[JS syntax: trial-state.js]
+
+[Agent document files and links]
+Agent document file/link checks PASSED (content review still required).
+
+[Git whitespace]
+warning: in the working copy of 'tests/defeat.test.cjs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/journey-ui.test.cjs', LF will be replaced by CRLF the next time Git touches it
+
+All local checks passed. Browser/visual/audio acceptance is recorded separately.
