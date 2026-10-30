@@ -4,7 +4,8 @@ import uuid
 from copy import deepcopy
 from pathlib import Path
 
-from database import get_db
+from database import get_db, load_state_record
+from game_rules import validate_state as validate_legacy_state
 
 MAPS_V2 = json.loads((Path(__file__).parent / "static/data/journey-maps-v2.json").read_text(encoding="utf-8"))
 
@@ -154,6 +155,131 @@ def response(state, revision, receipt=None, replayed=False):
 def read_journey(slot):
     row = get_db().execute("SELECT * FROM journey_saves WHERE slot=?", (slot,)).fetchone()
     return (json.loads(row["state_json"]), row["revision"]) if row else (default_journey(), 0)
+
+
+def _legacy_level(level):
+    return 3 if level >= 15 else 2 if level >= 5 else 1
+
+
+def _import_projection(legacy, current):
+    """Pure, deterministic projection; neither source nor destination is mutated."""
+    state = deepcopy(current)
+    owned = {bead["id"]: bead for bead in state["beads"]}
+    entries, unused = [], []
+
+    def grant(key, level=1, source=None, reason="旧档换算"):
+        before = owned[key]["level"] if key in owned else None
+        if key not in owned:
+            bead = new_bead(key)
+            bead["level"] = level
+            state["beads"].append(bead)
+            owned[key] = bead
+        elif level > before:
+            owned[key]["level"] = level
+            owned[key]["xp"] = 0
+        if source is not None:
+            entries.append({"source_id": source["id"], "source_name": source["name"],
+                            "source_element": source["element"], "source_quality": source["quality"],
+                            "source_level": source["level"], "source_affixes": deepcopy(source["affixes"]),
+                            "target_id": key, "target_level": owned[key]["level"],
+                            "changed": before != owned[key]["level"], "reason": reason})
+
+    for palace in [p[0] for p in PALACES]:
+        for index, role in enumerate(("mind", "core", "trace")):
+            bead = legacy["cultivation"][palace][index]
+            if bead is None:
+                continue
+            grant(palace + "." + role, _legacy_level(bead["level"]), bead, "已镶卦位")
+            if role == "mind":
+                grant(palace + ".core", 1)
+
+    imported_clears = []
+    for realm in CONFIG["realms"]:
+        if legacy["progress"]["clears"][realm] <= 0 or state["progress"]["clears"][realm] > 0:
+            continue
+        state["progress"]["clears"][realm] = 1
+        state["progress"]["spirit"] += 12
+        imported_clears.append(realm)
+        for key, item in CATALOG.items():
+            if item["element"] == realm and item["role"] in {"core", "trace", "mind"}:
+                grant(key)
+
+    roles = ("core", "mind", "trace", "edge", "flow")
+    palace_order = {p[0]: index for index, p in enumerate(PALACES)}
+    for bead in legacy["inventory"]:
+        options = sorted((key for key, item in CATALOG.items()
+                          if item["element"] == bead["element"] and key not in owned),
+                         key=lambda key: (roles.index(CATALOG[key]["role"]), palace_order[CATALOG[key]["palace"]]))
+        if options:
+            grant(options[0], _legacy_level(bead["level"]), bead, "珠匣同元素")
+        else:
+            unused.append({"id": bead["id"], "name": bead["name"], "element": bead["element"]})
+
+    validate_build(state)
+    receipt = {"converted": entries, "unused": unused, "imported_clears": imported_clears,
+               "spirit_awarded": 12 * len(imported_clears),
+               "legacy_clears": deepcopy(legacy["progress"]["clears"]),
+               "legacy_runs": legacy["progress"]["runs"]}
+    state["migration"] = {"source": "legacy-v1", "imported_clears": imported_clears}
+    return state, receipt
+
+
+def import_preview(slot):
+    prior = get_db().execute("SELECT receipt_json FROM journey_migrations WHERE slot=?", (slot,)).fetchone()
+    if prior:
+        return {"available": False, "migrated": True, "receipt": json.loads(prior["receipt_json"])}
+    old = load_state_record(slot)
+    if not old:
+        return {"available": False, "migrated": False, "reason": "没有旧版存档"}
+    legacy = validate_legacy_state(old["state"], old["state"])
+    state, revision = read_journey(slot)
+    if legacy.get("active_trial") or state.get("active_trial"):
+        return {"available": False, "migrated": False, "reason": "请先完成或放弃进行中的试炼"}
+    projected, receipt = _import_projection(legacy, state)
+    if not receipt["converted"] and not receipt["imported_clears"] and not receipt["unused"]:
+        return {"available": False, "migrated": False, "reason": "旧档尚无可迁入成果"}
+    return {"available": True, "migrated": False, "legacy_revision": old["revision"],
+            "journey_revision": revision, "receipt": receipt,
+            "before": {"beads": len(state["beads"]), "spirit": state["progress"]["spirit"]},
+            "after": {"beads": len(projected["beads"]), "spirit": projected["progress"]["spirit"]}}
+
+
+def confirm_import(slot, legacy_revision, journey_revision):
+    db = get_db()
+    db.execute("BEGIN IMMEDIATE")
+    try:
+        prior = db.execute("SELECT receipt_json FROM journey_migrations WHERE slot=?", (slot,)).fetchone()
+        if prior:
+            state, revision = read_journey(slot)
+            db.commit()
+            return {**response(state, revision), "migration_receipt": json.loads(prior["receipt_json"]), "replayed": True}
+        old = load_state_record(slot)
+        if not old:
+            raise ValueError("没有旧版存档")
+        state, revision = read_journey(slot)
+        if old["revision"] != legacy_revision or revision != journey_revision:
+            raise ValueError("存档已被其他窗口更新，请重新预览")
+        legacy = validate_legacy_state(old["state"], old["state"])
+        if legacy.get("active_trial") or state.get("active_trial"):
+            raise ValueError("请先完成或放弃进行中的试炼")
+        projected, receipt = _import_projection(legacy, state)
+        if not receipt["converted"] and not receipt["imported_clears"] and not receipt["unused"]:
+            raise ValueError("旧档尚无可迁入成果")
+        payload = json.dumps(projected, ensure_ascii=False)
+        if revision == 0:
+            cursor = db.execute("INSERT OR IGNORE INTO journey_saves VALUES(?,?,1)", (slot, payload))
+        else:
+            cursor = db.execute("UPDATE journey_saves SET state_json=?, revision=revision+1 WHERE slot=? AND revision=?",
+                                (payload, slot, revision))
+        if cursor.rowcount != 1:
+            raise ValueError("正式档已被其他窗口更新，请重新预览")
+        db.execute("INSERT INTO journey_migrations VALUES(?,?,?,?)",
+                   (slot, legacy_revision, revision + 1, json.dumps(receipt, ensure_ascii=False)))
+        db.commit()
+        return {**response(projected, revision + 1), "migration_receipt": receipt}
+    except Exception:
+        db.rollback()
+        raise
 
 
 def transition(slot, revision, payload):

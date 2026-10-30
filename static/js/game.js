@@ -181,6 +181,7 @@ async function initializeSession() {
   } catch (_) { currentUser = null; }
   renderAccount();
   await loadState();
+  await globalThis.DaoBladeJourneyUI?.load();
 }
 
 function renderAccount() {
@@ -225,7 +226,7 @@ function showPanel(name) {
   if (name === "inventory") renderInventory();
   if (name === "cultivation") renderCultivation();
   if (name === "realms") renderRealms();
-  if (name === "journey") void globalThis.DaoBladeJourneyUI?.load();
+  if (name === "journey" || name === "atlas" || name === "sanctuary") void globalThis.DaoBladeJourneyUI?.load();
   if (name === "arraylab") void globalThis.DaoBladeArrayLabUI?.load();
   renderCheckpointRecovery();
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -2130,6 +2131,7 @@ function bindUi() {
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || "导入失败");
       await loadState();
+      await globalThis.DaoBladeJourneyUI?.load();
       showToast("游客存档已导入当前账号");
     } catch (error) { showToast(error.message, true); }
   });

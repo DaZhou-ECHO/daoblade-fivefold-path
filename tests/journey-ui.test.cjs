@@ -5,7 +5,8 @@ function harness(){
   const node=id=>{
     if(!nodes.has(id)){
       let html='',children=[];
-      nodes.set(id,{value:id==='journey-realm'?'water':id==='journey-map'?'hollow':'',textContent:'',disabled:false,
+      nodes.set(id,{value:id==='journey-realm'?'water':id==='journey-map'?'hollow':'',textContent:'',disabled:false,open:false,
+        showModal(){this.open=true;},close(){this.open=false;this.onclose?.();},
         get innerHTML(){return html;},set innerHTML(value){html=value;children=[];
           for(const m of value.matchAll(/<select data-(node|slot)="([^"]+)">([\s\S]*?)<\/select>/g)){
             const selected=m[3].match(/<option value="([^"]*)" selected>/);
@@ -22,6 +23,12 @@ function harness(){
     DaoBladeStartJourney:(trial,compiled)=>calls.push({launch:trial,compiled}),
     fetch:async(url,options)=>{
       if(url==='/api/auth/me')return{ok:true,json:async()=>({user:null,csrf_token:'unit'})};
+      if(url==='/api/journey/import-preview')return{ok:true,json:async()=>({available:true,legacy_revision:4,journey_revision:saved.revision,
+        before:{beads:5,spirit:24},after:{beads:6,spirit:36},receipt:{converted:[{source_id:'old-1',source_name:'旧珠',source_element:'fire',source_quality:2,source_level:5,source_affixes:[],target_id:'li.mind',target_level:2,changed:true}],unused:[],imported_clears:['wood'],spirit_awarded:12}})};
+      if(url==='/api/journey/import-confirm'){
+        const body=JSON.parse(options.body);calls.push({migration:body});saved.state.migration={source:'legacy-v1'};saved.revision++;
+        return{ok:true,json:async()=>payload()};
+      }
       if(!options){if(delayRead){delayRead=false;await new Promise(r=>release=r);}const ok=!failRead;failRead=false;return{ok,json:async()=>payload()};}
       const body=JSON.parse(options.body);calls.push(body);
       if(delay){delay=false;await new Promise(r=>release=r);}
@@ -115,4 +122,15 @@ test('034 首次读档失败仍能重新读取恢复，不能无档开战',async
  const h=harness();h.api.reset();h.failRead();await h.api.load();
  assert.match(h.node('journey-error').textContent,/读取失败/);assert.equal(h.node('journey-reload').disabled,false);assert.ok(h.node('journey-start').disabled);
  await h.node('journey-reload').onclick();assert.equal(h.node('journey-error').textContent,'');assert.equal(h.node('journey-start').disabled,false);assert.match(h.node('journey-status').textContent,/已保存/);
+});
+
+test('039 旧档预览显示逐珠结果，确认发送两个版本并重读；已迁移禁止重复入口',async()=>{
+  const h=harness();await h.api.load();await h.node('journey-import-preview').onclick();
+  assert.equal(h.node('journey-import-dialog').open,true);
+  assert.match(h.node('journey-import-detail').innerHTML,/旧珠.*li.mind/);
+  await h.node('journey-import-confirm').onclick();
+  assert.equal(h.node('journey-import-dialog').open,false);
+  assert.deepEqual(h.calls.at(-1).migration,{owner_id:null,legacy_revision:4,journey_revision:0});
+  assert.equal(h.node('journey-import-preview').disabled,true);
+  assert.match(h.node('journey-import-status').textContent,/已完成一次性迁移/);
 });

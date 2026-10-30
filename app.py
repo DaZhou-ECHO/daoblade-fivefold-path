@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import json
 import re
 import secrets
 import sqlite3
@@ -114,14 +115,35 @@ def create_app(test_config: dict | None = None) -> Flask:
             return jsonify(error="请先登录"), 401
         if not csrf_ok(user):
             return jsonify(error="会话校验失败"), 403
-        if load_state_record(save_slot(user)):
-            return jsonify(error="账号已有存档，不能覆盖"), 409
-        guest = load_state_record("local")
-        if not guest:
-            return jsonify(error="没有可导入的游客存档"), 404
-        state = validate_state(guest["state"], guest["state"])
-        revision = save_state(state, save_slot(user), 0, user["id"])
-        return jsonify(ok=True, state=state, revision=revision, contract=rules_metadata())
+        db = get_db()
+        db.execute("BEGIN IMMEDIATE")
+        try:
+            guest = load_state_record("local")
+            guest_journey = db.execute("SELECT state_json, revision FROM journey_saves WHERE slot='local'").fetchone()
+            target = save_slot(user)
+            if not guest and not guest_journey:
+                db.rollback()
+                return jsonify(error="没有可导入的游客存档"), 404
+            if load_state_record(target):
+                db.rollback()
+                return jsonify(error="账号已有旧版存档，不能覆盖"), 409
+            if guest_journey and db.execute("SELECT 1 FROM journey_saves WHERE slot=?", (target,)).fetchone():
+                db.rollback()
+                return jsonify(error="账号已有正式征程存档，不能覆盖"), 409
+            if guest:
+                state = validate_state(guest["state"], guest["state"])
+                db.execute("INSERT INTO game_saves(slot,state_json,user_id,revision) VALUES(?,?,?,1)",
+                           (target, json.dumps(state, ensure_ascii=False), user["id"]))
+            if guest_journey:
+                db.execute("INSERT INTO journey_saves VALUES(?,?,?)", (target, guest_journey["state_json"], guest_journey["revision"]))
+                db.execute("INSERT INTO journey_results SELECT ?,trial_id,receipt_json FROM journey_results WHERE slot='local'", (target,))
+                db.execute("INSERT INTO journey_migrations SELECT ?,legacy_revision,journey_revision,receipt_json FROM journey_migrations WHERE slot='local'", (target,))
+            db.commit()
+            return jsonify(ok=True, state=state if guest else None, revision=1 if guest else None,
+                           journey_imported=bool(guest_journey), contract=rules_metadata())
+        except Exception:
+            db.rollback()
+            raise
 
     @app.get("/")
     def index():
@@ -235,6 +257,30 @@ def create_app(test_config: dict | None = None) -> Flask:
             return jsonify(**journey.response(state, revision), config=journey.CONFIG, owner_id=user["id"] if user else None)
         except ValueError as exc:
             return jsonify(error=str(exc)), 400
+
+    @app.get("/api/journey/import-preview")
+    def journey_import_preview():
+        try:
+            return jsonify(**journey.import_preview(save_slot(current_user())))
+        except ValueError as exc:
+            return jsonify(error=str(exc)), 400
+
+    @app.post("/api/journey/import-confirm")
+    def journey_import_confirm():
+        user = current_user()
+        if not csrf_ok(user):
+            return jsonify(error="会话校验失败"), 403
+        payload = request.get_json(silent=True)
+        owner = user["id"] if user else None
+        if (not isinstance(payload, dict) or payload.get("owner_id") != owner
+                or type(payload.get("legacy_revision")) is not int
+                or type(payload.get("journey_revision")) is not int
+                or payload["legacy_revision"] < 0 or payload["journey_revision"] < 0):
+            return jsonify(error="账号或预览版本无效，请重新预览"), 409
+        try:
+            return jsonify(**journey.confirm_import(save_slot(user), payload["legacy_revision"], payload["journey_revision"]))
+        except ValueError as exc:
+            return jsonify(error=str(exc)), 409
 
     @app.post("/api/journey")
     def journey_action():

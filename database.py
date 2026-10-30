@@ -62,6 +62,10 @@ def init_db() -> None:
     )""")
     database.execute("CREATE TABLE IF NOT EXISTS journey_saves (slot TEXT PRIMARY KEY, state_json TEXT NOT NULL, revision INTEGER NOT NULL)")
     database.execute("CREATE TABLE IF NOT EXISTS journey_results (slot TEXT NOT NULL, trial_id TEXT NOT NULL, receipt_json TEXT NOT NULL, PRIMARY KEY(slot,trial_id))")
+    database.execute("""CREATE TABLE IF NOT EXISTS journey_migrations (
+        slot TEXT PRIMARY KEY, legacy_revision INTEGER NOT NULL,
+        journey_revision INTEGER NOT NULL, receipt_json TEXT NOT NULL
+    )""")
     database.commit()
 
 
