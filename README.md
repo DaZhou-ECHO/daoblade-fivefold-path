@@ -1,6 +1,6 @@
 # 本命剑：八荒五行
 
-> 本地036候选：新正式局采用动作/地图v2，普通挡耗剑意、S＋跳跃下落、F开启捷径及确认离境；旧进行中局仍用v1。[实现与验收边界](docs/implementation/036-角色行为与地图v2.md)。本轮未上传/合并，完整浏览器胜利与实体设备待验收。
+> 本地037候选：五境本地PNG场景与20怪物家族、动作预览和安全回退；保持036角色/地图v2规则。火境高径已实玩通关，115 Python / 269 Node检查通过；本轮未上传或发布。[实现与验收](docs/implementation/037-地图与怪物像素美术.md) · [素材来源和复现](docs/art/world-v1/README.md)。启动后可访问 /static/world-art-preview.html。
 
 **DaoBlade: Fivefold Path** 是一个可在浏览器运行的横版修仙动作游戏。当前主要玩法从“正式征程”进入：挑战五境各两张地图、领取支路奖励、获得本位灵珠，在八宫中自由拆换，选择两主动与两心法出战，并突破筑基提升容量。
 
@@ -16,7 +16,7 @@
 
 完整规则与实际验收见[正式征程总清单](docs/implementation/正式征程总清单.md)、[游玩证据与限制](docs/implementation/正式征程验收.md)。页面仍保留“旧版修行”和“阵盘试验”，三种存档各自独立；下文永久镶嵌、随机词条、主副五行等内容仅描述旧版，不适用于正式征程。旧游客导入入口只导入旧版档，正式征程请从自己的账号开始。
 
-本地开发接续从[AGENTS.md](AGENTS.md)、[Agent任务索引](docs/agents/README.md)和[本地启动与统一自检](LOCAL_DEVELOPMENT.md)开始。003–034累计成果已提交[审核PR #6](https://github.com/DaZhou-ECHO/daoblade-fivefold-path/pull/6)（目标develop，尚未合并），上传与PR状态以[035交接](docs/agents/035-d06-playable-review/agents/agent-20261022-1339-p8a1/HANDOFF.md)为准；这是候选审核，不代表已合并或正式发布。审核者先读[审核入口](docs/agents/035-d06-playable-review/REVIEW.md)。[当前功能进度](docs/implementation/本地功能进度.md)区分已实现与待开发内容。
+本地开发接续从[AGENTS.md](AGENTS.md)、[Agent任务索引](docs/agents/README.md)和[本地启动与统一自检](LOCAL_DEVELOPMENT.md)开始。历史[审核PR #6](https://github.com/DaZhou-ECHO/daoblade-fivefold-path/pull/6)对应003–035集成，已进入本地develop基线27b7301；[035交接](docs/agents/035-d06-playable-review/agents/agent-20261022-1339-p8a1/HANDOFF.md)保留当时记录。036/037为后续本地候选，本轮未核对远端现状，不代表已发布。审核者先读[审核入口](docs/agents/035-d06-playable-review/REVIEW.md)。[当前功能进度](docs/implementation/本地功能进度.md)区分已实现与待开发内容。
 
 既有001实现见[历史实施索引](docs/implementation/00-实施索引.md)；此前记录见[v0.3.0设计](docs/v0.3.0设计与实施说明.md)、[v0.3.0测试](docs/v0.3.0测试与交接.md)。未来修改按[初版分方向策划](docs/planning/first-playable/00-初版总纲与阅读入口.md)逐步实施。
 

@@ -599,6 +599,10 @@ class BattleGame {
       if(minds.includes("gen"))this.stats.defense+=1+this.journeyMindLevel("gen");
       if(minds.includes("kun"))this.stats.hpMax+=10+5*this.journeyMindLevel("kun");
     }
+    this.worldArtAssets = globalThis.DaoBladeWorldAssets?.shared || null;
+    this.enemyArt = globalThis.DaoBladeEnemyArt ? new globalThis.DaoBladeEnemyArt.Renderer(this.worldArtAssets) : null;
+    this.sceneArt = globalThis.DaoBladeSceneArt ? new globalThis.DaoBladeSceneArt.Renderer(this.worldArtAssets) : null;
+    if (this.worldArtAssets) void this.worldArtAssets.load();
     this.characterArt = globalThis.DaoBladeCharacterArt?.renderer || null;
     if (this.characterArt) void this.characterArt.load();
     this.player = this.makePlayer();
@@ -707,6 +711,7 @@ class BattleGame {
   destroy() {
     this.endBattleEvents("abandoned");
     this.feedbackLayer?.clear();
+    this.enemyArt?.clear();
     this.disposed = true;
     this.finished = true;
     if (this.defeat) { this.defeat.resolve(false); this.defeat = null; }
@@ -1823,6 +1828,7 @@ class BattleGame {
   }
 
   draw() {
+    this.enemyArt?.sync(this.enemies, this.elapsed);
     const ctx = this.ctx; const camera = this.cameraX; const [dark, light] = this.realm.bg;
     const gradient = ctx.createLinearGradient(0, 0, 0, this.height); gradient.addColorStop(0, dark); gradient.addColorStop(1, light); ctx.fillStyle = gradient; ctx.fillRect(0, 0, this.width, this.height);
     this.drawBackground(ctx, camera);
@@ -1832,10 +1838,10 @@ class BattleGame {
       ctx.font="15px sans-serif";
       for(const mark of this.level.landmarks){ctx.fillStyle="#d9c49b";ctx.fillText(mark.label,mark.x,230);}
       for(const s of this.level.shortcuts){
-        ctx.fillStyle=this.openedShortcuts.has(s.id)?"#9bd3a7":"#d7ac69";ctx.fillRect(s.x,s.y-40,18,40);
+        ctx.fillStyle=this.openedShortcuts.has(s.id)?"#9bd3a7":"#d7ac69";if(!this.sceneArt?.prop(ctx,this.realmKey,"shortcut",s.x+9,s.y,this.openedShortcuts.has(s.id)))ctx.fillRect(s.x,s.y-40,18,40);
         ctx.fillText(this.openedShortcuts.has(s.id)?"回环栈桥已开":keyLabel(controls.interact)+" 开启回环栈桥",s.x-50,s.y-55);
       }
-      const exit=this.level.exit;ctx.fillStyle=this.canExit()?"#99e7b0":"#737a92";ctx.fillRect(exit.x,exit.y-95,12,95);ctx.fillRect(exit.x+55,exit.y-95,12,95);ctx.fillRect(exit.x,exit.y-100,67,8);
+      const exit=this.level.exit;ctx.fillStyle=this.canExit()?"#99e7b0":"#737a92";if(!this.sceneArt?.prop(ctx,this.realmKey,"exit",exit.x+33,exit.y,this.canExit())){ctx.fillRect(exit.x,exit.y-95,12,95);ctx.fillRect(exit.x+55,exit.y-95,12,95);ctx.fillRect(exit.x,exit.y-100,67,8);}
       ctx.fillText(this.canExit()?keyLabel(controls.interact)+" 确认离境":"主路与首领未完成",exit.x-35,exit.y-115);
     }
     this.hazards.forEach(hazard => {
@@ -1848,17 +1854,21 @@ class BattleGame {
       ctx.fillText(`${hazard.label} · ${phase} ${(Math.ceil(state.remaining * 10) / 10).toFixed(1)}s`, hazard.x - 8, this.floorY - 28);
     });
     this.altars.filter(altar => !altar.taken).forEach(altar => {
+      if(!this.sceneArt?.prop(ctx,this.realmKey,"altar",altar.x+14,altar.y+28)){
       ctx.fillStyle = "#6b5436"; ctx.fillRect(altar.x + 4, altar.y + 17, 20, 11);
       ctx.fillStyle = "#dfad4c"; ctx.fillRect(altar.x + 10, altar.y + 2, 8, 15);
       ctx.fillStyle = "#fff0b5"; ctx.fillRect(altar.x + 13, altar.y - 3, 2, 8);
-      if(this.journey){ctx.font="12px sans-serif";ctx.fillText("可选祭坛 · 补给 / 修为",altar.x-45,altar.y-12);}
+      }
+      if(this.journey){ctx.fillStyle="#fff0b5";ctx.font="12px sans-serif";ctx.fillText("可选祭坛 · 补给 / 修为",altar.x-45,altar.y-12);}
     });
     if (!this.breakthrough&&(this.trial||this.labRun)) {
       const activated=this.labRun?Boolean(this.labTrial?.checkpoint):this.trial.activated;
       const anchor = this.level.anchors[this.checkpoint.anchor_id];
       ctx.fillStyle = activated ? "#f4d576" : "#858991";
+      if(!this.sceneArt?.prop(ctx,this.realmKey,"swordstone",anchor.x+18,anchor.y,activated)){
       ctx.fillRect(anchor.x + 8, anchor.y - 62, 20, 62);
       ctx.fillRect(anchor.x, anchor.y - 12, 36, 12);
+      }
       ctx.font = "14px sans-serif"; ctx.textAlign = "center";
       ctx.fillText(activated ? "剑碑 · 已激活" : "剑碑 · 清除前段守卫", anchor.x + 18, anchor.y - 74);
       ctx.textAlign = "left";
@@ -1869,7 +1879,10 @@ class BattleGame {
       ctx.fillStyle = ctx.strokeStyle; ctx.font = "13px sans-serif";
       ctx.fillText(zone.warning > 0 ? `缠根阵 ${zone.warning.toFixed(1)}s · 跳起/移开` : "缠根阵 · 生效", zone.x, zone.y - 18);
     });
-    this.enemies.forEach(enemy => { if (!enemy.dead) this.drawEnemy(ctx, enemy); });
+    this.enemies.forEach(enemy => {
+      if (!enemy.dead) this.drawEnemy(ctx, enemy);
+      else this.enemyArt?.draw(ctx, this.realmKey, this.enemyArt.states.get(enemy.id));
+    });
     this.projectiles.forEach(shot => this.drawProjectile(ctx, shot));
     this.skillEffects.forEach(effect => {
       ctx.save(); ctx.globalAlpha = clamp(effect.life * 2, 0, 1); ctx.strokeStyle = effect.color; ctx.lineWidth = 5;
@@ -1885,6 +1898,7 @@ class BattleGame {
   }
 
   drawBackground(ctx, camera) {
+    if(this.sceneArt?.background(ctx,this.realmKey,camera,this.width,this.height,this.elapsed,this.level.id))return;
     ctx.fillStyle = "rgba(5,10,18,.36)";
     for (let i = -1; i < 8; i++) { const x = i * 310 - (camera * .18 % 310); ctx.beginPath(); ctx.moveTo(x, 420); ctx.lineTo(x + 130, 190 - (i % 2) * 55); ctx.lineTo(x + 285, 420); ctx.fill(); }
     ctx.save();
@@ -1915,6 +1929,7 @@ class BattleGame {
   }
 
   drawPlatform(ctx, platform) {
+    if(this.sceneArt?.platform(ctx,this.realmKey,platform,this.cameraX,this.width))return;
     ctx.fillStyle = this.realmKey === "wood" ? "#183c2d" : this.realmKey === "water" ? "#183e55" : this.realmKey === "fire" ? "#3b1c1a" : this.realmKey === "earth" ? "#4a3926" : "#323d4b";
     ctx.fillRect(platform.x, platform.y, platform.w, platform.h); ctx.fillStyle = this.element.color; ctx.globalAlpha = .35; ctx.fillRect(platform.x, platform.y, platform.w, 6); ctx.globalAlpha = 1;
     for (let x = platform.x + 12; x < platform.x + platform.w; x += 32) { ctx.fillStyle = "rgba(0,0,0,.22)"; ctx.fillRect(x, platform.y + 18, 14, 6); }
@@ -2004,6 +2019,7 @@ class BattleGame {
   }
 
   drawEnemy(ctx, enemy) {
+    if(enemy.kind!=="dummy"&&this.enemyArt?.draw(ctx,this.realmKey,this.enemyArt.states.get(enemy.id)))return;
     if (enemy.kind === "dummy") {
       const x = Math.round(enemy.x), y = Math.round(enemy.y);
       ctx.fillStyle = "#6b4e35"; ctx.fillRect(x + 15, y + 10, 12, enemy.h - 10);
