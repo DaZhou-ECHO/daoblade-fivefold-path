@@ -4,7 +4,8 @@
 
 | 任务ID | 任务目标 | 状态 | 当前接续Agent | 分支/基线 | 最新交接链接 | 依赖或阻塞 |
 |---|---|---|---|---|---|---|
-| 038-ten-map-scenes | 十张仙侠地图独立场景与路线引导 | 待验收 | agent-20261030-2105-m4c8 | work/038-ten-map-scenes / cad682e | [交接](038-ten-map-scenes/agents/agent-20261030-2105-m4c8/HANDOFF.md) | Python115/Node271通过；独立浏览器本地连接超时，十图画面与两路线实玩待验 |
+| 039-journey-home | 十境山河图、统一修行首页与旧档迁入 | 待验收 | agent-20261030-2111-h9k3 | codex/039-journey-home / 56420f4 | [交接](039-journey-home/agents/agent-20261030-2111-h9k3/HANDOFF.md) | 本地代码候选已提交；Python122/Node274通过；浏览器实看与两路线实玩待验 |
+| 038-ten-map-scenes | 十张仙侠地图独立场景与路线引导 | 待验收 | agent-20261030-2105-m4c8 | work/038-ten-map-scenes / 25b1b01 | [交接](038-ten-map-scenes/agents/agent-20261030-2105-m4c8/HANDOFF.md) | 本地候选已提交；Python115/Node271/50 PNG通过；十图画面与两路线实玩待验 |
 | 037-map-monster-art | 五境地图与怪物 PNG 美术升级 | 待验收 | agent-20261030-1953-b6e1 | work/037-map-monster-art / cad682e | [交接](037-map-monster-art/agents/agent-20261030-1953-b6e1/HANDOFF.md) | 本地候选已提交；115 Python/270 Node/40 PNG通过；其余四境整关与实体设备待验，未推送 |
 | 036-character-map-v2 | 角色行为/碰撞/格挡资源与五境分段地图v2 | 待验收 | agent-20261022-2025-r036 | work/036-d02-character-map-v2 / 27b7301 | [交接](036-character-map-v2/agents/agent-20261022-2025-r036/HANDOFF.md) | 114 Python/253 Node/15JS通过；本地候选；火境支路/剑碑实测；完整浏览器胜利/设备/平衡待验收 |
 | 035-d06-playable-review | 集成003–034候选上传与审核入口 | 待验收 | agent-20261022-1339-p8a1 | work/035-d06-playable-review / 1494d07 | [交接](035-d06-playable-review/agents/agent-20261022-1339-p8a1/HANDOFF.md) | [PR #6](https://github.com/DaZhou-ECHO/daoblade-fivefold-path/pull/6)已开放，目标develop；已请求DaZhou-ECHO审核；110/186通过，未合并 |

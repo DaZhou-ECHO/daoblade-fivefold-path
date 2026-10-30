@@ -2,18 +2,18 @@
 
 ## 身份与任务
 - 任务ID / AgentID：038-ten-map-scenes / agent-20261030-2105-m4c8。
-- 更新时间与时区：2026-10-30 21:08 Asia/Shanghai。
+- 更新时间与时区：2026-10-30 21:32 Asia/Shanghai。
 - 接手来源：[前任 038 交接](../agent-20261030-1953-b6e1/HANDOFF.md)。
 - 当前目标与验收条件：十张独立场景、路线提示与预览；自动检查、浏览器逐图检视及两路线实玩。
 - 状态：待验收。
 
 ## 当前代码现场
 - 仓库位置：D:/acode/xju_code/daoblade-fivefold-path。
-- 分支与代码基线提交：work/038-ten-map-scenes / cad682e；本 Agent 接手后仍未提交。
-- 远端核对时间及结果：本 Agent 核对 origin URL；未 fetch，远端最新状态未核实。
+- 分支与代码基线提交：work/038-ten-map-scenes / 25b1b01（038 本地候选）；当前工作目录已切到后续 039 分支。
+- 远端核对时间及结果：2026-10-30 21:10 Asia/Shanghai fetch 成功；origin/develop 为 27b7301。038 候选未推送。
 - PR链接及已核实状态：无。
-- 未提交文件：前任 038 的场景、源码、测试、预览与文档候选；本 Agent 改 `tests/test_world_art.py`、`docs/art/world-v1/README.md` 及自己的 DEVLOG/HANDOFF；统一索引待更新。均属 038；未发现需清理的未知文件。
-- 正在运行的服务或长任务：隔离 Flask 127.0.0.1:5078，命令 `.venv/Scripts/python.exe -m flask --app app run --host 127.0.0.1 --port 5078 --no-reload`，数据库 `work/visual-038.sqlite3`；结束时停止。
+- 未提交文件：038 代码和资源均已在 25b1b01 保存；本交接的事实更新随 039 文档提交。当前 039 未提交文件归 039。
+- 正在运行的服务或长任务：无；隔离 Flask 5078 已停止。
 
 ## 已完成与未完成
 - 已完成：沿用前任五张回廊源图、十张运行时 PNG、十图清单与回退、选择提示、预览代码；修正 Python 资源计数断言并补加工复现说明。
@@ -26,7 +26,7 @@
 - 旧文档冲突及本任务采用的依据：037 README 原称回廊只偏移色罩，现以 038 十图 manifest 和源图为准。
 
 ## 验证与证据
-- 实际命令、结果和适用代码状态：`tools/check-project.ps1` 在修正后 Python 115/115、Node 271/271、JS 语法均通过；文档检查当时因本 Agent HANDOFF 缺失中断，待复跑。`git diff --check` 无空白错误。
+- 实际命令、结果和适用代码状态：038 代码的 `tools/check-project.ps1` 中 Python 115/115、Node 271/271、JS 语法通过；补 HANDOFF 后 `tools/check_agent_docs.py` 与 `tools/check_world_art.py`（50 PNG）通过；`git diff --check` 无空白错误。
 - 人工检查及证据链接：直接查看 `static/sprites/world-v1/wood-hollow-far.png`，可辨古木与透光廊窗；不等于游戏内验收。
 - 尚未验证或因环境无法验证的内容：浏览器十图、两路线实玩。自动审批拒绝读取含个人页面的 Edge；独立应用内浏览器连接本地 5078 超时。
 
