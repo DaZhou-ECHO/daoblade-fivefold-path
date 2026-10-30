@@ -1898,7 +1898,7 @@ class BattleGame {
   }
 
   drawBackground(ctx, camera) {
-    if(this.sceneArt?.background(ctx,this.realmKey,camera,this.width,this.height,this.elapsed,this.level.id))return;
+    if(this.sceneArt?.background(ctx,this.realmKey,camera,this.width,this.height,this.elapsed,this.level.id,this.level.world.width))return;
     ctx.fillStyle = "rgba(5,10,18,.36)";
     for (let i = -1; i < 8; i++) { const x = i * 310 - (camera * .18 % 310); ctx.beginPath(); ctx.moveTo(x, 420); ctx.lineTo(x + 130, 190 - (i % 2) * 55); ctx.lineTo(x + 285, 420); ctx.fill(); }
     ctx.save();

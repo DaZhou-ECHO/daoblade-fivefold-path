@@ -8,7 +8,18 @@
     heavy_windup:"重击前摇",heavy_strike:"重击",heavy_recover:"重击收招"};
   let paused=false,time=0,last=0,manualFrame=0;
   const ready=await assets.load();
-  $("art-status").textContent=ready ? "本地资源 "+assets.images.size+"/40 · 异常 "+assets.failed.size : "资源清单加载失败：游戏将使用 Canvas 后备模型。";
+  const baseSources=new Set(Object.values(assets.manifest?.realms||{}).flatMap(s=>[s.far,s.mid]));
+  const expected=40+[...new Set(Object.values(assets.manifest?.maps||{}).flatMap(s=>[s.far,s.mid]))].filter(src=>!baseSources.has(src)).length;
+  $("art-status").textContent=ready ? "本地资源 "+assets.images.size+"/"+expected+" · 异常 "+assets.failed.size : "资源清单加载失败：游戏将使用 Canvas 后备模型。";
+  const sceneNames={fire:["赤霞炉台","炉后石廊"],wood:["云杉根桥","古木洞府"],earth:["叠岩山门","地脉遗院"],metal:["云上剑冢","矿脉剑廊"],water:["寒潭天桥","水下石廊"]};
+  for(const [realm,names] of Object.entries(sceneNames))for(const [index,route] of ["ridge","hollow"].entries()){
+    const spec=assets.manifest?.maps?.[realm+":"+route],card=document.createElement("article"),title=document.createElement("h3"),note=document.createElement("p"),sample=document.createElement("canvas");
+    card.className="map-card";title.textContent=names[index];note.textContent=realm+" · "+route;sample.width=768;sample.height=240;
+    const view=sample.getContext("2d"),far=spec&&assets.get(spec.far),mid=spec&&assets.get(spec.mid);
+    if(far&&mid){view.imageSmoothingEnabled=false;view.drawImage(far,0,0);view.drawImage(mid,0,144);}
+    else{note.textContent+=" · 资源缺失，游戏将回退至五行场景";}
+    card.append(title,note,sample);$("map-grid").append(card);
+  }
   const family=()=>assets.manifest?.families[$("realm").value+"-"+$("family").value];
   function refresh() {
     const old=$("action").value;
@@ -30,7 +41,7 @@
     const frame=paused?manualFrame:Math.floor(time*(animation?.fps||7))%(animation?.count||1);
     $("frame").value=frame;
     ctx.fillStyle={fire:"#281720",wood:"#102a24",earth:"#2e2922",metal:"#1d2938",water:"#112c46"}[realm];ctx.fillRect(0,0,960,540);
-    scene.background(ctx,realm,time*12,960,540,time,$("layout").value);
+    scene.background(ctx,realm,Number($("map-camera").value),960,540,time,`journey-v1:${realm}:${$("layout").value}:v2`);
     if($("light").value!=="0"){ctx.fillStyle=$("light").value==="1"?"rgba(227,215,188,.15)":"rgba(0,0,8,.3)";ctx.fillRect(0,0,960,540);}
     scene.platform(ctx,realm,{x:0,y:470,w:960,h:70,collision:"floor"});
     scene.platform(ctx,realm,{x:24,y:280,w:128,h:32,collision:"oneway"});

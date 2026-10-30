@@ -53,6 +53,9 @@ test('033 下一步按真实首通与进行中状态推荐，选择不自动开�
   const h=harness();await h.api.load();
   assert.match(h.node('journey-goal').textContent,/五境首通0\/5.*筑基心劫/);
   h.node('journey-next').onclick();assert.equal(h.node('journey-realm').value,'fire');assert.equal(h.node('journey-map').value,'ridge');assert.equal(h.calls.length,0);
+  assert.match(h.node('journey-map-description').textContent,/赤霞炉台/);
+  h.node('journey-map').value='hollow';h.node('journey-map').onchange();
+  assert.match(h.node('journey-map-description').textContent,/炉后石廊.*折返/);
   h.state.progress.spirit=0;h.state.progress.clears.fire=1;await h.api.load();
   assert.match(h.node('journey-goal').textContent,/挑战木境/);h.node('journey-next').onclick();assert.equal(h.node('journey-realm').value,'wood');
   await h.node('journey-start').onclick();assert.ok(h.node('journey-next').disabled);assert.match(h.node('journey-goal').textContent,/恢复当前挑战/);

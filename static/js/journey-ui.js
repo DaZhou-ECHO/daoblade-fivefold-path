@@ -7,6 +7,22 @@
   let data=null,config=null,csrf="",owner=null,selected="li",busy=false,blocked=false,epoch=0;
   const palace=p=>config.palaces.find(x=>x.id===p);
   const realmNames={fire:'火',wood:'木',earth:'土',metal:'金',water:'水'};
+  const mapScenes={
+    fire:{ridge:["赤霞炉台","沿山脊登炉台，远望丹阙"],hollow:["炉后石廊","循壁炉光进入石廊，右侧登台后折返"]},
+    wood:{ridge:["云杉根桥","穿过树冠根桥，远望山中仙门"],hollow:["古木洞府","沿盘根与透光廊窗，右侧登台后折返"]},
+    earth:{ridge:["叠岩山门","拾级登山，通向镇岳殿"],hollow:["地脉遗院","穿过断墙石窟，右侧登台后折返"]},
+    metal:{ridge:["云上剑冢","循断剑林登向主峰"],hollow:["矿脉剑廊","穿过铸剑遗迹，右侧登台后折返"]},
+    water:{ridge:["寒潭天桥","沿临水栈桥前往楼阁"],hollow:["水下石廊","循冰窗与暗流，右侧登台后折返"]},
+  };
+  function describeMap(){
+    const realm=$("journey-realm").value,route=$("journey-map").value;
+    const scene=mapScenes[realm]?.[route];
+    $("journey-map-description").textContent=scene?`${realmNames[realm]}境 · ${scene[0]}：${scene[1]}。` : "";
+    for(const key of ["ridge","hollow"]){
+      const option=$("journey-map").querySelector?.(`option[value="${key}"]`);
+      if(option)option.textContent=(mapScenes[realm]?.[key]?.[0]||key)+(key==="ridge"?" · 高径":" · 回廊");
+    }
+  }
   function recommendation(){return config.realms.find(r=>!data.state.progress.clears[r])||config.realms.reduce((a,b)=>data.state.progress.clears[a]<=data.state.progress.clears[b]?a:b);}
   function mindDescription(id,level=1){
     return ({qian:`基础攻击+${1+level}`,dui:`回气+${.5+.5*level}/秒`,xun:`速度+${8+4*level}`,li:`技能直击+${1+level}`,kan:`技能冷却×${(.95-.05*level).toFixed(2)}`,gen:`防御+${1+level}`,kun:`生命+${10+5*level}`,zhen:`基础劈砍击退${6+4*level}，首领${1+level}`})[id];
@@ -48,9 +64,10 @@
     document.querySelectorAll('#journey-nodes select, #journey-loadout select').forEach(control=>control.disabled=busy||blocked||!!active);
     for(const id of ['journey-realm','journey-map'])$(id).disabled=busy||!!active;
     if(active){$("journey-realm").value=active.realm_id;$("journey-map").value=active.map_id;}
+    describeMap();
 
   }
-  function reset(){epoch++;data=null;draft=null;config=null;owner=null;csrf='';busy=false;blocked=false;selected='li';for(const id of ['journey-equip','journey-clear','journey-save','journey-start','journey-break','journey-resume','journey-abandon','journey-discard','journey-reload'])$(id).disabled=true;$("journey-error").textContent='';$("journey-route").textContent='';$("journey-status").textContent='账号已变化，请重新进入读取';$("journey-next").disabled=true;for(const id of ['journey-palaces','journey-nodes','journey-loadout','journey-compiled','journey-owned','journey-goal','journey-draft'])$(id).textContent='';}
+  function reset(){epoch++;data=null;draft=null;config=null;owner=null;csrf='';busy=false;blocked=false;selected='li';for(const id of ['journey-equip','journey-clear','journey-save','journey-start','journey-break','journey-resume','journey-abandon','journey-discard','journey-reload'])$(id).disabled=true;$("journey-error").textContent='';$("journey-route").textContent='';$("journey-map-description").textContent='';$("journey-status").textContent='账号已变化，请重新进入读取';$("journey-next").disabled=true;for(const id of ['journey-palaces','journey-nodes','journey-loadout','journey-compiled','journey-owned','journey-goal','journey-draft'])$(id).textContent='';}
   async function load(){
     if(busy)return;if(dirty()){$("journey-error").textContent="未保存草稿已保留，请先保存全部改动，或放弃草稿后再重读服务存档";render();return;}const generation=epoch;busy=true;render();
     try{
@@ -78,7 +95,8 @@
   async function abandonTrial(){if(data?.state.active_trial)await action('abandon',{trial_id:data.state.active_trial.id});}
   async function restartTrial(expected,previous={}){const t=data?.state.active_trial;if(t&&t.id!==expected)throw Error('已有另一试炼，先核对');const breakthrough=!!(t?.breakthrough??previous.breakthrough);const realm=t?.realm_id??previous.realm_id,map=t?.map_id??previous.map_id;await abandonTrial();if(realm){$("journey-realm").value=realm;$("journey-map").value=map;}await startTrial(breakthrough);}
   const run=fn=>()=>{const generation=epoch;return Promise.resolve().then(fn).catch(e=>{if(generation===epoch)$("journey-error").textContent=e.message;});};
-  $("journey-next").onclick=()=>{if(!data||busy||blocked||data.state.active_trial)return;$("journey-realm").value=recommendation();$("journey-map").value='ridge';};
+  $("journey-realm").onchange=describeMap;$("journey-map").onchange=describeMap;
+  $("journey-next").onclick=()=>{if(!data||busy||blocked||data.state.active_trial)return;$("journey-realm").value=recommendation();$("journey-map").value='ridge';describeMap();};
   const saveDraft=run(()=>action('build',buildOf(draft)));
   $("journey-equip").onclick=saveDraft;$("journey-save").onclick=saveDraft;
   $("journey-clear").onclick=()=>{if(!data||busy||blocked||data.state.active_trial)return;draft={nodes:Object.fromEntries(Object.keys(data.state.nodes).map(k=>[k,null])),loadout:{active:[null,null],passive:[null,null]}};render();};

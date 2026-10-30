@@ -8,7 +8,8 @@ function mockImage(bad=null){
  const sizes={};
  for(const f of Object.values(data.families))sizes[f.src]=[f.frameSize[0]*4,f.frameSize[1]*(Math.max(...Object.values(f.animations).map(a=>a.row))+1)];
  for(const s of Object.values(data.realms)){sizes[s.far]=[768,144];sizes[s.mid]=[768,96];sizes[s.tiles]=[128,32];sizes[s.props]=[256,96];}
- return class{set src(src){this.naturalWidth=sizes[src][0];this.naturalHeight=sizes[src][1];queueMicrotask(()=>src===bad?this.onerror():this.onload());}};
+ for(const s of Object.values(data.maps||{})){sizes[s.far]=[768,144];sizes[s.mid]=[768,96];}
+ return class{set src(src){this._src=src;this.naturalWidth=sizes[src][0];this.naturalHeight=sizes[src][1];queueMicrotask(()=>src===bad?this.onerror():this.onload());}};
 }
 async function assets(bad=null){const a=new Assets();await a.load(async()=>({ok:true,json:async()=>data}),mockImage(bad));return a;}
 function ctx(fail=false){return {depth:0,images:[],moves:[],scales:[],save(){this.depth++;},restore(){this.depth--;},translate(x,y){this.moves.push([x,y]);},scale(x,y){this.scales.push([x,y]);},drawImage(...v){if(fail)throw Error("draw");this.images.push(v);},fillRect(){},strokeRect(){},beginPath(){},rect(){},clip(){}};}
@@ -19,11 +20,13 @@ test("037 strict local manifest rejects traversal, invalid frame and anchor",()=
   d=>d.families["fire-guard"].src="/static/sprites/world-v1/../bad.png",
   d=>d.families["fire-guard"].foot=[-1,90],
   d=>d.families["fire-guard"].animations.strike.count=999,
-  d=>delete d.realms.water]){const d=structuredClone(data);edit(d);assert.equal(validManifest(d),false);}
+  d=>delete d.realms.water,
+  d=>delete d.maps['water:hollow'],
+  d=>d.maps['fire:hollow'].far='/static/sprites/world-v1/../bad.png']){const d=structuredClone(data);edit(d);assert.equal(validManifest(d),false);}
 });
 test("037 resources load once, partial failure remains isolated and is never retried",async()=>{
  const bad=data.families["fire-guard"].src,a=await assets(bad);
- assert.equal(a.status,"ready");assert.equal(a.images.size,39);assert.equal(a.get(bad),null);
+ assert.equal(a.status,"ready");assert.equal(a.images.size,49);assert.equal(a.get(bad),null);
  await a.load(()=>{throw Error("must not refetch");});assert.equal(a.failed.size,1);
 });
 test("037 malformed or missing manifest safely returns false",async()=>{
@@ -35,7 +38,7 @@ test("037 wrong PNG dimensions are rejected without breaking other resources",as
  const Mock=mockImage(),a=new Assets();
  class Wrong extends Mock{set src(s){super.src=s;this.naturalWidth=0;}}
  await a.load(async()=>({ok:true,json:async()=>data}),Wrong);
- assert.equal(a.images.size,0);assert.equal(a.failed.size,40);
+ assert.equal(a.images.size,0);assert.equal(a.failed.size,50);
 });
 test("037 state snapshot is immutable, reads real timer and locks attacking facing",()=>{
  const e=Object.freeze(enemy({attackState:"windup",attackTimer:.15}));
@@ -72,6 +75,20 @@ test("037 scene missing resources falls back; clipping and integer parallax are 
  assert.ok(c.images.every(v=>v[1]===32));
  assert.ok(r.background(c,"fire",13.4,960,540,2,"hollow"));
  assert.equal(p.x,60);assert.equal(c.depth,0);
+});
+test("038 ten maps select their own far/mid scenes and a missing pair falls back to the realm",async()=>{
+ const a=await assets(),r=new Scene(a);
+ for(const [key,s] of Object.entries(data.maps)){
+  const [realm,route]=key.split(':'),c=ctx();
+  assert.ok(r.background(c,realm,1600,960,540,2,`journey-v1:${realm}:${route}:v2`));
+  assert.equal(c.images[0][0]._src,s.far,key);
+  assert.equal(c.images[1][0]._src,s.mid,key);
+ }
+ const missing=data.maps['fire:hollow'].far,b=await assets(missing),c=ctx();
+ assert.ok(new Scene(b).background(c,'fire',1600,960,540,2,'journey-v1:fire:hollow:v2'));
+ assert.equal(c.images[0][0]._src,data.realms.fire.far);
+ const legacy=ctx();assert.ok(r.background(legacy,'fire',0,960,540,0,'legacy-v1:fire'));
+ assert.equal(legacy.images[0][0]._src,data.realms.fire.far);
 });
 test("037 all visual families and attack styles select distinct animation routes",()=>{
  assert.equal(family(enemy()),"guard");assert.equal(family(enemy({variant:"crusher"})),"special");

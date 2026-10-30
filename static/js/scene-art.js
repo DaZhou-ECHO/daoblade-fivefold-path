@@ -4,26 +4,44 @@
   class Renderer {
     constructor(assets=assetAPI?.shared || null) { this.assets=assets; }
     theme(realm) { return this.assets?.status==="ready" ? this.assets.manifest.realms[realm] : null; }
-    background(ctx,realm,camera,width,height,elapsed=0,mapId="") {
-      const t=this.theme(realm), image=t&&this.assets.get(t.far), mid=t&&this.assets.get(t.mid);
+    routeScene(realm,mapId) {
+      if(this.assets?.status!=="ready")return null;
+      const id=String(mapId),match=id.match(/^journey-v1:[a-z]+:(ridge|hollow)(?::v2)?$/);
+      const route=match?.[1]||(["ridge","hollow"].includes(id)?id:null);
+      return route?this.assets.manifest.maps?.[realm+":"+route]||null:null;
+    }
+    background(ctx,realm,camera,width,height,elapsed=0,mapId="",worldWidth=3200) {
+      const fallback=this.theme(realm),mapped=this.routeScene(realm,mapId);
+      const selected=mapped&&this.assets.get(mapped.far)&&this.assets.get(mapped.mid)?mapped:fallback;
+      if(!selected)return false;
+      if(this.drawBackground(ctx,selected,realm,camera,width,height,elapsed,Boolean(mapped&&selected===mapped),worldWidth))return true;
+      return selected!==fallback&&fallback
+        ?this.drawBackground(ctx,fallback,realm,camera,width,height,elapsed,false,worldWidth):false;
+    }
+    drawBackground(ctx,t,realm,camera,width,height,elapsed,journey,worldWidth) {
+      const image=this.assets.get(t.far),mid=this.assets.get(t.mid);
       if(!image||!mid)return false;
       ctx.save();
       try {
         ctx.imageSmoothingEnabled=false;
-        const variant=String(mapId).includes("hollow")?260:0;
-        // 两张缓存位图以不同视差移动；渐暗后不会与平台/预警争夺对比。
-        for(let i=-1;i<3;i++) {
-          const x=Math.round(i*1536-((camera*.12+variant)%1536));
-          ctx.globalAlpha=.62;ctx.drawImage(image,x,140,1536,288);
+        if(journey){
+          // 全图横向展开：入口先见远处目标，接近首领时建筑在视野中放大。
+          ctx.globalAlpha=.62;ctx.drawImage(image,Math.round(-camera*.78),140,worldWidth,288);
+          ctx.globalAlpha=.27;ctx.drawImage(mid,Math.round(-camera),298,worldWidth,192);
+        }else{
+          // 旧局保持原五境重复视差，以兼容既有地图视觉。
+          for(let i=-1;i<3;i++) {
+            const x=Math.round(i*1536-((camera*.12)%1536));
+            ctx.globalAlpha=.62;ctx.drawImage(image,x,140,1536,288);
+          }
+          for(let i=-1;i<3;i++) {
+            const x=Math.round(i*1536-((camera*.28)%1536));
+            ctx.globalAlpha=.27;ctx.drawImage(mid,x,298,1536,192);
+          }
         }
-        for(let i=-1;i<3;i++) {
-          const x=Math.round(i*1536-((camera*.28+variant*2)%1536));
-          ctx.globalAlpha=.27;ctx.drawImage(mid,x,298,1536,192);
-        }
-        if(variant){ctx.globalAlpha=.12;ctx.fillStyle="#0b1934";ctx.fillRect(0,140,width,height-140);}
         ctx.globalAlpha=.42;ctx.fillStyle="#101622";ctx.fillRect(0,400,width,height-400);
         // 有界、确定性的环境点缀：不消耗游戏随机数，不使用墙钟。
-        ctx.globalAlpha=.35;ctx.fillStyle=t.accent;
+        ctx.globalAlpha=.35;ctx.fillStyle=t.accent||this.theme(realm)?.accent||"#c7c7c7";
         for(let i=0;i<14;i++) {
           const x=Math.round(((i*137-camera*.35+elapsed*(realm==="water"?-9:6))%(width+30)+width+30)%(width+30));
           const y=Math.round(180+(i*41)%220+Math.sin(elapsed*.7+i)*8);

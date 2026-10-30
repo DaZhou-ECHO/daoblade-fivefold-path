@@ -8,8 +8,9 @@ p{color:#b9c6d2;line-height:1.7}a{color:#e8c68b}.controls{display:flex;flex-wrap
 select{background:#1b293b;color:#eee1c6;padding:9px;border:1px solid #5e7187}
 canvas{width:100%;height:auto;image-rendering:pixelated;border:2px solid #60748a;background:#101722}
 #art-status{font:13px monospace;color:#a2dbbf}button{touch-action:manipulation}
+.map-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,430px),1fr));gap:16px;margin:20px 0}.map-card{padding:12px;background:#172130;border:1px solid #44566d}.map-card h3{margin:0 0 4px}.map-card p{margin:0 0 8px;font-size:13px}.map-card canvas{border:0}
 </style></head><body><main>
-<p class="eyebrow">DAOBLADE / WORLD ART · 037</p><h1>五境山河 · 妖傀有形</h1>
+<p class="eyebrow">DAOBLADE / WORLD ART · 038</p><h1>十图山河 · 妖傀有形</h1>
 <p>左侧为战斗尺寸，右侧为三倍检视。粉色为脚底锚点，青色为真实身体框；武器与背饰不扩大判定。原画由 AI 辅助生成，经像素整理和分层动作加工。</p>
 <div class="controls">
 <label>秘境 <select id="realm"><option value="fire">火 · 炉庭</option><option value="wood">木 · 古林</option><option value="earth">土 · 山门</option><option value="metal">金 · 剑冢</option><option value="water">水 · 寒潭</option></select></label>
@@ -17,6 +18,7 @@ canvas{width:100%;height:auto;image-rendering:pixelated;border:2px solid #60748a
 <label>动作 <select id="action"></select></label>
 <label>朝向 <select id="face"><option value="1">向右</option><option value="-1">向左</option></select></label>
 <label>地图 <select id="layout"><option value="ridge">高径</option><option value="hollow">回廊</option></select></label>
+<label>地图取景 <input id="map-camera" type="range" min="0" max="2240" step="160" value="0"></label>
 <label>明暗 <select id="light"><option value="0">默认</option><option value="1">明亮</option><option value="-1">暗区</option></select></label>
 <button id="pause" class="pixel-button">暂停</button><button id="step" class="pixel-button">逐帧</button>
 <label><input type="checkbox" id="boxes" checked>锚点 / 碰撞框</label>
@@ -25,6 +27,9 @@ canvas{width:100%;height:auto;image-rendering:pixelated;border:2px solid #60748a
 <p id="art-status" role="status">正在加载本地资源…</p>
 <canvas id="preview" width="960" height="540" aria-label="五境怪物和地图素材动画预览"></canvas>
 <p id="caption"></p>
+<h2>十图远近景对照</h2>
+<p>每境左为开阔高径，右为收束回廊；上半远景、下半中景均为游戏实际加载资源。上方地图取景条可检查入口、剑碑和首领段的游戏画面。</p>
+<div id="map-grid" class="map-grid" aria-label="十张地图场景对照"></div>
 <p><a href="/">返回游戏</a> · <a href="/static/character-preview.html">主角预览</a> · 所有图像均来自本地；这里不写入游戏存档。暂停后可检查每一帧，改变朝向不会移动锚点。关闭叠加后可检查真实剪影。</p>
 </main>
 <script src="/static/js/world-art-assets.js"></script><script src="/static/js/enemy-art.js"></script><script src="/static/js/scene-art.js"></script><script src="/static/js/world-art-preview.js"></script>

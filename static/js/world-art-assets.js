@@ -11,6 +11,11 @@
   function validManifest(m) {
     if (!m || m.schemaVersion !== 1 || !m.families || !m.realms
         || Object.keys(m.families).length !== 20 || Object.keys(m.realms).length !== 5) return false;
+    if (m.maps && (Object.keys(m.maps).length !== 10 || !realms.every(r =>
+      ["ridge","hollow"].every(route => {
+        const scene=m.maps[r+":"+route];
+        return scene && local(scene.far) && local(scene.mid);
+      })))) return false;
     return realms.every(r => {
       const scene = m.realms[r];
       if (!scene || !["far","mid","tiles","props"].every(k => local(scene[k]))
@@ -57,6 +62,9 @@
         for (const s of Object.values(manifest.realms)) {
           specs.set(s.far, [768,144]); specs.set(s.mid,[768,96]);
           specs.set(s.tiles,[128,32]); specs.set(s.props,[256,96]);
+        }
+        for (const s of Object.values(manifest.maps||{})) {
+          specs.set(s.far,[768,144]); specs.set(s.mid,[768,96]);
         }
         await Promise.all([...specs].map(([src,size]) => new Promise(resolve => {
           const img = new ImageType();

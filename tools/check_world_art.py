@@ -11,6 +11,7 @@ def check_art():
     assert manifest["schemaVersion"] == 1
     assert len(manifest["families"]) == 20
     assert len(manifest["realms"]) == 5
+    assert len(manifest["maps"]) == 10
     expected_counts = {"idle": 2, "walk": 4, "windup": 2, "strike": 3,
                        "recover": 2, "hurt": 1, "death": 4}
     checked = []
@@ -48,9 +49,28 @@ def check_art():
                 assert image.size == size, (key, kind)
                 assert image.getbbox(), (key, kind)
             checked.append(path)
+    scene_pairs = set()
+    for realm in ("fire", "wood", "earth", "metal", "water"):
+        for route in ("ridge", "hollow"):
+            key = f"{realm}:{route}"
+            scene = manifest["maps"][key]
+            pair = (scene["far"], scene["mid"])
+            assert pair not in scene_pairs, key
+            scene_pairs.add(pair)
+            for layer, size in (("far", (768, 144)), ("mid", (768, 96))):
+                path = ROOT / scene[layer].lstrip("/")
+                with Image.open(path) as image:
+                    assert image.format == "PNG" and image.mode == "RGBA", (key, layer)
+                    assert image.size == size and image.getbbox(), (key, layer)
+                if path not in checked:
+                    checked.append(path)
+        for layer in ("far", "mid"):
+            ridge = ROOT / manifest["maps"][f"{realm}:ridge"][layer].lstrip("/")
+            hollow = ROOT / manifest["maps"][f"{realm}:hollow"][layer].lstrip("/")
+            assert ridge.read_bytes() != hollow.read_bytes(), (realm, layer)
     return checked
 
 
 if __name__ == "__main__":
     files = check_art()
-    print(f"PASS: {len(files)} PNGs; 20 families, 16 animations per family; dimensions/alpha/palette/frames/paths/anchors.")
+    print(f"PASS: {len(files)} PNGs; 10 scene pairs, 20 families, 16 animations per family; dimensions/alpha/palette/frames/paths/anchors.")

@@ -1938,5 +1938,47 @@
         }
       }
     }
+  },
+  "maps": {
+    "fire:ridge": {
+      "far": "/static/sprites/world-v1/fire-far.png",
+      "mid": "/static/sprites/world-v1/fire-mid.png"
+    },
+    "fire:hollow": {
+      "far": "/static/sprites/world-v1/fire-hollow-far.png",
+      "mid": "/static/sprites/world-v1/fire-hollow-mid.png"
+    },
+    "wood:ridge": {
+      "far": "/static/sprites/world-v1/wood-far.png",
+      "mid": "/static/sprites/world-v1/wood-mid.png"
+    },
+    "wood:hollow": {
+      "far": "/static/sprites/world-v1/wood-hollow-far.png",
+      "mid": "/static/sprites/world-v1/wood-hollow-mid.png"
+    },
+    "earth:ridge": {
+      "far": "/static/sprites/world-v1/earth-far.png",
+      "mid": "/static/sprites/world-v1/earth-mid.png"
+    },
+    "earth:hollow": {
+      "far": "/static/sprites/world-v1/earth-hollow-far.png",
+      "mid": "/static/sprites/world-v1/earth-hollow-mid.png"
+    },
+    "metal:ridge": {
+      "far": "/static/sprites/world-v1/metal-far.png",
+      "mid": "/static/sprites/world-v1/metal-mid.png"
+    },
+    "metal:hollow": {
+      "far": "/static/sprites/world-v1/metal-hollow-far.png",
+      "mid": "/static/sprites/world-v1/metal-hollow-mid.png"
+    },
+    "water:ridge": {
+      "far": "/static/sprites/world-v1/water-far.png",
+      "mid": "/static/sprites/world-v1/water-mid.png"
+    },
+    "water:hollow": {
+      "far": "/static/sprites/world-v1/water-hollow-far.png",
+      "mid": "/static/sprites/world-v1/water-hollow-mid.png"
+    }
   }
 }

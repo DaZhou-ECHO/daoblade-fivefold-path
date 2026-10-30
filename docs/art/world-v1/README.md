@@ -14,9 +14,10 @@
 ## 文件组织
 
 游戏资源位于 static/sprites/world-v1/：
-- manifest.json：5个场景主题、20个家族的尺寸、动作行、脚底锚点。
+- manifest.json：5个场景主题、10张路线场景、20个家族的尺寸、动作行、脚底锚点。
 - 每境 guard / special / ranged / boss.png：普通近战、特殊近战、远程、首领。
-- 每境 far / mid.png：低对比远景和建筑中景，两种视差；回廊另用建筑偏移和冷色罩层。
+- 每境 far / mid.png：高径低对比远景和建筑中景，两种视差。
+- 每境 hollow-far / hollow-mid.png：回廊独立远景与中景；源图见 sources/routes/。
 - 每境 tiles.png：32像素地形模块；第0列实体台面，第1列单向平台及支撑，第2列实体填充。第3列为预留材质变化。
 - 每境 props.png：依次为剑碑、祭坛、捷径机关、出口。颜色和外形标志统一，不改变交互位置。
 
@@ -39,11 +40,14 @@
 ```powershell
 .venv\Scripts\python.exe -m pip install -r requirements-art.txt
 .venv\Scripts\python.exe tools/build_world_art.py --enemy-source docs/art/world-v1/sources/enemy-concepts.png --scene-source docs/art/world-v1/sources/scene-concepts.png
+.venv\Scripts\python.exe tools/build_route_scenes.py
 .venv\Scripts\python.exe tools/check_world_art.py
 ```
 
 该命令仅加工已保存原画，不发起AI调用。处理顺序：按等分单元裁切→透明阈值清理→最近邻缩小→脚部锚定→躯干/持械外臂分层→姿态变换→孤立像素清理→全家族限色→PNG导出。原画不被覆盖。
 素材版本目录world-v1是美术资源版本，**不是地图或存档版本**。
+
+038 回廊图使用五张仓库内源图，经 `build_route_scenes.py` 按游戏画幅裁切、缩放和限色为 768×144 远景及 768×96 中景。十张地图由 manifest 的 `maps` 键选择；源图再次调用生成工具不保证一致。038 的原始生成提示词未留在当前仓库或交接，不能准确复述；可复现的加工输入是已保存的五张源图。此次没有移动任何碰撞或关卡锚点。
 
 ## 检视与限制
 

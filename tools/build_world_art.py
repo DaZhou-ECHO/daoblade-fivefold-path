@@ -285,9 +285,11 @@ def main():
         manifest["realms"][realm] = scene_assets(scene, row, out)
         for col, kind in enumerate(["guard", "special", "ranged", "boss"]):
             manifest["families"][realm+"-"+kind] = enemy_frames(concept, row, col, out)
+    from build_route_scenes import build_routes
+    manifest["maps"] = build_routes(out)
     (out / "manifest.json").write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2)+"\n", encoding="utf-8")
-    print("Built 20 enemy atlases, 20 scene/terrain/prop PNGs and manifest.")
+    print("Built 20 enemy atlases, 30 scene/terrain/prop PNGs and manifest.")
 
 
 if __name__ == "__main__":
