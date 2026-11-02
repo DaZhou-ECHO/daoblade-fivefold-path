@@ -4,6 +4,7 @@
 
 | 任务ID | 任务目标 | 状态 | 当前接续Agent | 分支/基线 | 最新交接链接 | 依赖或阻塞 |
 |---|---|---|---|---|---|---|
+| 041-village-scene | 新手村主场景与 NPC 窗口交互 | 待验收 | agent-20261102-2226-v1a | codex/041-village-scene / e476707 | [交接](041-village-scene/agents/agent-20261102-2226-v1a/HANDOFF.md) | Python129/Node277/50 PNG；Chrome桌面窄屏、窗口、进图回村与师门一级验证；完整实玩及真实触控待验 |
 | 040-novice-village | 可行走新手村、师门与外观商店、单一正式存档 | 待验收 | agent-20261102-1259-n4v1 | codex/040-novice-village / 9d96201 | [交接](040-novice-village/agents/agent-20261102-1259-n4v1/HANDOFF.md) | Python129/Node277/50 PNG通过；真实浏览器十图与两路线实玩待验 |
 | 039-journey-home | 十境山河图、统一修行首页与旧档迁入 | 待验收 | agent-20261030-2111-h9k3 | codex/039-journey-home / 56420f4 | [交接](039-journey-home/agents/agent-20261030-2111-h9k3/HANDOFF.md) | 本地代码候选已提交；Python122/Node274通过；浏览器实看与两路线实玩待验 |
 | 038-ten-map-scenes | 十张仙侠地图独立场景与路线引导 | 待验收 | agent-20261030-2105-m4c8 | work/038-ten-map-scenes / 25b1b01 | [交接](038-ten-map-scenes/agents/agent-20261030-2105-m4c8/HANDOFF.md) | 本地候选已提交；Python115/Node271/50 PNG通过；十图画面与两路线实玩待验 |
