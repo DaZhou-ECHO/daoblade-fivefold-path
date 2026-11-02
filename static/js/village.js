@@ -8,7 +8,7 @@
   const dialogue=document.getElementById("village-dialogue");
   const targets=[
     {x:173,panel:"atlas",label:"山河图传送台",speaker:"山河图",line:"五境皆可前往。想从哪条路开始？",choices:[["查看十境","atlas"]]},
-    {x:480,panel:"journey",label:"师父",speaker:"师父",line:"先稳住剑心，再决定今日的修行。",choices:[["修习师门","journey","training-title"],["调整八宫","journey","journey-palaces"]]},
+    {x:480,panel:"journey",label:"师父",speaker:"师父",line:"先稳住剑心，再决定今日的修行。",choices:[["修习师门","journey"],["调整八宫","journey","journey-palaces"]]},
     {x:780,panel:"shop",label:"剑坊商人",speaker:"商人",line:"本命剑形随心而变，剑锋的分寸仍由你掌握。",choices:[["浏览剑坊","shop"]]}
   ];
   const player={x:250,y:242,w:38,h:70,vx:0,vy:0,face:1,hp:1,onGround:true,animTime:0};
