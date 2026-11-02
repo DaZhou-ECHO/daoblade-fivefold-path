@@ -1,9 +1,16 @@
 "use strict";
 (function(root){
   const canvas=document.getElementById("village-canvas");
+  const stage=document.querySelector(".village-stage");
+  const world=document.getElementById("village-world");
   const ctx=canvas.getContext("2d");
   const prompt=document.getElementById("village-prompt");
-  const targets=[{x:173,panel:"atlas",label:"山河图传送台"},{x:480,panel:"journey",label:"师父"},{x:780,panel:"shop",label:"剑坊商人"}];
+  const dialogue=document.getElementById("village-dialogue");
+  const targets=[
+    {x:173,panel:"atlas",label:"山河图传送台",speaker:"山河图",line:"五境皆可前往。想从哪条路开始？",choices:[["查看十境","atlas"]]},
+    {x:480,panel:"journey",label:"师父",speaker:"师父",line:"先稳住剑心，再决定今日的修行。",choices:[["修习师门","journey","training-title"],["调整八宫","journey","journey-palaces"]]},
+    {x:780,panel:"shop",label:"剑坊商人",speaker:"商人",line:"本命剑形随心而变，剑锋的分寸仍由你掌握。",choices:[["浏览剑坊","shop"]]}
+  ];
   const player={x:250,y:242,w:38,h:70,vx:0,vy:0,face:1,hp:1,onGround:true,animTime:0};
   const pressed=new Set();
   let snapshot=null,last=0,background=null;
@@ -11,15 +18,28 @@
   image.onload=()=>{background=image;};
   image.onerror=()=>{background=null;};
   image.src="/static/sprites/world-v1/wood-far.png";
-  const open=panel=>document.querySelector(`.nav-button[data-panel="${panel}"]`)?.click();
+  const open=(panel,focusId)=>{closeDialogue(false);document.querySelector(`.nav-button[data-panel="${panel}"]`)?.click();if(focusId){const target=document.getElementById(focusId);if(target?.closest?.("details"))target.closest("details").open=true;target?.scrollIntoView?.({block:"start"});}};
+  function closeDialogue(restore=true){dialogue.hidden=true;if(restore)canvas.focus({preventScroll:true});}
+  function converse(target){
+    if(!active())return;
+    pressed.clear();dialogue.hidden=false;
+    document.getElementById("village-speaker").textContent=target.speaker;
+    document.getElementById("village-line").textContent=target.line;
+    const choices=document.getElementById("village-choices");choices.textContent="";
+    for(const [label,panel,focusId] of target.choices){const button=document.createElement("button");button.type="button";button.textContent=label;button.onclick=()=>open(panel,focusId);choices.appendChild(button);}
+    choices.querySelector("button")?.focus?.({preventScroll:true});
+  }
   function bindings(){
     try {const saved=JSON.parse(localStorage.getItem("daoblade-controls")||"null");return {left:saved?.left||"KeyA",right:saved?.right||"KeyD",interact:saved?.interact||"KeyF"};}
     catch(_){return {left:"KeyA",right:"KeyD",interact:"KeyF"};}
   }
-  function active(){return document.getElementById("panel-sanctuary").classList.contains("active")&&!document.querySelector("dialog[open]");}
+  function inVillage(){return document.getElementById("panel-sanctuary").classList.contains("active")&&!document.body?.classList?.contains("village-window-open")&&!document.querySelector("dialog[open]");}
+  function active(){return inVillage()&&dialogue.hidden;}
   function nearest(){return targets.reduce((best,item)=>Math.abs(item.x-player.x)<Math.abs(best.x-player.x)?item:best,targets[0]);}
-  function interact(){if(!active())return;const target=nearest();if(Math.abs(target.x-player.x)<=90)open(target.panel);else prompt.textContent="靠近山河图、师父或商人后交互";}
+  function interact(){if(document.querySelector("dialog[open]"))return;if(!dialogue.hidden){document.getElementById("village-choices").querySelector("button")?.click();return;}if(!active())return;const target=nearest();if(Math.abs(target.x-player.x)<=90)converse(target);else prompt.textContent="靠近山河图、师父或商人后交互";}
   root.addEventListener("keydown",event=>{
+    if(document.querySelector("dialog[open]"))return;
+    if(!dialogue.hidden){if(event.code==="Escape"){event.preventDefault();closeDialogue();}else if(event.code===bindings().interact){event.preventDefault();interact();}return;}
     if(!active()||event.target.closest?.("input,textarea,select,[contenteditable=true]"))return;
     const keys=bindings();
     if(event.code===keys.interact){event.preventDefault();interact();return;}
@@ -27,6 +47,7 @@
   });
   root.addEventListener("keyup",event=>pressed.delete(event.code));
   root.addEventListener("blur",()=>pressed.clear());
+  document.getElementById("village-dialogue-close").onclick=()=>closeDialogue();
   document.querySelectorAll("[data-village-move]").forEach(button=>{
     const name=button.dataset.villageMove;
     const end=event=>{pressed.delete(name);if(button.hasPointerCapture?.(event.pointerId))button.releasePointerCapture(event.pointerId);};
@@ -34,7 +55,13 @@
     for(const type of ["pointerup","pointercancel","lostpointercapture"])button.addEventListener(type,end);
   });
   document.getElementById("village-interact").onclick=interact;
-  document.querySelectorAll("[data-village]").forEach(button=>button.onclick=()=>open(button.dataset.village));
+  document.querySelectorAll("[data-village]").forEach(button=>button.onclick=()=>converse(targets.find(target=>target.panel===button.dataset.village)));
+  function camera(){
+    const width=stage?.clientWidth||960,height=stage?.clientHeight||370;
+    const worldWidth=width>700?width:Math.max(width,height*960/370);
+    if(world){world.style.width=`${worldWidth}px`;world.style.transform=`translateX(${-Math.max(0,Math.min(worldWidth-width,player.x/960*worldWidth-width/2))}px)`;}
+  }
+  root.addEventListener("resize",camera);
   function polygon(points,fill,stroke){ctx.beginPath();ctx.moveTo(...points[0]);for(const point of points.slice(1))ctx.lineTo(...point);ctx.closePath();ctx.fillStyle=fill;ctx.fill();if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.stroke();}}
   function building(x,w,roof,wall,sign){
     ctx.fillStyle="rgba(5,16,23,.32)";ctx.fillRect(x-8,223,w+16,96);
@@ -53,6 +80,17 @@
     ctx.fillStyle="#34584c";ctx.fillRect(0,272,960,98);ctx.fillStyle="#507461";ctx.fillRect(0,292,960,22);
     ctx.fillStyle="#a4a27a";ctx.fillRect(0,309,960,61);ctx.fillStyle="#c9bb86";for(let x=8;x<960;x+=52){ctx.fillRect(x,318+(x%3)*8,30,3);ctx.fillRect(x+19,349,23,2);}
     building(405,152,"#526b56","#69806a","修行");building(703,155,"#6e5e48","#8a7559","剑坊");
+    for(const [x,robe,trim] of [[480,"#e3e6d2","#4e9d91"],[780,"#e9c37f","#725139"]]){
+      ctx.save();ctx.translate(0,Math.sin(t*.002+x)*1.5);
+      ctx.fillStyle="rgba(7,20,23,.5)";ctx.fillRect(x-22,307,44,5);
+      ctx.fillStyle="#1d343b";ctx.fillRect(x-13,232,26,22);
+      ctx.fillStyle="#eccbaa";ctx.fillRect(x-9,239,18,17);
+      polygon([[x-13,255],[x+13,255],[x+19,303],[x-19,303]],robe,"#183034");
+      ctx.fillStyle=trim;ctx.fillRect(x-3,256,6,43);ctx.fillRect(x-19,278,38,5);
+      ctx.fillStyle="#263b3b";ctx.fillRect(x-13,303,9,10);ctx.fillRect(x+4,303,9,10);
+      ctx.fillStyle="#e2c6a3";ctx.fillRect(x-20,261,5,23);ctx.fillRect(x+15,261,5,23);
+      ctx.restore();
+    }
     // 传送台与刻有五行的山河图。
     ctx.fillStyle="#435b5d";ctx.fillRect(111,270,120,43);ctx.fillStyle="#c9b477";ctx.fillRect(124,264,94,8);
     ctx.fillStyle="#254950";ctx.fillRect(139,174,65,92);ctx.strokeStyle="#e8ca83";ctx.lineWidth=5;ctx.strokeRect(139,174,65,92);ctx.fillStyle="#78bfc4";ctx.fillRect(148,184,47,71);
@@ -75,8 +113,8 @@
   function update(data){snapshot=data;}
   function frame(now){
     const dt=Math.min(.05,(now-last)/1000||0);last=now;
-    if(active()){
-      const keys=bindings(),direction=Number(pressed.has(keys.right)||pressed.has("right"))-Number(pressed.has(keys.left)||pressed.has("left"));
+    if(inVillage()){
+      const keys=bindings(),direction=dialogue.hidden?Number(pressed.has(keys.right)||pressed.has("right"))-Number(pressed.has(keys.left)||pressed.has("left")):0;
       player.vx=direction*175;player.x=Math.max(25,Math.min(915,player.x+player.vx*dt));if(direction)player.face=direction;player.animTime+=dt;
       scene(now);
       const art=root.DaoBladeCharacterArt?.renderer;
@@ -87,8 +125,9 @@
       prompt.textContent=near?`${bindings().interact.replace(/^Key/,"")} · 与${target.label}交互`:"A / D 行走 · 靠近目标按 F";
       document.querySelectorAll("[data-village]").forEach(button=>button.classList.toggle("near",near&&button.dataset.village===target.panel));
     }
+    camera();
     root.requestAnimationFrame(frame);
   }
-  root.DaoBladeVillage={update,nearest:()=>nearest().panel,interact};
+  root.DaoBladeVillage={update,nearest:()=>nearest().panel,interact,closeDialogue};
   root.requestAnimationFrame(frame);
 })(globalThis);

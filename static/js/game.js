@@ -22,6 +22,7 @@ let keepSocketPreview = false;
 let activeGame = null;
 let toastTimer = 0;
 let pendingRebindListener = null;
+let villageReturnFocus = null;
 const DEFAULT_CONTROLS = Object.freeze({ left: "KeyA", right: "KeyD", down: "KeyS", interact: "KeyF", jump: "Space", slash: "KeyJ", block: "KeyK", qi: "KeyL", dao: "KeyQ", dao2: "KeyE", dash: "ShiftLeft", pause: "Escape" });
 let controls = loadControls();
 let feedback = loadFeedback();
@@ -216,11 +217,29 @@ async function submitAccount(action) {
 }
 
 function showPanel(name) {
+  const villageWindow = ["atlas", "journey", "shop", "manual"].includes(name);
+  const wasWindow = document.body?.classList?.contains("village-window-open");
+  if (villageWindow && !wasWindow) villageReturnFocus = document.activeElement;
+  if (villageWindow) globalThis.DaoBladeVillage?.closeDialogue?.(false);
   if (name !== "game" && activeGame?.defeat) {
     activeGame.destroy(); activeGame = null;
   }
   if (activeGame && name !== "game" && !activeGame.finished) activeGame.setPause(true);
-  $$(".panel").forEach(panel => panel.classList.toggle("active", panel.id === `panel-${name}`));
+  document.body?.classList?.toggle("village-window-open", villageWindow);
+  $$(".panel").forEach(panel => panel.classList.toggle("active", panel.id === `panel-${name}` || (villageWindow && panel.id === "panel-sanctuary")));
+  const backdrop = $("#village-window-backdrop"), toolbar = $("#village-window-toolbar");
+  if (backdrop) backdrop.hidden = !villageWindow;
+  if (toolbar) toolbar.hidden = !villageWindow;
+  const village = $("#panel-sanctuary"), header = $(".topbar");
+  if (village) village.inert = villageWindow;
+  if (header) header.inert = villageWindow;
+  if (villageWindow) {
+    const titles = { atlas: "十境山河图", journey: "师门修行", shop: "剑坊商店", manual: "剑诀" };
+    const title = $("#village-window-title"); if (title) title.textContent = titles[name];
+    $("#village-window-close")?.focus?.({ preventScroll: true });
+  } else if (wasWindow && name === "sanctuary") {
+    (villageReturnFocus?.isConnected ? villageReturnFocus : $("#village-canvas"))?.focus?.({ preventScroll: true });
+  }
   $$(".nav-button").forEach(button => button.classList.toggle("active", button.dataset.panel === name));
   if (name === "inventory") renderInventory();
   if (name === "cultivation") renderCultivation();
@@ -687,8 +706,8 @@ class BattleGame {
 
   start() {
     $("#retry-result").hidden=false;
-    $("#leave-run").textContent=this.labRun?"返回阵盘（保留剑碑）":"放弃闯关";
-    $("#return-sanctuary").textContent=this.labRun?"返回阵盘":"返回洞府";
+    $("#leave-run").textContent=this.journey?"返回新手村（保留剑碑）":this.labRun?"返回阵盘（保留剑碑）":"放弃闯关";
+    $("#return-sanctuary").textContent=this.journey?"返回新手村":this.labRun?"返回阵盘":"返回洞府";
     $("#realm-name").textContent = this.journey ? `${this.breakthrough?"筑基突破":"正式征程"} · ${this.element.realm}` : this.labRun ? `阵盘挑战 · ${this.element.realm}` : this.lab ? "阵盘试验 · 离火试招" : this.practice ? "练功场 · 临时试招" : `${this.element.zh} · ${this.element.realm}`;
     $("#objective-text").textContent = this.labRun ? "冻结配珠挑战 · 清除六敌胜利成长；剑碑保存后可续关" : this.lab ? "只读已保存配置 · Q施招，E按方案引爆/回火；无奖励，退出回阵盘" : this.practice ? "木桩会恢复，不结算战利品" : `击败 ${this.realm.enemies.join("、")}与${this.realm.boss}`;
     if (this.bossPractice) {
@@ -2139,6 +2158,13 @@ function bindUi() {
   });
   $$(".nav-button").forEach(button => button.addEventListener("click", () => showPanel(button.dataset.panel)));
   $$('[data-go]').forEach(button => button.addEventListener("click", () => showPanel(button.dataset.go)));
+  $("#village-window-close")?.addEventListener("click", () => showPanel("sanctuary"));
+  $("#village-window-backdrop")?.addEventListener("click", () => showPanel("sanctuary"));
+  window.addEventListener("keydown", event => {
+    if (event.code === "Escape" && document.body?.classList?.contains("village-window-open") && !document.querySelector("dialog[open]")) {
+      event.preventDefault(); showPanel("sanctuary");
+    }
+  });
   $("#confirm-socket").addEventListener("click", confirmSocket);
   $("#socket-dialog").addEventListener("close", () => { if (!keepSocketPreview) pendingSocket = null; keepSocketPreview = false; });
   $("#preview-practice").addEventListener("click", () => { keepSocketPreview = true; startRealm("fire", { practice: true, state: previewSocketState() }); });

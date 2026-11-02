@@ -1,38 +1,49 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
 
-function harness(){
+function harness(viewport=960){
   const listeners={},panels=[],targets=['atlas','journey','shop'].map(panel=>({dataset:{village:panel},classList:{toggle(){}},onclick:null}));
   const touch=['left','right'].map(name=>({dataset:{villageMove:name},addEventListener(type,handler){this[type]=handler;},setPointerCapture(){},releasePointerCapture(){}}));
   const draw=new Proxy({createLinearGradient(){return{addColorStop(){}};}},{get(object,key){return key in object?object[key]:()=>{};}});
-  const canvas={getContext:()=>draw,focus(){}};
-  const prompt={textContent:''};
-  let frame=null,dialog=false;
-  const document={getElementById:id=>id==='village-canvas'?canvas:id==='village-prompt'?prompt:id==='panel-sanctuary'?{classList:{contains:()=>true}}:{onclick:null},
-    querySelector:selector=>selector==='dialog[open]'?(dialog?{}:null):{click(){panels.push(selector.match(/data-panel="([^"]+)/)?.[1]);}},
+  const choiceBox={children:[],set textContent(_){this.children=[];},appendChild(button){this.children.push(button);},querySelector(){return this.children[0]||null;}};
+  const nodes={
+    'village-canvas':{getContext:()=>draw,focus(){}},'village-world':{style:{}},'village-prompt':{textContent:''},
+    'village-dialogue':{hidden:true},'village-dialogue-close':{},'village-speaker':{textContent:''},
+    'village-line':{textContent:''},'village-choices':choiceBox,'village-interact':{},
+    'panel-sanctuary':{classList:{contains:()=>true}}
+  };
+  const stage={clientWidth:viewport,clientHeight:370};
+  const document={body:{classList:{contains:()=>false}},getElementById:id=>nodes[id],createElement:()=>({focus(){},click(){this.onclick?.();}}),
+    querySelector:selector=>selector==='.village-stage'?stage:selector==='dialog[open]'?null:{click(){panels.push(selector.match(/data-panel="([^"]+)/)?.[1]);}},
     querySelectorAll:selector=>selector==='[data-village-move]'?touch:selector==='[data-village]'?targets:[]};
+  let frame=null;
   const context=vm.createContext({document,localStorage:{getItem:()=>null},Image:class{set src(_){}},
     requestAnimationFrame:fn=>frame=fn,addEventListener:(type,fn)=>listeners[type]=fn,console});
   vm.runInContext(fs.readFileSync(path.join(__dirname,'../static/js/village.js'),'utf8'),context);
-  return {api:context.DaoBladeVillage,listeners,panels,targets,prompt,step:now=>frame(now),dialog:value=>dialog=value};
+  const key=code=>listeners.keydown({code,target:{closest:()=>null},preventDefault(){}});
+  return {api:context.DaoBladeVillage,listeners,panels,targets,nodes,stage,key,step:now=>frame(now)};
 }
 
-test('040 新手村左右行走后按交互键进入附近目标，弹窗时不触发',()=>{
-  const h=harness();h.step(0);
-  h.listeners.keydown({code:'KeyF',target:{closest:()=>null},preventDefault(){}});
+test('041 村中行走、对话选择与 Esc 返回保留原位置',()=>{
+  const h=harness();h.step(0);h.key('KeyF');
+  assert.equal(h.nodes['village-dialogue'].hidden,false);
+  assert.match(h.nodes['village-line'].textContent,/五境/);
+  assert.deepEqual(h.panels,[]);
+  h.nodes['village-choices'].children[0].click();
   assert.deepEqual(h.panels,['atlas']);
-  h.listeners.keydown({code:'KeyD',target:{closest:()=>null},preventDefault(){}});
-  for(let i=1;i<=27;i++)h.step(i*50);
-  h.listeners.keyup({code:'KeyD'});
+  h.key('KeyD');for(let i=1;i<=27;i++)h.step(i*50);h.listeners.keyup({code:'KeyD'});
   assert.equal(h.api.nearest(),'journey');
-  assert.match(h.prompt.textContent,/师父/);
-  h.listeners.keydown({code:'KeyF',target:{closest:()=>null},preventDefault(){}});
-  assert.deepEqual(h.panels,['atlas','journey']);
-  h.dialog(true);
-  h.listeners.keydown({code:'KeyF',target:{closest:()=>null},preventDefault(){}});
-  assert.equal(h.panels.length,2);
+  h.key('KeyF');assert.match(h.nodes['village-speaker'].textContent,/师父/);
+  h.key('Escape');assert.equal(h.nodes['village-dialogue'].hidden,true);
+  h.key('KeyF');assert.equal(h.nodes['village-choices'].children.length,2);
 });
 
-test('040 村落目标可直接点击，方便窄屏快捷操作',()=>{
-  const h=harness();h.targets.find(x=>x.dataset.village==='shop').onclick();
+test('041 点击 NPC 打开对话，手机取景跟随玩家',()=>{
+  const h=harness(390);h.step(0);
+  h.targets.find(x=>x.dataset.village==='shop').onclick();
+  assert.equal(h.nodes['village-dialogue'].hidden,false);
+  assert.match(h.nodes['village-speaker'].textContent,/商人/);
+  h.nodes['village-choices'].children[0].click();
   assert.deepEqual(h.panels,['shop']);
+  h.key('KeyD');for(let i=1;i<=30;i++)h.step(i*50);
+  assert.match(h.nodes['village-world'].style.transform,/translateX\(-/);
 });

@@ -28,20 +28,25 @@
   </nav>
 
   <p id="runtime-error" role="alert" hidden></p>
+  <div id="village-window-backdrop" class="village-window-backdrop" hidden></div>
+  <div id="village-window-toolbar" class="village-window-toolbar" hidden><span id="village-window-title">村落窗口</span><button id="village-window-close" type="button" class="pixel-button">返回村落 <kbd>Esc</kbd></button></div>
   <main class="shell">
     <section id="panel-sanctuary" class="panel active">
-      <div class="village-heading"><div><p class="eyebrow">本命剑 · 行旅起点</p><h2>青云新手村</h2><p id="home-next-step">正在读取你的征程。</p></div><div class="village-heading-actions"><button id="home-primary" class="pixel-button primary" type="button">选择地图</button><button class="pixel-button" data-go="journey">拜访师父</button></div></div>
       <div class="village-stage" aria-label="可行走的新手村，按左右移动，靠近目标按交互键">
-        <canvas id="village-canvas" width="960" height="370" tabindex="0" aria-label="新手村场景"></canvas>
-        <button class="village-target" data-village="atlas" style="--target-x:18%" type="button">山河图<small>十境传送</small></button>
-        <button class="village-target" data-village="journey" style="--target-x:50%" type="button">师父<small>修行与出战</small></button>
-        <button class="village-target" data-village="shop" style="--target-x:81%" type="button">商人<small>剑与剑光</small></button>
+        <div id="village-world" class="village-world">
+          <canvas id="village-canvas" width="960" height="370" tabindex="0" aria-label="新手村场景"></canvas>
+          <button class="village-target" data-village="atlas" style="--target-x:18%" type="button">山河图<small>十境传送</small></button>
+          <button class="village-target" data-village="journey" style="--target-x:50%" type="button">师父<small>修行与出战</small></button>
+          <button class="village-target" data-village="shop" style="--target-x:81%" type="button">商人<small>剑与剑光</small></button>
+        </div>
+        <div class="village-heading"><div><p class="eyebrow">本命剑 · 行旅起点</p><h2>青云新手村</h2><p id="home-next-step">正在读取你的征程。</p></div><div class="village-heading-actions"><button id="home-primary" class="pixel-button primary" type="button">选择地图</button></div></div>
         <p id="village-prompt" class="village-prompt" aria-live="polite">A / D 行走 · F 交互</p>
+        <div id="village-dialogue" class="village-dialogue" role="dialog" aria-label="村落交谈" hidden><div><p class="eyebrow" id="village-speaker"></p><p id="village-line"></p></div><div id="village-choices" class="village-choices"></div><button id="village-dialogue-close" type="button" aria-label="结束交谈">×</button></div>
+        <section id="migration-panel" class="migration-panel" hidden><p class="eyebrow">一次性合档</p><h3>将旧修行与试验珠并入当前征程</h3><p>确认前可查看逐珠变化与舍弃的进行中挑战。确认后旧档删除。</p><button id="home-unify" class="pixel-button primary" type="button">预览合档</button></section>
       </div>
       <div class="village-touch" aria-label="新手村触控"><button data-village-move="left" type="button">◀</button><button data-village-move="right" type="button">▶</button><button id="village-interact" type="button">交互</button></div>
       <div class="village-shortcuts"><button class="pixel-button" data-go="atlas">山河图</button><button class="pixel-button" data-go="journey">师门</button><button class="pixel-button" data-go="shop">剑坊</button></div>
       <p id="home-sync" class="home-fine" role="status"></p>
-      <section id="migration-panel" class="migration-panel" hidden><p class="eyebrow">一次性合档</p><h3>将旧修行与试验珠并入当前征程</h3><p>确认前可查看逐珠变化与舍弃的进行中挑战。确认后旧档删除。</p><button id="home-unify" class="pixel-button primary" type="button">预览合档</button></section>
       <div class="home-progress" aria-label="正式征程概况">
         <article><small>当前境界</small><strong id="home-rank">读取中</strong></article>
         <article><small>五境首通</small><strong id="home-clears">0 / 5</strong></article>
@@ -84,6 +89,7 @@
       <button id="journey-next" class="pixel-button">选择推荐秘境</button>
       <div class="journey-build-focus"><div><p class="eyebrow">当前出战</p><h3>两主动 · 两心法</h3><p id="journey-compiled"></p></div><div id="journey-loadout" class="dialog-actions"></div><div class="dialog-actions"><button id="journey-save" class="pixel-button primary">保存全部改动</button><button id="journey-reload" class="pixel-button">重新读取服务存档</button></div></div>
       <details><summary>首次游玩与存档说明</summary><p>在新手村按 A/D 行走、F 与山河图、师父或商人交互。关卡内空格跳、J近战、K格挡、L剑气、Shift闪避；Q/E施放两个主动。前三敌清场后可触碰剑碑，祭坛是可选支路。</p><p>师门研习消耗修为，可在村中重置并返还；八宫装配与出战栏修改后点击“保存全部改动”。游客档供本机共用，长期游玩可登录账号；游客正式档可导入空账号。</p></details>
+      <details class="journey-detail"><summary>展开八宫详细配置与挑战记录</summary>
       <h3>八宫阵盘 · 关外调整</h3>
       <div class="lab-palaces" id="journey-palaces" aria-label="后天八卦阵盘，上南下北左东右西"></div>
       <h3 id="journey-palace-title"></h3><p id="journey-effect"></p>
@@ -98,6 +104,7 @@
       <section class="migration-panel" aria-labelledby="migration-title"><p class="eyebrow">一次性合档</p><h3 id="migration-title">将旧成果并入唯一征程</h3><p>预览逐珠换算与舍弃项；确认后旧档删除，所有进行中挑战清除。</p><p id="journey-import-status" role="status"></p><button id="journey-import-preview" class="pixel-button" type="button">预览单档合并</button></section>
       <details class="legacy-tools" hidden><summary>停用的旧界面</summary><div class="legacy-links"><button class="pixel-button" data-go="realms">旧版五行秘境</button><button class="pixel-button" data-go="inventory">旧版灵珠匣 <span id="inventory-count">0</span></button><button class="pixel-button" data-go="cultivation">旧版八卦修行</button><button class="pixel-button" data-go="arraylab">阵盘试验</button></div><div class="legacy-stats"><span id="save-status"></span><span>修为 <b id="spirit-value">0</b></span><span>主属性 <b id="primary-label">未定</b></span><span>副属性 <b id="secondary-label">未定</b></span><span>闯关 <b id="runs-value">0</b></span><span>胜利 <b id="victories-value">0</b></span><span>镶珠 <b id="socketed-value">0 / 24</b></span><span>已通境 <b id="realm-clear-value">0 / 5</b></span></div><p id="checkpoint-status" hidden></p><button id="restore-checkpoint" type="button" hidden>停用</button></details>
       <p>练气容量6 → 筑基容量10。突破须独立击败离火剑魁，失败不扣修为、不毁珠，不发普通掉落；成功才扣24修为。研习阶段与正式境界分开。</p>
+      </details>
     </section>
 
     <section id="panel-shop" class="panel shop-panel"><div class="section-heading"><div><p class="eyebrow">青云剑坊</p><h2>商人的藏剑架</h2></div><p>只售剑外观与剑光。每次正式路线胜利得 1 外观券；外观不会改变战斗数值。</p></div><p id="shop-balance" role="status">读取外观券中</p><div id="shop-items" class="shop-items"></div><p id="shop-status" role="alert"></p><button class="pixel-button" data-go="sanctuary">返回新手村</button></section>
