@@ -2,7 +2,7 @@
 
 ## 身份与任务
 - 任务ID / AgentID：040-novice-village / agent-20261102-1259-n4v1。
-- 更新时间与时区：2026-11-02 13:47 Asia/Shanghai。
+- 更新时间与时区：2026-11-02 13:58 Asia/Shanghai。
 - 接手来源：[039 交接](../../../039-journey-home/agents/agent-20261030-2111-h9k3/HANDOFF.md)。
 - 当前目标与验收条件：[040 任务](../../TASK.md)所列新手村、师门、剑坊、单档合并与浏览器验收。
 - 状态：待验收；代码及自动检查完成，真实浏览器实玩未完成。
@@ -17,8 +17,8 @@
 
 ## 已完成与未完成
 - 已完成：横版村落与键盘/触控入口；十境山河图接入；三级师门与免费重置；三款外观和券；正式胜利券幂等；游客/账号槽的三档合并、修订号校验、源档行删除与最终旧表退役；生产旧 API 停用；战斗返回新手村。代码分别见 `templates/index.html`、`static/css/village.css`、`static/js/village.js`、`static/js/village-progress.js`、`static/js/journey-home.js`、`static/js/journey-ui.js`、`static/js/game.js`、`static/js/character-art.js`、`journey.py`、`database.py`、`app.py`。
-- 未完成：真实浏览器中十图逐图与高径、回廊各一张实玩；038/039 的既存浏览器验收也尚待补。
-- 已知问题与影响：当前只能确认服务器 HTTP 与自动化规则，以及静态页面视觉；不能声称真实浏览器操作、路标/机关可读性已验收。
+- 未完成：真实浏览器中十图逐图与高径、回廊各一张完整实玩；038/039 的既存实玩验收也尚待补。
+- 已知问题与影响：真实 Chrome 已显示山河图和离火两条路线的入口，尚不能声称完整浏览器操作、路标/机关可读性已验收。
 
 ## 已确认决定与待决定事项
 - 已确认的规则和来源：用户批准的 040 实施计划；师门按最高级叠加值，重置返还全部花费；仅升级后正式路线胜利给券，旧胜利不补券；合档清除三档中所有进行中挑战。
@@ -27,8 +27,8 @@
 
 ## 验证与证据
 - 实际命令、结果和适用代码状态：最终代码执行 `pytest -q --basetemp=work/pytest-final-040 --tb=short` 129/129、`node --test tests` 277/277；此前 `tools/check-project.ps1` 通过全套语法、文档和 diff 检查，最后修改的 JS 再次 `node --check` 通过；`tools/check_world_art.py` 通过 50 PNG；`py_compile app.py database.py journey.py` 与 `git diff --check` 通过。
-- 人工检查及证据链接：本机 Flask 首页 `HTTP 200`；忽略的本机文件 `work/village-desktop-b.png`、`work/village-mobile-c.png`、`work/village-shop-c.png` 是静态无存档预览，已目视检查首屏/窄屏/剑坊。
-- 尚未验证或因环境无法验证的内容：真实浏览器首屏与十图逐图、高径和回廊实玩、触控实际设备。CUA IAB 连接 localhost 超时；headless Chrome 对真实服务未生成截图。
+- 人工检查及证据链接：本机 Flask 首页 `HTTP 200`。无头 Chrome 对独立临时数据库的真实 Flask 页面生成并目视了忽略文件 `work/live-040-atlas.png`、`work/live-040-ridge.png`、`work/live-040-hollow.png`；两条路线的入口显示各自场景。`work/village-desktop-b.png`、`work/village-mobile-c.png`、`work/village-shop-c.png` 是静态无存档预览，目视检查首屏/窄屏/剑坊。
+- 尚未验证或因环境无法验证的内容：十图逐图、两路线完整实玩、触控实际设备。CUA IAB 连接 localhost 超时；Chrome 截图只验证入口显示。
 
 ## 下一位 Agent 的行动顺序
 1. `git status --short --branch` 与 `git log -1` 核对候选提交；检查服务是否已停止，不覆盖本地数据库。
