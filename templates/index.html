@@ -6,7 +6,7 @@
   <title>本命剑：八荒五行</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/game.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/journey-home.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/array-lab.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/village.css') }}">
 </head>
 <body>
   <div class="ink-cloud cloud-a"></div>
@@ -20,23 +20,28 @@
     <div class="account-actions"><span id="account-label">游客试玩</span><button id="account-login" class="pixel-button small" type="button">注册 / 登录</button><button id="account-import" class="pixel-button small" type="button" hidden>导入游客存档</button><button id="account-logout" class="pixel-button small" type="button" hidden>退出登录</button></div>
   </header>
   <nav class="main-nav" aria-label="主要页面">
-    <button class="nav-button active" data-panel="sanctuary">洞府</button>
+    <button class="nav-button active" data-panel="sanctuary">新手村</button>
     <button class="nav-button" data-panel="atlas">十境山河图</button>
-    <button class="nav-button" data-panel="journey">修行与出战</button>
+    <button class="nav-button" data-panel="journey">师门修行</button>
+    <button class="nav-button" data-panel="shop">剑坊商店</button>
     <button class="nav-button" data-panel="manual">剑诀</button>
   </nav>
 
   <p id="runtime-error" role="alert" hidden></p>
   <main class="shell">
     <section id="panel-sanctuary" class="panel active">
-      <div class="home-hero">
-        <div class="home-hero-copy"><p class="eyebrow">本命剑 · 十境行旅</p><h2>山河有异，剑心自明</h2>
-          <p id="home-next-step" class="lead">正在读取你的正式征程。</p>
-          <div class="hero-actions"><button id="home-primary" class="pixel-button primary" type="button">选择地图</button><button class="pixel-button" data-go="journey">查看出战构筑</button></div>
-          <p id="home-sync" class="home-fine" role="status"></p>
-        </div>
-        <div class="home-hero-art" aria-hidden="true"><span>五境</span><i>木</i><i>火</i><i>土</i><i>金</i><i>水</i></div>
+      <div class="village-heading"><div><p class="eyebrow">本命剑 · 行旅起点</p><h2>青云新手村</h2><p id="home-next-step">正在读取你的征程。</p></div><div class="village-heading-actions"><button id="home-primary" class="pixel-button primary" type="button">选择地图</button><button class="pixel-button" data-go="journey">拜访师父</button></div></div>
+      <div class="village-stage" aria-label="可行走的新手村，按左右移动，靠近目标按交互键">
+        <canvas id="village-canvas" width="960" height="370" tabindex="0" aria-label="新手村场景"></canvas>
+        <button class="village-target" data-village="atlas" style="--target-x:18%" type="button">山河图<small>十境传送</small></button>
+        <button class="village-target" data-village="journey" style="--target-x:50%" type="button">师父<small>修行与出战</small></button>
+        <button class="village-target" data-village="shop" style="--target-x:81%" type="button">商人<small>剑与剑光</small></button>
+        <p id="village-prompt" class="village-prompt" aria-live="polite">A / D 行走 · F 交互</p>
       </div>
+      <div class="village-touch" aria-label="新手村触控"><button data-village-move="left" type="button">◀</button><button data-village-move="right" type="button">▶</button><button id="village-interact" type="button">交互</button></div>
+      <div class="village-shortcuts"><button class="pixel-button" data-go="atlas">山河图</button><button class="pixel-button" data-go="journey">师门</button><button class="pixel-button" data-go="shop">剑坊</button></div>
+      <p id="home-sync" class="home-fine" role="status"></p>
+      <section id="migration-panel" class="migration-panel" hidden><p class="eyebrow">一次性合档</p><h3>将旧修行与试验珠并入当前征程</h3><p>确认前可查看逐珠变化与舍弃的进行中挑战。确认后旧档删除。</p><button id="home-unify" class="pixel-button primary" type="button">预览合档</button></section>
       <div class="home-progress" aria-label="正式征程概况">
         <article><small>当前境界</small><strong id="home-rank">读取中</strong></article>
         <article><small>五境首通</small><strong id="home-clears">0 / 5</strong></article>
@@ -71,13 +76,14 @@
     </section>
 
     <section id="panel-journey" class="panel lab-panel">
-      <div class="section-heading"><div><p class="eyebrow">正式征程 · 修行与出战</p><h2>本命剑心</h2></div><p>先查看当前境界、两主动与两心法，再调整八宫构筑。旧版与试验档可从下方档案进入。</p></div>
+      <div class="section-heading"><div><p class="eyebrow">师父 · 修行与出战</p><h2>本命剑心</h2></div><p>研习师门三系身法，再调整八宫主动与心法出战。</p></div>
+      <section class="training-section" aria-labelledby="training-title"><div class="training-heading"><div><p class="eyebrow">师门传承</p><h3 id="training-title">剑术 · 身法 · 护体</h3></div><button id="training-reset" class="pixel-button" type="button">重置师门并返还修为</button></div><div id="training-tree" class="training-tree"></div><p id="training-status" role="status"></p></section>
       <p id="journey-draft" role="status"></p>
       <p id="journey-status" role="status">进入后读取</p><p id="journey-error" role="alert"></p>
       <p id="journey-goal" role="status"></p>
       <button id="journey-next" class="pixel-button">选择推荐秘境</button>
       <div class="journey-build-focus"><div><p class="eyebrow">当前出战</p><h3>两主动 · 两心法</h3><p id="journey-compiled"></p></div><div id="journey-loadout" class="dialog-actions"></div><div class="dialog-actions"><button id="journey-save" class="pixel-button primary">保存全部改动</button><button id="journey-reload" class="pixel-button">重新读取服务存档</button></div></div>
-      <details><summary>首次游玩与存档说明</summary><p>A/D移动、空格跳、J近战、K朝向敌人格挡、L剑气、Shift闪避；Q/E施放两个主动。可先用赠珠挑战火境，观察敌人前摇与机关倒计时。前三敌清场后触碰剑碑，失败或刷新可恢复未完成挑战；祭坛是可选支路。</p><p>装珠与选择出战栏后点击“保存全部改动”；切宫保留草稿，放弃未保存改动可还原；以“实际主动/心法”和“已保存”为准。珠子关外可拆换，每颗占1容量，锐式与流式互斥。游客档供本机共用，长期游玩请先登录自己的账号；游客旧档及已迁移正式档可导入空账号。</p></details>
+      <details><summary>首次游玩与存档说明</summary><p>在新手村按 A/D 行走、F 与山河图、师父或商人交互。关卡内空格跳、J近战、K格挡、L剑气、Shift闪避；Q/E施放两个主动。前三敌清场后可触碰剑碑，祭坛是可选支路。</p><p>师门研习消耗修为，可在村中重置并返还；八宫装配与出战栏修改后点击“保存全部改动”。游客档供本机共用，长期游玩可登录账号；游客正式档可导入空账号。</p></details>
       <h3>八宫阵盘 · 关外调整</h3>
       <div class="lab-palaces" id="journey-palaces" aria-label="后天八卦阵盘，上南下北左东右西"></div>
       <h3 id="journey-palace-title"></h3><p id="journey-effect"></p>
@@ -89,10 +95,12 @@
       <div class="dialog-actions"><label>秘境 <select id="journey-realm"><option value="fire">火境</option><option value="wood">木境</option><option value="earth">土境</option><option value="metal">金境</option><option value="water">水境</option></select></label><label>地图 <select id="journey-map"><option value="ridge">高径 · 上行祭坛</option><option value="hollow">回廊 · 折返祭坛</option></select></label></div>
       <p id="journey-map-description" aria-live="polite"></p>
       <p id="journey-route"></p><div class="dialog-actions"><button id="journey-start" class="pixel-button primary">进入秘境</button><button id="journey-resume" class="pixel-button">恢复未完成挑战</button><button id="journey-abandon" class="pixel-button">放弃当前挑战</button><button id="journey-break" class="pixel-button">筑基突破 · 24修为</button></div>
-      <section class="migration-panel" aria-labelledby="migration-title"><p class="eyebrow">旧档传承</p><h3 id="migration-title">将旧修行成果迁入正式征程</h3><p>迁移前可预览逐珠换算；旧档原样保留。已迁入的旧档后续变化不会自动重复换算。</p><p id="journey-import-status" role="status"></p><button id="journey-import-preview" class="pixel-button" type="button">预览旧档迁移</button></section>
-      <details class="legacy-tools"><summary>旧境档案与阵盘试验</summary><p>以下入口保留旧版规则或独立试验档；正式征程的构筑与进度以本页为准。</p><div class="legacy-links"><button class="pixel-button" data-go="realms">旧版五行秘境</button><button class="pixel-button" data-go="inventory">旧版灵珠匣 <span id="inventory-count">0</span></button><button class="pixel-button" data-go="cultivation">旧版八卦修行</button><button class="pixel-button" data-go="arraylab">阵盘试验</button></div><div class="legacy-stats"><span id="save-status">读取旧档中</span><span>修为 <b id="spirit-value">0</b></span><span>主属性 <b id="primary-label">未定</b></span><span>副属性 <b id="secondary-label">未定</b></span><span>闯关 <b id="runs-value">0</b></span><span>胜利 <b id="victories-value">0</b></span><span>镶珠 <b id="socketed-value">0 / 24</b></span><span>已通境 <b id="realm-clear-value">0 / 5</b></span></div><p id="checkpoint-status" hidden></p><button id="restore-checkpoint" type="button" class="pixel-button" hidden>继续旧版火境剑碑试炼</button></details>
+      <section class="migration-panel" aria-labelledby="migration-title"><p class="eyebrow">一次性合档</p><h3 id="migration-title">将旧成果并入唯一征程</h3><p>预览逐珠换算与舍弃项；确认后旧档删除，所有进行中挑战清除。</p><p id="journey-import-status" role="status"></p><button id="journey-import-preview" class="pixel-button" type="button">预览单档合并</button></section>
+      <details class="legacy-tools" hidden><summary>停用的旧界面</summary><div class="legacy-links"><button class="pixel-button" data-go="realms">旧版五行秘境</button><button class="pixel-button" data-go="inventory">旧版灵珠匣 <span id="inventory-count">0</span></button><button class="pixel-button" data-go="cultivation">旧版八卦修行</button><button class="pixel-button" data-go="arraylab">阵盘试验</button></div><div class="legacy-stats"><span id="save-status"></span><span>修为 <b id="spirit-value">0</b></span><span>主属性 <b id="primary-label">未定</b></span><span>副属性 <b id="secondary-label">未定</b></span><span>闯关 <b id="runs-value">0</b></span><span>胜利 <b id="victories-value">0</b></span><span>镶珠 <b id="socketed-value">0 / 24</b></span><span>已通境 <b id="realm-clear-value">0 / 5</b></span></div><p id="checkpoint-status" hidden></p><button id="restore-checkpoint" type="button" hidden>停用</button></details>
       <p>练气容量6 → 筑基容量10。突破须独立击败离火剑魁，失败不扣修为、不毁珠，不发普通掉落；成功才扣24修为。研习阶段与正式境界分开。</p>
     </section>
+
+    <section id="panel-shop" class="panel shop-panel"><div class="section-heading"><div><p class="eyebrow">青云剑坊</p><h2>商人的藏剑架</h2></div><p>只售剑外观与剑光。每次正式路线胜利得 1 外观券；外观不会改变战斗数值。</p></div><p id="shop-balance" role="status">读取外观券中</p><div id="shop-items" class="shop-items"></div><p id="shop-status" role="alert"></p><button class="pixel-button" data-go="sanctuary">返回新手村</button></section>
 
     <section id="panel-arraylab" class="panel lab-panel">
       <div class="lab-heading"><div><p class="eyebrow">独立试验档 · ARRAY LAB 01</p><h2>离火试阵</h2><p>同一颗珠，可拆、可换。连接核心，让组合成为招式。</p></div><span class="lab-seal">离 ☲<small>南 · 火</small></span></div>
@@ -134,8 +142,8 @@
   <dialog id="socket-dialog" class="pixel-dialog"><form method="dialog"><p class="eyebrow">立道确认</p><h2 id="socket-title">镶嵌灵珠</h2><div id="socket-preview"></div><p class="danger-text">此选择无法撤回，灵珠也不能移动到其他卦位。</p><div class="dialog-actions"><button value="cancel" class="pixel-button">再想想</button><button id="preview-practice" value="preview" class="pixel-button">先试招</button><button id="confirm-socket" value="default" class="pixel-button primary">确认立道</button></div></form></dialog>
   <dialog id="settings-dialog" class="pixel-dialog"><div class="dialog-body"><p class="eyebrow">操作设置</p><h2>自定义按键</h2><p>点击动作后按下新键；重复的键位不会保存。</p><div id="control-settings" class="control-settings"></div><div class="feedback-settings"><label><input id="shake-toggle" type="checkbox"> 轻微震屏</label><label><input id="sound-toggle" type="checkbox"> 战斗音效</label><label><input id="combat-text-toggle" type="checkbox"> 命中与格挡提示</label></div><div class="dialog-actions"><button id="reset-controls" class="pixel-button">恢复默认按键</button><button id="close-settings" class="pixel-button primary">完成</button></div></div></dialog>
   <dialog id="account-dialog" class="pixel-dialog"><div class="dialog-body"><p class="eyebrow">独立存档</p><h2>剑客账号</h2><p>注册后每个账号保存自己的修行。游客旧档与已迁移的正式档可导入空账号，不覆盖已有进度。</p><label>账号<input id="account-username" autocomplete="username" maxlength="24"></label><label>密码<input id="account-password" type="password" autocomplete="current-password" maxlength="128"></label><div class="dialog-actions"><button id="submit-login" class="pixel-button primary" type="button">登录</button><button id="submit-register" class="pixel-button" type="button">注册</button><button id="close-account" class="pixel-button" type="button">关闭</button></div></div></dialog>
-  <dialog id="journey-import-dialog" class="pixel-dialog import-dialog"><div class="dialog-body"><p class="eyebrow">旧档传承 · 一次性预览</p><h2>确认迁入正式征程</h2><p>已镶珠按卦位和层级换算；随机词条与品阶留在旧档。当前正式构筑不会被覆盖。</p><div id="journey-import-detail"></div><p id="journey-import-error" role="alert"></p><div class="dialog-actions"><button id="journey-import-cancel" class="pixel-button" type="button">返回修行</button><button id="journey-import-confirm" class="pixel-button primary" type="button">确认一次性迁移</button></div></div></dialog>
-  <dialog id="result-dialog" class="pixel-dialog result-dialog"><form method="dialog"><p class="eyebrow">秘境结算</p><h2 id="result-title">试炼完成</h2><p id="result-message"></p><div id="reward-list" class="reward-list"></div><div class="dialog-actions"><button id="continue-checkpoint" type="button" class="pixel-button" hidden>从剑碑继续</button><button id="retry-result" type="button" class="pixel-button">重新挑战</button><button id="return-sanctuary" value="default" class="pixel-button primary">返回洞府</button></div></form></dialog>
+  <dialog id="journey-import-dialog" class="pixel-dialog import-dialog"><div class="dialog-body"><p class="eyebrow">一次性合档预览</p><h2>确认并入唯一征程</h2><p>旧珠与阵盘试验珠按规则换算。确认后全部进行中挑战清除，旧档删除。</p><div id="journey-import-detail"></div><p id="journey-import-error" role="alert"></p><div class="dialog-actions"><button id="journey-import-cancel" class="pixel-button" type="button">返回</button><button id="journey-import-confirm" class="pixel-button primary" type="button">确认合档并删除旧档</button></div></div></dialog>
+  <dialog id="result-dialog" class="pixel-dialog result-dialog"><form method="dialog"><p class="eyebrow">秘境结算</p><h2 id="result-title">试炼完成</h2><p id="result-message"></p><div id="reward-list" class="reward-list"></div><div class="dialog-actions"><button id="continue-checkpoint" type="button" class="pixel-button" hidden>从剑碑继续</button><button id="retry-result" type="button" class="pixel-button">重新挑战</button><button id="return-sanctuary" value="default" class="pixel-button primary">返回新手村</button></div></form></dialog>
   <div id="toast" class="toast" role="status"></div>
   <script>globalThis.DaoBladeJourneyMaps = {{ journey_maps | tojson }};</script>
   <script src="{{ url_for('static', filename='js/combat-controller.js') }}"></script>
@@ -155,8 +163,9 @@
   <script>globalThis.DaoBladeRuleset = {{ ruleset | tojson }};</script>
   <script src="{{ url_for('static', filename='js/rules.js') }}"></script>
   <script src="{{ url_for('static', filename='js/game.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/array-lab-ui.js') }}"></script>
   <script src="{{ url_for('static', filename='js/journey-ui.js') }}"></script>
   <script src="{{ url_for('static', filename='js/journey-home.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/village.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/village-progress.js') }}"></script>
 </body>
 </html>

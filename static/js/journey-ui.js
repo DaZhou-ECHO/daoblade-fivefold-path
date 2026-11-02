@@ -4,7 +4,7 @@
   let draft=null;
   const buildOf=s=>JSON.parse(JSON.stringify({nodes:s.nodes,loadout:s.loadout}));
   const dirty=()=>!!(data&&draft&&JSON.stringify(draft)!==JSON.stringify(buildOf(data.state)));
-  let data=null,config=null,csrf="",owner=null,selected="li",busy=false,blocked=false,epoch=0,importPreview=null;
+  let data=null,config=null,csrf="",owner=null,selected="li",busy=false,blocked=false,migrationRequired=false,epoch=0,importPreview=null;
   const palace=p=>config.palaces.find(x=>x.id===p);
   const realmNames={fire:'火',wood:'木',earth:'土',metal:'金',water:'水'};
   const mapScenes={
@@ -25,9 +25,12 @@
     notifyHome();
   }
   function notifyHome(){
-    root.DaoBladeJourneyHome?.update(data?{state:data.state,compiled:data.compiled,config,
+    const snapshot=data?{state:data.state,compiled:data.compiled,config,
       realm:$("journey-realm").value,route:$("journey-map").value,
-      busy,blocked,dirty:dirty(),mapScenes}:null);
+      busy,blocked,migrationRequired,dirty:dirty(),mapScenes}:null;
+    root.DaoBladeJourneyHome?.update(snapshot);
+    root.DaoBladeVillage?.update(snapshot);
+    root.DaoBladeVillageProgress?.update(snapshot);
   }
   function recommendation(){return config.realms.find(r=>!data.state.progress.clears[r])||config.realms.reduce((a,b)=>data.state.progress.clears[a]<=data.state.progress.clears[b]?a:b);}
   function mindDescription(id,level=1){
@@ -44,7 +47,7 @@
     const cleared=config.realms.filter(r=>s.progress.clears[r]>0).length;
     $("journey-goal").textContent=`征程进度：五境首通${cleared}/5 · 八宫藏珠${s.beads.length}/40 · ${s.rank?'筑基容量已解锁':'练气突破修为'+Math.min(s.progress.spirit,24)+'/24'}。下一步：`+(active?'恢复当前挑战，或明确放弃后再改装。':!c.skills.some(Boolean)?'先为Q/E选择已连接核心的宫位并保存出战栏。':s.rank===0&&s.progress.spirit>=24?'可挑战筑基心劫；也可以继续五境收集。':cleared<5?`挑战${realmNames[recommendation()]}境，首通获得该元素各宫核心、纹路与心法。`:'已完成五境首通，可换地图找支路、收集变式，尝试不同两主动两心法构筑。');
     $("journey-next").textContent=`选择推荐：${realmNames[recommendation()]}境高径（不立即开战）`;
-    $("journey-next").disabled=busy||blocked||!!active;
+    $("journey-next").disabled=busy||blocked||migrationRequired||!!active;
     const palaces=config.palaces.slice();palaces.splice(4,0,{id:'heart'});
     const elements={wood:'木',fire:'火',earth:'土',metal:'金',water:'水'};
     $("journey-palaces").innerHTML=palaces.map(p=>p.id==='heart'?'<div class="lab-heart">剑<small>本命剑心</small></div>':`<button class="lab-palace ${p.id===selected?'active':''}" data-palace="${p.id}" aria-pressed="${p.id===selected}"><b>${p.symbol}</b><span>${p.name} · ${p.direction}</span><small>${elements[p.element]}行 · 已开放</small></button>`).join("");
@@ -58,37 +61,36 @@
     $("journey-compiled").textContent=`实际主动：${c.skills.map((k,i)=>k?`${i?'E':'Q'} ${k.name}(${k.element}) 伤${k.damage}/耗${k.cost}/${k.variant}`:`${i?'E':'Q'}停用`).join('；')}。实际心法：${c.minds.map(p=>palace(p).name+' '+mindDescription(p,c.mind_levels?.[p]||1)).join('、')||'无'}。有效成长珠${c.effective_bead_ids.length}颗。`;
     $("journey-owned").textContent='珠匣 '+s.beads.length+'/40：'+s.beads.map(b=>b.name+' Lv'+b.level).join('、');
     $("journey-route").textContent=active?`未完成${active.breakthrough?'筑基突破':active.realm_id+'境 '+active.map_id} · ${active.checkpoint?'剑碑已保存':'入口恢复'} · 已领支路${active.claimed_altars.length}/2 · 构筑冻结`:'新局v2：主路单跳通行，普通挡耗剑意；可选支路祭坛回复12血18气、捷径可保存；关键遭遇与首领后按F确认离境。';
-    for(const id of ['journey-equip','journey-clear','journey-save','journey-start','journey-break'])$(id).disabled=busy||blocked||!!active;
+    for(const id of ['journey-equip','journey-clear','journey-save','journey-start','journey-break'])$(id).disabled=busy||blocked||migrationRequired||!!active;
     $("journey-start").disabled ||= dirty()||!c.skills.some(Boolean);
     $("journey-break").disabled ||= dirty()||s.rank!==0||s.progress.spirit<24||!c.skills.some(Boolean);
     $("journey-break").textContent=s.rank===1?"筑基已达 · 首版境界终点":"筑基突破 · 24修为";
-    $("journey-resume").disabled=busy||blocked||!active;$("journey-abandon").disabled=busy||blocked||!active;
+    $("journey-resume").disabled=busy||blocked||migrationRequired||!active;$("journey-abandon").disabled=busy||blocked||migrationRequired||!active;
     $("journey-reload").disabled=busy||dirty();
     $("journey-discard").disabled=busy||!!active||!dirty();
     $("journey-nodes").querySelectorAll("[data-node]").forEach(control=>control.onchange=()=>{draft.nodes[control.dataset.node]=control.value||null;render();});
     $("journey-loadout").querySelectorAll("[data-slot]").forEach(control=>control.onchange=()=>{const[k,i]=control.dataset.slot.split(":");draft.loadout[k][Number(i)]=control.value||null;render();});
-    document.querySelectorAll('#journey-nodes select, #journey-loadout select').forEach(control=>control.disabled=busy||blocked||!!active);
+    document.querySelectorAll('#journey-nodes select, #journey-loadout select').forEach(control=>control.disabled=busy||blocked||migrationRequired||!!active);
     for(const id of ['journey-realm','journey-map'])$(id).disabled=busy||!!active;
     if(active){$("journey-realm").value=active.realm_id;$("journey-map").value=active.map_id;}
     describeMap();
-    $("journey-import-preview").disabled=busy||blocked||!!active||dirty()||!!s.migration;
-    $("journey-import-status").textContent=s.migration?"旧档已完成一次性迁移；后续旧模式变化仍保留在旧档。":
-      active?"请先完成或放弃当前挑战，再预览迁移。":dirty()?"请先保存或放弃未保存构筑，再预览迁移。":"迁移前先查看逐珠换算与首通补发。";
+    $("journey-import-preview").disabled=busy||blocked||!migrationRequired||dirty();
+    $("journey-import-status").textContent=migrationRequired?"进入唯一征程前，请预览并确认合档；当前挑战会清除。":"单一征程已就绪。";
 
   }
-  function reset(){epoch++;data=null;draft=null;config=null;owner=null;csrf='';busy=false;blocked=false;selected='li';importPreview=null;if($("journey-import-dialog").open)$("journey-import-dialog").close();for(const id of ['journey-equip','journey-clear','journey-save','journey-start','journey-break','journey-resume','journey-abandon','journey-discard','journey-reload','journey-import-preview'])$(id).disabled=true;$("journey-error").textContent='';$("journey-route").textContent='';$("journey-map-description").textContent='';$("journey-import-status").textContent='';$("journey-status").textContent='账号已变化，请重新进入读取';$("journey-next").disabled=true;for(const id of ['journey-palaces','journey-nodes','journey-loadout','journey-compiled','journey-owned','journey-goal','journey-draft'])$(id).textContent='';notifyHome();}
+  function reset(){epoch++;data=null;draft=null;config=null;owner=null;csrf='';busy=false;blocked=false;migrationRequired=false;selected='li';importPreview=null;if($("journey-import-dialog").open)$("journey-import-dialog").close();for(const id of ['journey-equip','journey-clear','journey-save','journey-start','journey-break','journey-resume','journey-abandon','journey-discard','journey-reload','journey-import-preview'])$(id).disabled=true;$("journey-error").textContent='';$("journey-route").textContent='';$("journey-map-description").textContent='';$("journey-import-status").textContent='';$("journey-status").textContent='账号已变化，请重新进入读取';$("journey-next").disabled=true;for(const id of ['journey-palaces','journey-nodes','journey-loadout','journey-compiled','journey-owned','journey-goal','journey-draft'])$(id).textContent='';notifyHome();}
   async function load(){
     if(busy)return;if(dirty()){$("journey-error").textContent="未保存草稿已保留，请先保存全部改动，或放弃草稿后再重读服务存档";render();return;}const generation=epoch;busy=true;render();
     try{
       const [auth,res]=await Promise.all([fetch('/api/auth/me'),fetch('/api/journey')]);const [me,payload]=await Promise.all([auth.json(),res.json()]);
       if(generation!==epoch)return;
       if(!auth.ok||!res.ok|| (me.user?.id??null)!==payload.owner_id)throw Error('读取失败或账号已变化');
-      data=payload;draft=buildOf(payload.state);config=payload.config;csrf=me.csrf_token;owner=payload.owner_id;blocked=false;$("journey-error").textContent='';
+      data=payload;draft=buildOf(payload.state);config=payload.config;csrf=me.csrf_token;owner=payload.owner_id;blocked=false;migrationRequired=!!payload.migration_required;$("journey-error").textContent='';
     }catch(e){if(generation===epoch){blocked=true;$("journey-error").textContent=e.message;}}
     finally{if(generation===epoch){busy=false;render();}}
   }
   async function action(action,extra={}){
-    if(busy||blocked||!data)throw Error('征程未同步，请重新读取');
+    if(busy||blocked||!data||migrationRequired)throw Error(migrationRequired?'请先确认单档合并':'征程未同步，请重新读取');
     if(dirty()&&action!=='build')throw Error('请先保存或放弃未保存改动，再进行挑战操作');
     const generation=epoch;busy=true;render();
     try{
@@ -105,24 +107,27 @@
   async function restartTrial(expected,previous={}){const t=data?.state.active_trial;if(t&&t.id!==expected)throw Error('已有另一试炼，先核对');const breakthrough=!!(t?.breakthrough??previous.breakthrough);const realm=t?.realm_id??previous.realm_id,map=t?.map_id??previous.map_id;await abandonTrial();if(realm){$("journey-realm").value=realm;$("journey-map").value=map;}await startTrial(breakthrough);}
   function selectMap(realm,route){if(!data||busy||blocked||data.state.active_trial)return false;if(!config.realms.includes(realm)||!config.maps.some(m=>m.id===route))return false;$("journey-realm").value=realm;$("journey-map").value=route;describeMap();return true;}
   async function previewImport(){
-    if(!data||busy||blocked||dirty()||data.state.active_trial)throw Error('请先同步构筑并结束当前挑战');
+    if(!data||busy||blocked||dirty()||!migrationRequired)throw Error('请先同步构筑并确认当前需要合档');
     const generation=epoch;
-    const res=await fetch('/api/journey/import-preview');const payload=await res.json();
+    const res=await fetch('/api/journey/unify-preview');const payload=await res.json();
     if(generation!==epoch)throw Error('账号已变化');
     if(!res.ok)throw Error(payload.error||'迁移预览失败');
-    if(!payload.available){$("journey-import-status").textContent=payload.migrated?'旧档已经迁入正式征程。':payload.reason||'当前无法迁移';return;}
+    if(!payload.available){$("journey-import-status").textContent=payload.migrated?'单档合并已完成。':payload.reason||'当前无需合档';return;}
     importPreview=payload;
     const receipt=payload.receipt;
-    const pairs=receipt.converted.map(item=>`<li>${escape(item.source_name)}（${escape(item.source_element)}·旧Lv${item.source_level}·品阶${item.source_quality}${item.source_affixes.length?'·'+item.source_affixes.map(a=>`${escape(a.label)} +${escape(a.value)}%`).join('、'):''}）→ ${escape(item.target_id)} Lv${item.target_level}${item.changed?'':'（正式珠已有更高等级）'}</li>`).join('');
-    $("journey-import-detail").innerHTML=`<p>正式珠：${payload.before.beads} → ${payload.after.beads} / 40；修为：${payload.before.spirit} → ${payload.after.spirit}。</p><p>承认旧版首通：${receipt.imported_clears.map(escape).join('、')||'无'}；基础修为补发 ${receipt.spirit_awarded}。旧版通关次数仅留履历。</p><h3>逐珠换算（${receipt.converted.length}）</h3><ul>${pairs||'<li>无可换算旧珠</li>'}</ul><p>固定目录已满或重复而留在旧档：${receipt.unused.length} 颗。</p>`;
+    const pairs=receipt.legacy.converted.map(item=>`<li>${escape(item.source_name)}（${escape(item.source_element)}·旧Lv${item.source_level}·品阶${item.source_quality}·词条${escape(item.source_affixes.map(affix=>`${affix.label}+${affix.value}`).join('、')||'无')}）→ ${escape(item.target_id)} Lv${item.target_level}${item.changed?'':'（现有等级更高）'}</li>`).join('');
+    const lab=receipt.lab.map(item=>`<li>${item.source.map(escape).join('／')} Lv${item.source_level} → ${escape(item.target_id)} Lv${item.target_level}</li>`).join('');
+    const unused=receipt.legacy.unused.map(item=>`<li>${escape(item.name)}（${escape(item.element)}）</li>`).join('');
+    const discarded=receipt.discarded.lab;
+    $("journey-import-detail").innerHTML=`<p>正式珠 ${receipt.before.beads} → ${receipt.after.beads} / 40；修为 ${receipt.before.spirit} → ${receipt.after.spirit}。</p><p>承认旧首通：${receipt.legacy.imported_clears.map(escape).join('、')||'无'}；补发 ${receipt.legacy.spirit_awarded} 修为。</p><h3>旧五行珠</h3><ul>${pairs||'<li>无</li>'}</ul><h3>阵盘试验珠等级</h3><ul>${lab||'<li>无</li>'}</ul><h3>不转换的旧珠（${receipt.legacy.unused.length} 颗）</h3><ul>${unused||'<li>无</li>'}</ul><p>${discarded?`阵盘试验场次 ${discarded.runs}、胜利 ${discarded.victories}、修为 ${discarded.spirit} 与${escape(discarded.water_sample.name)} Lv${discarded.water_sample.level} 均不迁入。`:'无阵盘试验档。'}</p><p>将清除进行中挑战：${receipt.cleared_trials.map(escape).join('、')||'无'}。确认后旧档记录删除。</p>`;
     $("journey-import-error").textContent='';$("journey-import-dialog").showModal();
   }
   async function confirmImport(){
     const preview=importPreview;
-    if(!preview||!data||dirty()||busy||blocked||data.state.active_trial)throw Error('预览已失效，请重新读取');
+    if(!preview||!data||dirty()||busy||blocked||!migrationRequired)throw Error('预览已失效，请重新读取');
     const generation=epoch;busy=true;render();
     try{
-      const res=await fetch('/api/journey/import-confirm',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},body:JSON.stringify({owner_id:owner,legacy_revision:preview.legacy_revision,journey_revision:preview.journey_revision})});
+      const res=await fetch('/api/journey/unify-confirm',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},body:JSON.stringify({owner_id:owner,revisions:preview.revisions})});
       const payload=await res.json();if(generation!==epoch)throw Error('账号已变化');if(!res.ok)throw Error(payload.error||'迁移失败');
       importPreview=null;$("journey-import-dialog").close();$("journey-import-status").textContent='迁移已完成，正在重读正式征程。';
     }catch(e){if(generation===epoch)$("journey-import-error").textContent=e.message;throw e;}
@@ -143,5 +148,5 @@
   $("journey-import-confirm").onclick=run(confirmImport);
   $("journey-import-cancel").onclick=()=>$("journey-import-dialog").close();
   $("journey-import-dialog").onclose=()=>{importPreview=null;$("journey-import-error").textContent='';};
-  root.DaoBladeJourneyUI={load,reset,trialAction:action,resumeTrial,restartTrial,selectMap,startSelected:()=>startTrial(false),mapScenes};
+  root.DaoBladeJourneyUI={load,reset,trialAction:action,previewUnify:previewImport,resumeTrial,restartTrial,selectMap,startSelected:()=>startTrial(false),mapScenes};
 })(globalThis);

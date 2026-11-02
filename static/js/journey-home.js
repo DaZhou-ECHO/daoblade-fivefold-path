@@ -20,9 +20,9 @@
       $("home-rank").textContent='读取中';$("home-clears").textContent='0 / 5';$("home-beads").textContent='0 / 40';$("home-trial").textContent='无';
       $("home-next-step").textContent='正在读取你的正式征程。';$("home-sync").textContent='';
       $("atlas-realms").textContent='';$("atlas-routes").textContent='';$("atlas-region-title").textContent='正在读取';
-      $("home-primary").disabled=true;$("atlas-start").disabled=true;$("atlas-resume").disabled=true;return;
+      $("home-primary").disabled=true;$("atlas-start").disabled=true;$("atlas-resume").disabled=true;if($("migration-panel"))$("migration-panel").hidden=true;return;
     }
-    const {state:s,config,compiled,busy,blocked,dirty}=data;
+    const {state:s,config,compiled,busy,blocked,dirty,migrationRequired}=data;
     const active=s.active_trial,cleared=config.realms.filter(r=>s.progress.clears[r]>0).length;
     const selectedRealm=active?.realm_id||data.realm,selectedRoute=active?.map_id||data.route;
     $("home-top-rank").textContent=config.ranks[s.rank].name+` · 修为 ${s.progress.spirit}`;
@@ -34,9 +34,10 @@
     $("home-next-step").textContent=active?`当前有未完成的${names[active.realm_id]}境${active.map_id==='hollow'?'回廊':'高径'}挑战；可从剑碑或入口恢复。`:
       !compiled.skills.some(Boolean)?'先在修行页保存一项 Q/E 主动技能，再选择地图。':
       cleared<5?`已首通 ${cleared} 境。山河图可自由选路，也可参考推荐前往未首通五境。`:'五境均已首通；可以换路线寻找支路、调整八宫构筑，或尝试筑基心劫。';
-    $("home-sync").textContent=blocked?'正式档未同步，请在修行页重新读取。':dirty?'有未保存构筑；开战前请先保存或放弃草稿。':active?'恢复将沿用本局冻结的出战构筑。':'正式档已同步。';
+    if($("migration-panel"))$("migration-panel").hidden=!migrationRequired;
+    $("home-sync").textContent=migrationRequired?'请先预览并确认单档合并。':blocked?'正式档未同步，请在师门页重新读取。':dirty?'有未保存构筑；开战前请先保存或放弃草稿。':active?'恢复将沿用本局冻结的出战构筑。':'正式档已同步。';
     $("home-primary").textContent=active?'恢复当前挑战':'打开十境山河图';
-    $("home-primary").disabled=busy||blocked||dirty;
+    $("home-primary").disabled=busy||blocked||dirty||migrationRequired;
     $("atlas-realms").innerHTML=config.realms.map(realm=>`<button class="atlas-realm" type="button" data-realm="${realm}" aria-pressed="${realm===selectedRealm}" style="--realm-color:${colors[realm]}"><span class="atlas-realm-symbol">${symbols[realm]}</span><span><b>${names[realm]}境</b><small>${regionCopy[realm]}</small></span><em>${s.progress.clears[realm]>0?'已首通':'未首通'}</em></button>`).join('');
     $("atlas-realms").querySelectorAll('[data-realm]').forEach(button=>button.onclick=()=>{
       if(root.DaoBladeJourneyUI.selectMap(button.dataset.realm,selectedRoute))$("atlas-error").textContent='';
@@ -51,7 +52,8 @@
       const layout=root.DaoBladeJourneyMaps?.[selectedRealm+':'+route];
       const destination=layout?.sections?.at(-1)?.label||'首领场';
       const recommended=!active&&selectedRealm===recommendation&&route==='ridge';
-      return `<button class="atlas-route" type="button" data-route="${route}" aria-pressed="${route===selectedRoute}"><span class="atlas-route-image"><img src="${imagePath(selectedRealm,route)}" alt="" data-scene="${selectedRealm}:${route}"></span><span class="atlas-route-body"><b>${esc(scene[0])}</b><small>${shape[route]}${recommended?' · 推荐':''}</small><span>${esc(scene[1])}</span><em>中段剑碑 · 2 条可返支路 · ${esc(destination)}</em></span></button>`;
+      const routeClears=s.progress.route_clears?.[selectedRealm+':'+route]||0;
+      return `<button class="atlas-route" type="button" data-route="${route}" aria-pressed="${route===selectedRoute}"><span class="atlas-route-image"><img src="${imagePath(selectedRealm,route)}" alt="" data-scene="${selectedRealm}:${route}"></span><span class="atlas-route-body"><b>${esc(scene[0])}</b><small>${shape[route]}${recommended?' · 推荐':''} · ${routeClears?'已通关 '+routeClears+' 次':'未通关'}</small><span>${esc(scene[1])}</span><em>中段剑碑 · 2 条可返支路 · ${esc(destination)}</em></span></button>`;
     }).join('');
     $("atlas-routes").querySelectorAll('img[data-scene]').forEach(img=>img.onerror=()=>imageFallback(img,selectedRealm,img.dataset.scene.split(':')[1]));
     $("atlas-routes").querySelectorAll('[data-route]').forEach(button=>button.onclick=()=>{
@@ -60,8 +62,8 @@
     });
     $("atlas-current").textContent=active?`进行中：${names[active.realm_id]}境 · ${active.map_id==='hollow'?'回廊':'高径'}，${active.checkpoint?'剑碑已保存':'从入口恢复'}。`:
       `已选：${names[selectedRealm]}境 · ${data.mapScenes[selectedRealm]?.[selectedRoute]?.[0]||selectedRoute}。`;
-    $("atlas-start").disabled=busy||blocked||dirty||!!active||!compiled.skills.some(Boolean);
-    $("atlas-resume").disabled=busy||blocked||!active;
+    $("atlas-start").disabled=busy||blocked||migrationRequired||dirty||!!active||!compiled.skills.some(Boolean);
+    $("atlas-resume").disabled=busy||blocked||migrationRequired||!active;
   }
   function reset(){update(null);$("atlas-error").textContent='';}
   function showAtlas(){document.querySelector('[data-panel="atlas"]').click();}

@@ -23,12 +23,16 @@ def test_home_has_unique_live_targets_and_ten_scene_assets(client):
     parser = PageIds()
     parser.feed(text)
     assert len(parser.ids) == len(set(parser.ids))
-    for name in ("panel-sanctuary", "panel-atlas", "panel-journey",
+    for name in ("panel-sanctuary", "panel-atlas", "panel-journey", "panel-shop",
                  "atlas-realms", "atlas-routes", "atlas-start", "atlas-resume",
                  "journey-import-preview", "journey-import-dialog", "journey-import-confirm",
-                 "save-status", "inventory-count", "restore-checkpoint"):
+                 "village-canvas", "village-prompt", "village-interact", "training-tree",
+                 "training-reset", "shop-items", "shop-balance", "migration-panel"):
         assert name in parser.ids
     assert "/static/js/journey-home.js" in parser.scripts
+    assert "/static/js/village.js" in parser.scripts
+    assert "/static/js/village-progress.js" in parser.scripts
+    assert '<details class="legacy-tools" hidden>' in text
     root = Path(__file__).resolve().parents[1] / "static/sprites/world-v1"
     for realm in ("fire", "wood", "earth", "metal", "water"):
         for route in ("", "-hollow"):

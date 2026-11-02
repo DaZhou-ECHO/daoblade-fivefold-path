@@ -20,6 +20,7 @@ def app(tmp_path):
             "TESTING": True,
             "DATABASE": str(tmp_path / "test.sqlite3"),
             "SECRET_KEY": "test",
+            "LEGACY_DIAGNOSTICS": True,  # 历史规则回归；默认应用的旧 API 已返回 410。
         }
     )
     yield application

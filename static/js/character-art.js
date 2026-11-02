@@ -131,6 +131,32 @@
     }
   }
 
+  const COSMETICS = Object.freeze({
+    plain: { color: "#b6dbe6" }, azure: { color: "#6ee6bd" },
+    sunset: { color: "#ff9b75" }, frost: { color: "#91d9ff" },
+  });
+  function drawCosmeticSword(ctx, id) {
+    const color = COSMETICS[id]?.color;
+    if (!color || id === "plain") return false;
+    ctx.save();
+    try {
+      ctx.translate(-10, -53);
+      ctx.shadowColor = color; ctx.shadowBlur = 10;
+      ctx.fillStyle = "#27343d"; ctx.fillRect(8, 48, 4, 15);
+      ctx.fillStyle = "#d6af72"; ctx.fillRect(3, 47, 14, 4);
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      if (id === "azure") {ctx.moveTo(10, 1);ctx.lineTo(16, 13);ctx.lineTo(13, 43);ctx.lineTo(7, 43);ctx.lineTo(4, 13);}
+      else if (id === "sunset") {ctx.moveTo(10, 0);ctx.lineTo(17, 14);ctx.lineTo(15, 39);ctx.lineTo(13, 45);ctx.lineTo(7, 45);ctx.lineTo(5, 39);ctx.lineTo(3, 14);}
+      else {ctx.moveTo(10, 2);ctx.lineTo(15, 18);ctx.lineTo(16, 28);ctx.lineTo(12, 44);ctx.lineTo(8, 44);ctx.lineTo(4, 28);ctx.lineTo(5, 18);}
+      ctx.closePath();ctx.fill();
+      ctx.shadowBlur=0;ctx.fillStyle="#f9fff1";ctx.fillRect(9,8,2,33);
+      if (id === "sunset") {ctx.fillStyle="#ffde95";ctx.fillRect(5,18,2,8);ctx.fillRect(13,26,2,7);}
+      if (id === "frost") {ctx.fillStyle="#e5f9ff";ctx.fillRect(3,25,3,3);ctx.fillRect(14,21,3,3);}
+    } finally {ctx.restore();}
+    return true;
+  }
+
   class Renderer {
     constructor() {
       this.status = "unloaded";
@@ -193,11 +219,11 @@
       return { action, index, ...animation.frames[index] };
     }
 
-    draw(ctx, player, color = "#b6dbe6") {
-      return this.drawState(ctx, actions?.createActionState(player), color);
+    draw(ctx, player, color = "#b6dbe6", cosmetic = "plain") {
+      return this.drawState(ctx, actions?.createActionState(player), color, cosmetic);
     }
 
-    drawState(ctx, state, color = "#b6dbe6") {
+    drawState(ctx, state, color = "#b6dbe6", cosmetic = "plain") {
       const frame = this.frameFromState(state);
       if (!frame || typeof ctx.drawImage !== "function") return false;
       const [footX, footY] = this.manifest.foot;
@@ -232,13 +258,13 @@
             ctx.translate(frame.hand[0] - footX, frame.hand[1] - footY);
             ctx.rotate(frame.weaponAngle);
             const weapon = this.manifest.weapon;
-            ctx.drawImage(this.images.weapon, -weapon.grip[0], -weapon.grip[1]);
+            if (!drawCosmeticSword(ctx, cosmetic)) ctx.drawImage(this.images.weapon, -weapon.grip[0], -weapon.grip[1]);
           } finally { ctx.restore(); }
           // 手指置于剑柄上方，握点与旋转中心始终重合。
           const hx = frame.hand[0] - 2, hy = frame.hand[1] - 2;
           ctx.drawImage(image, frame.index * 64 + hx, hy, 4, 4,
             hx - footX, hy - footY, 4, 4);
-          drawEffects(ctx, state, frame, color);
+          drawEffects(ctx, state, frame, COSMETICS[cosmetic]?.color||color);
         } finally { ctx.restore(); }
       } catch (_) {
         this.status = "failed";
@@ -251,7 +277,7 @@
     }
   }
 
-  const api = { Renderer, validManifest, selectAction, DEFEAT_DURATION, renderer: new Renderer() };
+  const api = { Renderer, validManifest, selectAction, COSMETICS, DEFEAT_DURATION, renderer: new Renderer() };
   root.DaoBladeCharacterArt = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(typeof globalThis !== "undefined" ? globalThis : window);

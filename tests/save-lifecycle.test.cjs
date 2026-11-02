@@ -17,7 +17,8 @@ function harness(fetcher, storage = {}) {
   vm.runInContext(`${source}
     renderAll=()=>{};renderAccount=()=>{};
     this.api={saveState,startRealm,bindUi,state:()=>saveData,blocked:()=>saveBlocked,active:()=>activeGame,
-      configure:(state,user=null,game=null)=>{saveData=state;currentUser=user;activeGame=game;}};
+      configure:(state,user=null,game=null)=>{saveData=state;currentUser=user;activeGame=game;},
+      setJourney:ui=>globalThis.DaoBladeJourneyUI=ui};
   `, context);
   return { ...context.api, node };
 }
@@ -31,16 +32,17 @@ test("015 实际保存队列失败返回false，游客也阻止继续正式开�
   assert.equal(await h.saveState(""), false);
 });
 
-test("015 退出已结束试炼销毁旧实例，再载入新账号作用域", async () => {
-  let destroyed = 0;
+test("040 退出已结束试炼销毁旧实例，只重读正式账号作用域", async () => {
+  let destroyed = 0, journeyLoads=0, legacyReads=0;
   const state = require("../static/data/rules/legacy-v1.json").default_state;
-  const h = harness(async url => ({ ok: true, json: async () => url === "/api/state"
-    ? { state: structuredClone(state), revision: 0 } : { user: null, csrf_token: "test" } }));
+  const h = harness(async url => {if(url==="/api/state")legacyReads++;return { ok: true, json: async () => ({ user: null, csrf_token: "test" }) };});
+  h.setJourney({load:async()=>{journeyLoads++;}});
   h.configure({ ...structuredClone(state), active_trial: { id: "old-account-trial" } }, { id: 1 },
     { finished: true, destroy() { destroyed++; } });
   h.bindUi(); await h.node("#account-logout").handlers.click();
   assert.equal(destroyed, 1); assert.equal(h.active(), null);
-  assert.equal(h.state().active_trial, undefined);
+  assert.equal(journeyLoads,2); // 会话初始化和返回新手村各请求一次，均为正式档。
+  assert.equal(legacyReads,0);
 });
 
 test("015 浏览器备份空间耗尽仍能保存SQLite主存档", async () => {

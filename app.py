@@ -31,11 +31,18 @@ def create_app(test_config: dict | None = None) -> Flask:
         JSON_AS_ASCII=False,
         SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SAMESITE="Lax",
+        LEGACY_DIAGNOSTICS=False,
     )
     if test_config:
         app.config.update(test_config)
     Path(app.instance_path).mkdir(parents=True, exist_ok=True)
     init_database(app)
+
+    @app.before_request
+    def retired_apis():
+        if not app.config["LEGACY_DIAGNOSTICS"] and (request.path in {"/api/state", "/api/reset", "/api/journey/import-preview", "/api/journey/import-confirm"}
+                or request.path.startswith("/api/lab/")):
+            return jsonify(error="旧版接口已停用，请使用正式征程"), 410
 
     def current_user():
         user_id = session.get("user_id")
@@ -118,29 +125,22 @@ def create_app(test_config: dict | None = None) -> Flask:
         db = get_db()
         db.execute("BEGIN IMMEDIATE")
         try:
-            guest = load_state_record("local")
+            if journey.unification_required("local") or journey.unification_required(save_slot(user)):
+                db.rollback()
+                return jsonify(error="请先分别完成游客与账号的单档合并"), 409
             guest_journey = db.execute("SELECT state_json, revision FROM journey_saves WHERE slot='local'").fetchone()
             target = save_slot(user)
-            if not guest and not guest_journey:
+            if not guest_journey:
                 db.rollback()
                 return jsonify(error="没有可导入的游客存档"), 404
-            if load_state_record(target):
+            if db.execute("SELECT 1 FROM journey_saves WHERE slot=?", (target,)).fetchone():
                 db.rollback()
-                return jsonify(error="账号已有旧版存档，不能覆盖"), 409
-            if guest_journey and db.execute("SELECT 1 FROM journey_saves WHERE slot=?", (target,)).fetchone():
-                db.rollback()
-                return jsonify(error="账号已有正式征程存档，不能覆盖"), 409
-            if guest:
-                state = validate_state(guest["state"], guest["state"])
-                db.execute("INSERT INTO game_saves(slot,state_json,user_id,revision) VALUES(?,?,?,1)",
-                           (target, json.dumps(state, ensure_ascii=False), user["id"]))
-            if guest_journey:
-                db.execute("INSERT INTO journey_saves VALUES(?,?,?)", (target, guest_journey["state_json"], guest_journey["revision"]))
-                db.execute("INSERT INTO journey_results SELECT ?,trial_id,receipt_json FROM journey_results WHERE slot='local'", (target,))
-                db.execute("INSERT INTO journey_migrations SELECT ?,legacy_revision,journey_revision,receipt_json FROM journey_migrations WHERE slot='local'", (target,))
+                return jsonify(error="账号已有征程存档，不能覆盖"), 409
+            state = journey.normalize_journey(json.loads(guest_journey["state_json"]))
+            db.execute("INSERT INTO journey_saves VALUES(?,?,1)", (target, json.dumps(state, ensure_ascii=False)))
+            db.execute("INSERT INTO journey_results SELECT ?,trial_id,receipt_json FROM journey_results WHERE slot='local'", (target,))
             db.commit()
-            return jsonify(ok=True, state=state if guest else None, revision=1 if guest else None,
-                           journey_imported=bool(guest_journey), contract=rules_metadata())
+            return jsonify(ok=True, journey_imported=True)
         except Exception:
             db.rollback()
             raise
@@ -254,18 +254,20 @@ def create_app(test_config: dict | None = None) -> Flask:
         user = current_user()
         state, revision = journey.read_journey(save_slot(user))
         try:
-            return jsonify(**journey.response(state, revision), config=journey.CONFIG, owner_id=user["id"] if user else None)
+            return jsonify(**journey.response(state, revision), config=journey.CONFIG,
+                           owner_id=user["id"] if user else None,
+                           migration_required=journey.unification_required(save_slot(user)))
         except ValueError as exc:
             return jsonify(error=str(exc)), 400
 
-    @app.get("/api/journey/import-preview")
+    @app.get("/api/journey/unify-preview")
     def journey_import_preview():
         try:
-            return jsonify(**journey.import_preview(save_slot(current_user())))
+            return jsonify(**journey.unify_preview(save_slot(current_user())))
         except ValueError as exc:
             return jsonify(error=str(exc)), 400
 
-    @app.post("/api/journey/import-confirm")
+    @app.post("/api/journey/unify-confirm")
     def journey_import_confirm():
         user = current_user()
         if not csrf_ok(user):
@@ -273,9 +275,30 @@ def create_app(test_config: dict | None = None) -> Flask:
         payload = request.get_json(silent=True)
         owner = user["id"] if user else None
         if (not isinstance(payload, dict) or payload.get("owner_id") != owner
+                or type(payload.get("revisions")) is not dict):
+            return jsonify(error="账号或预览版本无效，请重新预览"), 409
+        try:
+            return jsonify(**journey.unify_confirm(save_slot(user), payload["revisions"]))
+        except ValueError as exc:
+            return jsonify(error=str(exc)), 409
+
+    @app.get("/api/journey/import-preview")
+    def legacy_import_preview():
+        try:
+            return jsonify(**journey.import_preview(save_slot(current_user())))
+        except ValueError as exc:
+            return jsonify(error=str(exc)), 400
+
+    @app.post("/api/journey/import-confirm")
+    def legacy_import_confirm():
+        user = current_user()
+        if not csrf_ok(user):
+            return jsonify(error="会话校验失败"), 403
+        payload = request.get_json(silent=True)
+        owner = user["id"] if user else None
+        if (not isinstance(payload, dict) or payload.get("owner_id") != owner
                 or type(payload.get("legacy_revision")) is not int
-                or type(payload.get("journey_revision")) is not int
-                or payload["legacy_revision"] < 0 or payload["journey_revision"] < 0):
+                or type(payload.get("journey_revision")) is not int):
             return jsonify(error="账号或预览版本无效，请重新预览"), 409
         try:
             return jsonify(**journey.confirm_import(save_slot(user), payload["legacy_revision"], payload["journey_revision"]))

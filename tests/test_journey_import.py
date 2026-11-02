@@ -95,11 +95,11 @@ def test_import_conflict_active_trial_and_account_change(client, app):
     data = client.get("/api/journey").get_json()
     started = client.post("/api/journey", json={"action": "start", "realm_id": "fire",
         "map_id": "ridge", "owner_id": None, "revision": data["revision"]})
-    assert started.status_code == 200
-    assert not client.get("/api/journey/import-preview").get_json()["available"]
+    assert started.status_code == 400  # 单档合并完成前不能再开正式挑战。
+    assert client.get("/api/journey/import-preview").get_json()["available"]
     blocked = client.post("/api/journey/import-confirm", json={
-        "owner_id": None, "legacy_revision": 2, "journey_revision": started.get_json()["revision"]})
-    assert blocked.status_code == 409
+        "owner_id": None, "legacy_revision": 1, "journey_revision": data["revision"]})
+    assert blocked.status_code == 409  # 旧档修订号已变化。
     registered = client.post("/api/auth/register", json={"username": "importuser", "password": "password123"})
     assert registered.status_code == 201
     assert client.post("/api/journey/import-confirm", json={
@@ -113,12 +113,18 @@ def test_guest_import_carries_migrated_journey_without_overwriting(client, app):
     save_legacy(app, old)
     client.post("/api/journey/import-confirm", json={
         "owner_id": None, "legacy_revision": 1, "journey_revision": 0})
+    preview = client.get("/api/journey/unify-preview").get_json()
+    assert preview["available"]
+    unified = client.post("/api/journey/unify-confirm", json={
+        "owner_id": None, "revisions": preview["revisions"]})
+    assert unified.status_code == 200
     registration = client.post("/api/auth/register", json={
         "username": "guestcopy", "password": "password123"}).get_json()
     token = registration["csrf_token"]
     result = client.post("/api/auth/import-guest", headers={"X-CSRF-Token": token})
     assert result.status_code == 200 and result.get_json()["journey_imported"]
-    assert client.get("/api/journey/import-preview").get_json()["migrated"]
+    assert client.get("/api/journey").get_json()["migration_required"] is False
+    assert client.get("/api/journey").get_json()["state"]["beads"] == unified.get_json()["state"]["beads"]
     again = client.post("/api/auth/import-guest", headers={"X-CSRF-Token": token})
     assert again.status_code == 409
 

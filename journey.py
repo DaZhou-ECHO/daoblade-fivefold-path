@@ -6,6 +6,7 @@ from pathlib import Path
 
 from database import get_db, load_state_record
 from game_rules import validate_state as validate_legacy_state
+from array_lab import validate_lab_state
 
 MAPS_V2 = json.loads((Path(__file__).parent / "static/data/journey-maps-v2.json").read_text(encoding="utf-8"))
 
@@ -32,11 +33,19 @@ PALACES = [
     ("qian", "乾", "metal", "西北", "☰", "贯剑", "剑锋：基础攻击+2"),
 ]
 ROLES = {"core": "核心", "trace": "纹路", "edge": "锐式", "flow": "流式", "mind": "心法"}
-CONFIG = {"ruleset_id": "journey-v1", "schema_version": 1,
+CONFIG = {"ruleset_id": "journey-v1", "schema_version": 2,
           "palaces": [dict(zip(("id", "name", "element", "direction", "symbol", "skill", "mind"), p)) for p in PALACES],
           "realms": ["fire", "wood", "earth", "metal", "water"],
           "ranks": [{"name": "练气", "capacity": 6}, {"name": "筑基", "capacity": 10}],
           "maps": [{"id": "ridge", "name": "高径"}, {"id": "hollow", "name": "回廊"}]}
+TRAINING = {"sword": "剑术", "step": "身法", "guard": "护体"}
+TRAINING_COSTS = (8, 12, 16)
+COSMETICS = {"plain": {"name": "本命素剑", "price": 0, "color": "#b6dbe6"},
+             "azure": {"name": "青岚剑", "price": 2, "color": "#6ee6bd"},
+             "sunset": {"name": "赤霞剑", "price": 4, "color": "#ff9b75"},
+             "frost": {"name": "霜魄剑", "price": 6, "color": "#91d9ff"}}
+CONFIG["training"] = {"branches": TRAINING, "costs": list(TRAINING_COSTS)}
+CONFIG["cosmetics"] = COSMETICS
 NODES = [{"id": p[0]+"."+role, "palace": p[0], "element": p[2], "role": role,
           "label": p[1]+"·"+name, "parent": None if role == "core" else p[0]+(".trace" if role in ("edge", "flow") else ".core")}
          for p in PALACES for role, name in ROLES.items()]
@@ -51,13 +60,48 @@ def new_bead(key):
 
 def default_journey():
     starter = ["li.core", "li.trace", "li.edge", "gen.core", "gen.mind"]
-    return {"ruleset_id": "journey-v1", "schema_version": 1, "rank": 0,
+    return {"ruleset_id": "journey-v1", "schema_version": 2, "rank": 0,
             "beads": [new_bead(k) for k in starter], "nodes": {n["id"]: n["id"] if n["id"] in starter else None for n in NODES},
             "loadout": {"active": ["li", None], "passive": ["gen", None]},
-            "progress": {"runs": 0, "victories": 0, "spirit": 0, "clears": {r: 0 for r in CONFIG["realms"]}}, "active_trial": None}
+            "progress": {"runs": 0, "victories": 0, "spirit": 0, "clears": {r: 0 for r in CONFIG["realms"]},
+                         "route_clears": {r+":"+m["id"]: 0 for r in CONFIG["realms"] for m in CONFIG["maps"]}},
+            "training": {key: 0 for key in TRAINING},
+            "cosmetics": {"tickets": 0, "owned": ["plain"], "equipped": "plain"}, "active_trial": None}
+
+
+def normalize_journey(raw):
+    state = deepcopy(raw)
+    if state.get("ruleset_id") != "journey-v1" or state.get("schema_version") not in (1, 2):
+        raise ValueError("正式存档版本不受支持")
+    defaults = default_journey()
+    state["schema_version"] = 2
+    for key in ("training", "cosmetics"):
+        state.setdefault(key, deepcopy(defaults[key]))
+    state["progress"].setdefault("route_clears", deepcopy(defaults["progress"]["route_clears"]))
+    return state
+
+
+def validate_village(state):
+    if state.get("schema_version") != 2 or set(state.get("training", {})) != set(TRAINING):
+        raise ValueError("师门存档无效")
+    if any(type(level) is not int or level not in (0, 1, 2, 3) for level in state["training"].values()):
+        raise ValueError("师门等级无效")
+    cosmetics = state.get("cosmetics")
+    if not isinstance(cosmetics, dict) or set(cosmetics) != {"tickets", "owned", "equipped"}:
+        raise ValueError("外观存档无效")
+    if type(cosmetics["tickets"]) is not int or cosmetics["tickets"] < 0:
+        raise ValueError("外观券无效")
+    owned = cosmetics["owned"]
+    if not isinstance(owned, list) or not owned or len(owned) != len(set(owned)) or "plain" not in owned or any(key not in COSMETICS for key in owned) or cosmetics["equipped"] not in owned:
+        raise ValueError("外观目录无效")
+    route_clears = state.get("progress", {}).get("route_clears")
+    if not isinstance(route_clears, dict) or set(route_clears) != set(default_journey()["progress"]["route_clears"]) or any(type(n) is not int or n < 0 for n in route_clears.values()):
+        raise ValueError("路线通关记录无效")
+    return state
 
 
 def validate_build(state):
+    validate_village(state)
     if type(state.get("rank")) is not int or state["rank"] not in (0, 1):
         raise ValueError("境界无效")
     owned = {b["id"]: b for b in state["beads"]}
@@ -131,6 +175,7 @@ def compile_journey(state):
     return {"campaign": True, "ruleset_id": "journey-v1", "used": sum(x is not None for x in state["nodes"].values()),
             "capacity": CONFIG["ranks"][state["rank"]]["capacity"], "rank": state["rank"], "connected": connected,
             "inactive": inactive, "skills": skills, "minds": minds, "mind_levels": mind_levels, "effective_bead_ids": sorted(selected),
+            "training": deepcopy(state["training"]), "cosmetic": state["cosmetics"]["equipped"],
             "skill": {"enabled": any(skills), "burn_damage": 4}}
 
 
@@ -154,7 +199,7 @@ def response(state, revision, receipt=None, replayed=False):
 
 def read_journey(slot):
     row = get_db().execute("SELECT * FROM journey_saves WHERE slot=?", (slot,)).fetchone()
-    return (json.loads(row["state_json"]), row["revision"]) if row else (default_journey(), 0)
+    return (normalize_journey(json.loads(row["state_json"])), row["revision"]) if row else (default_journey(), 0)
 
 
 def _legacy_level(level):
@@ -282,13 +327,139 @@ def confirm_import(slot, legacy_revision, journey_revision):
         raise
 
 
+def _source_row(db, table, slot):
+    exists = db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (table,)).fetchone()
+    return db.execute(f"SELECT state_json, revision FROM {table} WHERE slot=?", (slot,)).fetchone() if exists else None
+
+
+def _unify_projection(db, slot, old_row, lab_row, journey_row):
+    current = normalize_journey(json.loads(journey_row["state_json"])) if journey_row else default_journey()
+    before = {"beads": len(current["beads"]), "spirit": current["progress"]["spirit"]}
+    old_receipt = {"converted": [], "unused": [], "imported_clears": [], "spirit_awarded": 0}
+    if old_row:
+        legacy = validate_legacy_state(json.loads(old_row["state_json"]), json.loads(old_row["state_json"]))
+        current, old_receipt = _import_projection(legacy, current)
+    lab_entries = []
+    discarded_lab = None
+    if lab_row:
+        lab = validate_lab_state(json.loads(lab_row["state_json"]))
+        sample = next(bead for bead in lab["beads"] if bead["id"] == "lab-water")
+        discarded_lab = {"runs": lab["progress"]["runs"], "victories": lab["progress"]["victories"],
+                         "spirit": lab["progress"]["spirit"], "water_sample": {"name": sample["name"], "level": sample["level"]}}
+        owned = {bead["id"]: bead for bead in current["beads"]}
+        by_id = {bead["id"]: bead for bead in lab["beads"]}
+        mapping = {"li.core": ["lab-core"], "li.trace": ["lab-mark"],
+                   "li.edge": ["lab-focus", "lab-burst"], "li.flow": ["lab-cycle"]}
+        for target, source_ids in mapping.items():
+            level = max(by_id[key]["level"] for key in source_ids)
+            previous = owned[target]["level"] if target in owned else None
+            if target not in owned:
+                bead = new_bead(target)
+                current["beads"].append(bead)
+                owned[target] = bead
+            if level > owned[target]["level"]:
+                owned[target].update(level=level, xp=0)
+            lab_entries.append({"source": source_ids, "target_id": target,
+                                "source_level": level, "target_level": owned[target]["level"],
+                                "changed": previous != owned[target]["level"]})
+    if journey_row and json.loads(journey_row["state_json"]).get("schema_version") == 1:
+        rows = db.execute("SELECT receipt_json FROM journey_results WHERE slot=?", (slot,)).fetchall()
+        for row in rows:
+            result = json.loads(row["receipt_json"])
+            if result.get("outcome") == "victory" and not result.get("breakthrough"):
+                key = result.get("realm_id", "") + ":" + result.get("map_id", "ridge")
+                if key in current["progress"]["route_clears"]:
+                    current["progress"]["route_clears"][key] += 1
+    cleared = []
+    for name, row in (("旧五行", old_row), ("阵盘试验", lab_row), ("正式征程", journey_row)):
+        if row and json.loads(row["state_json"]).get("active_trial"):
+            cleared.append(name)
+    current["active_trial"] = None
+    validate_build(current)
+    receipt = {"legacy": old_receipt, "lab": lab_entries,
+               "discarded": {"lab": discarded_lab, "legacy_unused_beads": len(old_receipt["unused"])},
+               "cleared_trials": cleared, "before": before,
+               "after": {"beads": len(current["beads"]), "spirit": current["progress"]["spirit"]}}
+    return current, receipt
+
+
+def unify_preview(slot):
+    db = get_db()
+    prior = db.execute("SELECT receipt_json FROM journey_unifications WHERE slot=?", (slot,)).fetchone()
+    if prior:
+        return {"available": False, "migrated": True, "receipt": json.loads(prior[0])}
+    old = _source_row(db, "game_saves", slot)
+    lab = _source_row(db, "array_lab_saves", slot)
+    formal = _source_row(db, "journey_saves", slot)
+    if not old and not lab and (not formal or json.loads(formal["state_json"]).get("schema_version") == 2):
+        return {"available": False, "migrated": False, "reason": "当前无需合档"}
+    _projected, receipt = _unify_projection(db, slot, old, lab, formal)
+    return {"available": True, "migrated": False,
+            "revisions": {"legacy": old["revision"] if old else None,
+                          "lab": lab["revision"] if lab else None,
+                          "journey": formal["revision"] if formal else None}, "receipt": receipt}
+
+
+def unification_required(slot):
+    db = get_db()
+    if db.execute("SELECT 1 FROM journey_unifications WHERE slot=?", (slot,)).fetchone():
+        return False
+    if _source_row(db, "game_saves", slot) or _source_row(db, "array_lab_saves", slot):
+        return True
+    formal = _source_row(db, "journey_saves", slot)
+    return bool(formal and json.loads(formal["state_json"]).get("schema_version") != 2)
+
+
+def unify_confirm(slot, revisions):
+    db = get_db()
+    db.execute("BEGIN IMMEDIATE")
+    try:
+        prior = db.execute("SELECT receipt_json FROM journey_unifications WHERE slot=?", (slot,)).fetchone()
+        if prior:
+            state, revision = read_journey(slot)
+            db.commit()
+            return {**response(state, revision), "unification_receipt": json.loads(prior[0]), "replayed": True}
+        old = _source_row(db, "game_saves", slot)
+        lab = _source_row(db, "array_lab_saves", slot)
+        formal = _source_row(db, "journey_saves", slot)
+        actual = {"legacy": old["revision"] if old else None, "lab": lab["revision"] if lab else None,
+                  "journey": formal["revision"] if formal else None}
+        if type(revisions) is not dict or revisions != actual:
+            raise ValueError("存档已被其他窗口更新，请重新预览")
+        if not old and not lab and (not formal or json.loads(formal["state_json"]).get("schema_version") == 2):
+            raise ValueError("当前无需合档")
+        state, receipt = _unify_projection(db, slot, old, lab, formal)
+        revision = (formal["revision"] if formal else 0) + 1
+        db.execute("INSERT INTO journey_saves VALUES(?,?,?) ON CONFLICT(slot) DO UPDATE SET state_json=excluded.state_json,revision=excluded.revision",
+                   (slot, json.dumps(state, ensure_ascii=False), revision))
+        db.execute("INSERT INTO journey_unifications VALUES(?,?,?)", (slot, json.dumps(actual), json.dumps(receipt, ensure_ascii=False)))
+        for table in ("game_saves", "array_lab_saves", "array_lab_results", "journey_migrations"):
+            if db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (table,)).fetchone():
+                db.execute(f"DELETE FROM {table} WHERE slot=?", (slot,))
+        remaining = any(db.execute(f"SELECT 1 FROM {table} LIMIT 1").fetchone()
+                        for table in ("game_saves", "array_lab_saves")
+                        if db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (table,)).fetchone())
+        if not remaining:
+            for table in ("game_saves", "array_lab_saves", "array_lab_results", "journey_migrations"):
+                if db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (table,)).fetchone():
+                    db.execute(f"DROP TABLE {table}")
+            db.execute("INSERT OR REPLACE INTO app_meta VALUES('legacy_retired','1')")
+        db.commit()
+        return {**response(state, revision), "unification_receipt": receipt}
+    except Exception:
+        db.rollback()
+        raise
+
+
 def transition(slot, revision, payload):
     db = get_db()
     db.execute("BEGIN IMMEDIATE")
     try:
+        if unification_required(slot):
+            raise ValueError("请先预览并确认单档合并")
         state, current = read_journey(slot)
         action = payload.get("action")
-        if action not in {"build", "start", "checkpoint", "altar", "shortcut", "settle", "abandon"}:
+        if action not in {"build", "start", "checkpoint", "altar", "shortcut", "settle", "abandon", "train", "reset_training", "purchase", "equip_cosmetic"}:
             raise ValueError("征程操作无效")
         if action in {"settle", "abandon", "checkpoint", "altar", "shortcut"}:
             trial_id = payload.get("trial_id")
@@ -306,7 +477,41 @@ def transition(slot, revision, payload):
             raise ValueError("其他窗口已更新，请重新读取征程")
         receipt = None
         trial = state["active_trial"]
-        if action == "build":
+        if action in {"train", "reset_training", "purchase", "equip_cosmetic"}:
+            if trial:
+                raise ValueError("挑战中不能调整师门或外观")
+            if action == "train":
+                branch = payload.get("branch")
+                if type(branch) is not str or branch not in TRAINING or state["training"][branch] >= 3:
+                    raise ValueError("师门分支或等级无效")
+                cost = TRAINING_COSTS[state["training"][branch]]
+                if state["progress"]["spirit"] < cost:
+                    raise ValueError("修为不足")
+                state["progress"]["spirit"] -= cost
+                state["training"][branch] += 1
+                receipt = {"action": "train", "branch": branch, "level": state["training"][branch], "spirit": -cost}
+            elif action == "reset_training":
+                refund = sum(sum(TRAINING_COSTS[:level]) for level in state["training"].values())
+                state["progress"]["spirit"] += refund
+                state["training"] = {key: 0 for key in TRAINING}
+                receipt = {"action": "reset_training", "spirit": refund}
+            elif action == "purchase":
+                key = payload.get("cosmetic")
+                if type(key) is not str or key not in COSMETICS or key == "plain" or key in state["cosmetics"]["owned"]:
+                    raise ValueError("外观商品无效或已拥有")
+                price = COSMETICS[key]["price"]
+                if state["cosmetics"]["tickets"] < price:
+                    raise ValueError("外观券不足")
+                state["cosmetics"]["tickets"] -= price
+                state["cosmetics"]["owned"].append(key)
+                receipt = {"action": "purchase", "cosmetic": key, "tickets": -price}
+            else:
+                key = payload.get("cosmetic")
+                if type(key) is not str or key not in state["cosmetics"]["owned"]:
+                    raise ValueError("尚未拥有该外观")
+                state["cosmetics"]["equipped"] = key
+                receipt = {"action": "equip_cosmetic", "cosmetic": key}
+        elif action == "build":
             if trial:
                 raise ValueError("挑战中构筑冻结，请先结束或放弃")
             state["nodes"] = deepcopy(payload.get("nodes"))
@@ -367,7 +572,7 @@ def transition(slot, revision, payload):
                         return response(state, current)
                 win = action == "settle" and win
                 receipt = {"trial_id": trial_id, "realm_id": trial["realm_id"], "map_id": trial["map_id"], "breakthrough": trial["breakthrough"],
-                           "outcome": "victory" if win else "abandoned" if action == "abandon" else "defeat", "spirit": 0, "base_spirit": 0, "branch_spirit": 0, "duplicate_spirit": 0, "xp_awards": [], "drops": []}
+                           "outcome": "victory" if win else "abandoned" if action == "abandon" else "defeat", "spirit": 0, "tickets": 0, "base_spirit": 0, "branch_spirit": 0, "duplicate_spirit": 0, "xp_awards": [], "drops": []}
                 if win and trial["breakthrough"]:
                     state["rank"] = 1
                     state["progress"]["spirit"] -= 24
@@ -396,6 +601,9 @@ def transition(slot, revision, payload):
                     state["progress"]["spirit"] += receipt["spirit"]
                     state["progress"]["victories"] += 1
                     state["progress"]["clears"][realm] += 1
+                    state["progress"]["route_clears"][realm+":"+trial["map_id"]] += 1
+                    state["cosmetics"]["tickets"] += 1
+                    receipt["tickets"] = 1
                 state["active_trial"] = None
                 db.execute("INSERT INTO journey_results VALUES(?,?,?)", (slot, trial_id, json.dumps(receipt, ensure_ascii=False)))
         validate_build(state)

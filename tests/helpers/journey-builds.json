@@ -38,7 +38,13 @@
     "skill": {
       "enabled": true,
       "burn_damage": 4
-    }
+    },
+    "training": {
+      "sword": 0,
+      "step": 0,
+      "guard": 0
+    },
+    "cosmetic": "plain"
   },
   {
     "campaign": true,
@@ -79,7 +85,13 @@
     "skill": {
       "enabled": true,
       "burn_damage": 4
-    }
+    },
+    "training": {
+      "sword": 0,
+      "step": 0,
+      "guard": 0
+    },
+    "cosmetic": "plain"
   },
   {
     "campaign": true,
@@ -120,7 +132,13 @@
     "skill": {
       "enabled": true,
       "burn_damage": 4
-    }
+    },
+    "training": {
+      "sword": 0,
+      "step": 0,
+      "guard": 0
+    },
+    "cosmetic": "plain"
   },
   {
     "campaign": true,
@@ -161,7 +179,13 @@
     "skill": {
       "enabled": true,
       "burn_damage": 4
-    }
+    },
+    "training": {
+      "sword": 0,
+      "step": 0,
+      "guard": 0
+    },
+    "cosmetic": "plain"
   },
   {
     "campaign": true,
@@ -202,7 +226,13 @@
     "skill": {
       "enabled": true,
       "burn_damage": 4
-    }
+    },
+    "training": {
+      "sword": 0,
+      "step": 0,
+      "guard": 0
+    },
+    "cosmetic": "plain"
   },
   {
     "campaign": true,
@@ -243,7 +273,13 @@
     "skill": {
       "enabled": true,
       "burn_damage": 4
-    }
+    },
+    "training": {
+      "sword": 0,
+      "step": 0,
+      "guard": 0
+    },
+    "cosmetic": "plain"
   },
   {
     "campaign": true,
@@ -284,7 +320,13 @@
     "skill": {
       "enabled": true,
       "burn_damage": 4
-    }
+    },
+    "training": {
+      "sword": 0,
+      "step": 0,
+      "guard": 0
+    },
+    "cosmetic": "plain"
   },
   {
     "campaign": true,
@@ -325,6 +367,12 @@
     "skill": {
       "enabled": true,
       "burn_damage": 4
-    }
+    },
+    "training": {
+      "sword": 0,
+      "step": 0,
+      "guard": 0
+    },
+    "cosmetic": "plain"
   }
 ]

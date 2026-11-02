@@ -180,7 +180,6 @@ async function initializeSession() {
     csrfToken = payload.csrf_token;
   } catch (_) { currentUser = null; }
   renderAccount();
-  await loadState();
   await globalThis.DaoBladeJourneyUI?.load();
 }
 
@@ -210,7 +209,7 @@ async function submitAccount(action) {
     $("#account-password").value = "";
     $("#account-dialog").close();
     renderAccount();
-    await loadState();
+    await globalThis.DaoBladeJourneyUI?.load();
     showPanel("sanctuary");
     showToast(`欢迎，${currentUser.username}`);
   } catch (error) { showToast(error.message, true); }
@@ -599,6 +598,8 @@ class BattleGame {
       if(minds.includes("xun"))this.stats.speed+=8+4*this.journeyMindLevel("xun");
       if(minds.includes("gen"))this.stats.defense+=1+this.journeyMindLevel("gen");
       if(minds.includes("kun"))this.stats.hpMax+=10+5*this.journeyMindLevel("kun");
+      this.stats.speed*=1+(this.lab.training?.step||0)*.02;
+      this.stats.hpMax+=(this.lab.training?.guard||0)*5;
     }
     this.worldArtAssets = globalThis.DaoBladeWorldAssets?.shared || null;
     this.enemyArt = globalThis.DaoBladeEnemyArt ? new globalThis.DaoBladeEnemyArt.Renderer(this.worldArtAssets) : null;
@@ -769,7 +770,7 @@ class BattleGame {
     this.releaseTouchCapture(button, id);
   }
 
-  quit() { const target = this.journey ? "journey" : this.lab || this.bossPractice ? "arraylab" : this.practice ? "cultivation" : "realms"; abandonCheckpoint(this); this.destroy(); activeGame = null; showPanel(target); }
+  quit() { const target = this.journey ? "sanctuary" : this.lab || this.bossPractice ? "arraylab" : this.practice ? "cultivation" : "realms"; abandonCheckpoint(this); this.destroy(); activeGame = null; showPanel(target); }
 
   setPause(value) {
     if (this.finished || (!value && (this.labPending||this.labError))) return;
@@ -1216,7 +1217,8 @@ class BattleGame {
       const range = this.combatV2?CONTROLLER.config.slash[p.combo-1].range:(p.combo === 3 ? (this.stats.primary === "metal" ? 132 : 104) : 82) + (this.stats.secondary === "metal" ? 10 : 0); const left = p.face > 0 ? p.x + p.w - 4 : p.x - range + 4;
       this.enemies.filter(e => active && !e.dead && e.lastHit !== p.attackId && this.overlap(left, p.y + 4, range, 62, e.x, e.y, e.w, e.h)).forEach(e => {
         e.lastHit = p.attackId;
-        let damage = this.stats.attack * [1, 1, 1.12, 1.34][p.combo] * (1 + (this.stats.affixes.attack || 0) / 100);
+        let damage = this.stats.attack * [1, 1, 1.12, 1.34][p.combo] * (1 + (this.stats.affixes.attack || 0) / 100)
+          * (this.journey?1+(this.lab.training?.sword||0)*.03:1);
         const crit = Math.random() < this.stats.crit;
         if (crit) damage *= 1.75;
         this.hitEnemy(e, damage * (p.counterAttack ? 1.35 : 1) * (p.nextSlashBuff ? 1.35 : 1), crit, false, "slash");
@@ -1729,8 +1731,9 @@ class BattleGame {
       $("#result-title").textContent=win?`${this.element.realm} · 阵盘试炼成功`:"阵盘试炼 · 道心未折";
       $("#result-message").textContent=win?`胜利已保存：修为 +${payload.receipt.spirit}，仅有效出战珠成长。返回阵盘可拆换并再次挑战。`:this.labTrial?.checkpoint?"剑碑已保存，原配珠与已领祭坛保留；续关重置后段敌人。失败不发经验。":"本次失败已保存，无经验奖励。返回阵盘调整，或重新挑战。";
       if(this.journey){
+        $("#return-sanctuary").textContent="返回新手村";
         $("#result-title").textContent=this.breakthrough?(win?"筑基突破成功 · 容量6→10":"突破未成 · 修为未扣"):win?`${this.element.realm} · 正式征程胜利`:"正式征程 · 道心未折";
-        $("#result-message").textContent=win?`已保存 · 修为${payload.receipt.spirit>=0?"+":""}${payload.receipt.spirit} · ${this.breakthrough?"新容量已开放，可装更多宫位":`基础${payload.receipt.base_spirit??12} / 支路${payload.receipt.branch_spirit??0} / 重复珠${payload.receipt.duplicate_spirit??0}；新珠已入匣`}`:this.labTrial?.checkpoint?"剑碑已保留，可按原构筑续关，无失败奖励":"失败无奖励，可返回调整后重试";
+        $("#result-message").textContent=win?`已保存 · 修为${payload.receipt.spirit>=0?"+":""}${payload.receipt.spirit} · ${this.breakthrough?"新容量已开放，可装更多宫位":`外观券 +${payload.receipt.tickets}；基础${payload.receipt.base_spirit??12} / 支路${payload.receipt.branch_spirit??0} / 重复珠${payload.receipt.duplicate_spirit??0}；新珠已入匣`}`:this.labTrial?.checkpoint?"剑碑已保留，可按原构筑续关，无失败奖励":"失败无奖励，可返回调整后重试";
       }
       $("#reward-list").innerHTML=win?payload.receipt.xp_awards.map(a=>`<div class="reward-item"><b>${esc(payload.state.beads?.find(b=>b.id===a.id)?.name||a.id)}</b><small>经验 +${a.amount} → Lv${a.level}</small></div>`).join(""):'<div class="empty-message">未获得奖励</div>';
       if(win&&this.journey)$("#reward-list").innerHTML+=payload.receipt.drops.map(d=>`<div class="reward-item"><b>${esc(d.name)}</b><small>${d.duplicate?`重复转经验+${d.xp} / 修为+${d.spirit}`:"新珠已入匣"}</small></div>`).join("");
@@ -1938,7 +1941,7 @@ class BattleGame {
 
   drawPlayer(ctx, p) {
     const actionState = globalThis.DaoBladeActions?.createActionState(p);
-    if (actionState && this.characterArt?.drawState(ctx, actionState, elementColor(this.stats.primary))) {
+    if (actionState && this.characterArt?.drawState(ctx, actionState, elementColor(this.stats.primary), this.lab?.cosmetic||"plain")) {
       const x = Math.round(p.x), y = Math.round(p.y);
       if (p.shield > 0) {
         ctx.strokeStyle = "#dfad4c"; ctx.lineWidth = 3;
@@ -2130,7 +2133,6 @@ function bindUi() {
       const response = await fetch("/api/auth/import-guest", { method: "POST", headers: { "X-CSRF-Token": csrfToken } });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || "导入失败");
-      await loadState();
       await globalThis.DaoBladeJourneyUI?.load();
       showToast("游客存档已导入当前账号");
     } catch (error) { showToast(error.message, true); }
@@ -2163,7 +2165,7 @@ function bindUi() {
   $("#reset-controls").addEventListener("click", () => { controls = { ...DEFAULT_CONTROLS }; localStorage.setItem("daoblade-controls", JSON.stringify(controls)); renderControls(); });
   $("#return-sanctuary").addEventListener("click", event => {
     event.preventDefault(); $("#result-dialog").close();
-    const target=activeGame?.journey?"journey":activeGame?.labRun||activeGame?.bossPractice?"arraylab":"sanctuary"; activeGame?.destroy(); activeGame = null; showPanel(target);
+    const target=activeGame?.journey?"sanctuary":activeGame?.labRun||activeGame?.bossPractice?"arraylab":"sanctuary"; activeGame?.destroy(); activeGame = null; showPanel(target);
   });
   $("#continue-checkpoint").addEventListener("click", continueCheckpoint);
   $("#retry-result").addEventListener("click", event => {
