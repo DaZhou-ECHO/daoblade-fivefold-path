@@ -11,6 +11,7 @@
   const esc=value=>String(value).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   let snapshot=null;
   let bagTab='beads',bagElement='all',bagEquip='all',bagBead=null,bagSword=null,portraitRunning=false;
+  let viewedRealm=null,viewedRoute=null;
   function imagePath(realm,route){return `/static/sprites/world-v1/${realm}${route==='hollow'?'-hollow':''}-far.png`;}
   function imageFallback(img,realm,route){
     if(route==='hollow'&&!img.dataset.fallback){img.dataset.fallback='1';img.src=imagePath(realm,'ridge');}
@@ -61,6 +62,7 @@
     const summary=$("bag-summary"),groups=$("bag-groups");
     if(!summary||!groups)return;
     if(!data){
+      viewedRealm=null;viewedRoute=null;
       bagTab='beads';bagElement='all';bagEquip='all';bagBead=null;bagSword=null;
       summary.textContent='正在读取正式征程';groups.textContent='';$("bag-swords").textContent='';$("bag-detail").textContent='';
       $("bag-rank").textContent='读取中';$("bag-loadout").textContent='';$("bag-capacity").textContent='';$("bag-equipped-sword").textContent='';return;
@@ -110,11 +112,12 @@
       $("home-rank").textContent='读取中';$("home-clears").textContent='0 / 5';$("home-beads").textContent='0 / 40';$("home-trial").textContent='无';
       $("home-next-step").textContent='正在读取你的正式征程。';$("home-sync").textContent='';
       $("atlas-realms").textContent='';$("atlas-routes").textContent='';$("atlas-region-title").textContent='正在读取';
-      $("home-primary").disabled=true;$("atlas-start").disabled=true;$("atlas-resume").disabled=true;if($("migration-panel"))$("migration-panel").hidden=true;return;
+      $("home-primary").disabled=true;$("atlas-start").disabled=true;$("atlas-resume").disabled=true;$("atlas-resume").hidden=true;$("atlas-reload").hidden=true;$("atlas-unify").hidden=true;if($("migration-panel"))$("migration-panel").hidden=true;return;
     }
     const {state:s,config,compiled,busy,blocked,dirty,migrationRequired}=data;
     const active=s.active_trial,cleared=config.realms.filter(r=>s.progress.clears[r]>0).length;
-    const selectedRealm=active?.realm_id||data.realm,selectedRoute=active?.map_id||data.route;
+    if(!active){viewedRealm=null;viewedRoute=null;}
+    const selectedRealm=viewedRealm||active?.realm_id||data.realm,selectedRoute=viewedRoute||active?.map_id||data.route;
     $("home-top-rank").textContent=config.ranks[s.rank].name+` · 修为 ${s.progress.spirit}`;
     $("home-top-clears").textContent=`五境首通 ${cleared}/5`;
     $("home-rank").textContent=config.ranks[s.rank].name;
@@ -130,33 +133,55 @@
     $("home-primary").disabled=busy||blocked||dirty||migrationRequired;
     $("atlas-realms").innerHTML=config.realms.map(realm=>`<button class="atlas-realm" type="button" data-realm="${realm}" aria-pressed="${realm===selectedRealm}" aria-label="${names[realm]}境，${s.progress.clears[realm]>0?'已首通':'未首通'}，查看高径与回廊" style="--realm-color:${colors[realm]};--realm-x:${positions[realm][0]}%;--realm-y:${positions[realm][1]}%"><span class="atlas-realm-symbol">${symbols[realm]}</span><span><b>${names[realm]}境</b><small>${regionCopy[realm]}</small></span><em>${s.progress.clears[realm]>0?'已首通':'未首通'}</em></button>`).join('');
     $("atlas-realms").querySelectorAll('[data-realm]').forEach(button=>button.onclick=()=>{
+      if(active){viewedRealm=button.dataset.realm;viewedRoute='ridge';update(snapshot);return;}
       if(root.DaoBladeJourneyUI.selectMap(button.dataset.realm,selectedRoute)){
         $("atlas-error").textContent='';
         if(root.matchMedia?.('(max-width:700px)')?.matches)root.requestAnimationFrame?.(()=>document.querySelector('.atlas-detail')?.scrollIntoView?.({block:'start',behavior:'smooth'}));
       }
       else $("atlas-error").textContent=active?'当前挑战进行中，请先恢复或放弃。':'无法切换地图，请检查征程存档。';
     });
+    $("atlas-realms").querySelectorAll('[data-realm]').forEach((button,index)=>button.onkeydown=event=>{
+      if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key))return;
+      event.preventDefault();const step=['ArrowLeft','ArrowUp'].includes(event.key)?-1:1;
+      const next=config.realms[(index+step+config.realms.length)%config.realms.length];
+      $("atlas-realms").querySelector(`[data-realm="${next}"]`)?.click();
+      root.requestAnimationFrame?.(()=>$("atlas-realms").querySelector(`[data-realm="${next}"]`)?.focus());
+    });
     $("atlas-region-label").textContent=`${symbols[selectedRealm]}行 · 两条可选路线`;
     $("atlas-region-title").textContent=`${names[selectedRealm]}境`;
     $("atlas-region-intro").textContent=regionCopy[selectedRealm];
     const recommendation=config.realms.find(r=>!s.progress.clears[r])||config.realms[0];
+    const blockReason=active?'当前挑战进行中，请先恢复。':migrationRequired?'请先完成单档合并。':blocked?'正式档未同步，请重新读取。':dirty?'八宫构筑未保存，请先到师父处保存或放弃草稿。':!compiled.skills.some(Boolean)?'尚无有效主动技能，请先到师父处设置 Q 或 E。':busy?'正在同步正式档，请稍候。':'';
+    $("atlas-trial-copy").textContent=active?`进行中：${names[active.realm_id]}境${active.map_id==='hollow'?'回廊':'高径'} · ${active.checkpoint?'从剑碑恢复':'从入口恢复'}`:blockReason||'选择路线，点击卡片上的“进入路线”直接开战。';
+    $("atlas-trial-banner").classList.toggle('has-trial',!!active);
+    $("atlas-reload").hidden=!blocked;
+    $("atlas-unify").hidden=!migrationRequired;
     $("atlas-routes").innerHTML=config.maps.map(map=>{
       const route=map.id,scene=data.mapScenes[selectedRealm]?.[route]||[route,''];
       const layout=root.DaoBladeJourneyMaps?.[selectedRealm+':'+route];
       const destination=layout?.sections?.at(-1)?.label||'首领场';
       const recommended=!active&&selectedRealm===recommendation&&route==='ridge';
       const routeClears=s.progress.route_clears?.[selectedRealm+':'+route]||0;
-      return `<button class="atlas-route" type="button" data-route="${route}" aria-pressed="${route===selectedRoute}"><span class="atlas-route-image"><img src="${imagePath(selectedRealm,route)}" alt="" data-scene="${selectedRealm}:${route}"></span><span class="atlas-route-body"><b>${esc(scene[0])}</b><small>${shape[route]}${recommended?' · 推荐':''} · ${routeClears?'已通关 '+routeClears+' 次':'未通关'}</small><span>${esc(scene[1])}</span><em>中段剑碑 · 2 条可返支路 · ${esc(destination)}</em></span></button>`;
+      return `<article class="atlas-route-card"><button class="atlas-route" type="button" data-route="${route}" aria-pressed="${route===selectedRoute}" aria-label="查看${names[selectedRealm]}境${esc(scene[0])}路线详情"><span class="atlas-route-image"><img src="${imagePath(selectedRealm,route)}" alt="" data-scene="${selectedRealm}:${route}"></span><span class="atlas-route-body"><b>${esc(scene[0])}</b><small>${shape[route]}${recommended?' · 推荐':''} · ${routeClears?'已通关 '+routeClears+' 次':'未通关'}</small><span>${esc(scene[1])}</span><em>中段剑碑 · 2 条可返支路 · ${esc(destination)}</em></span></button><div class="atlas-route-enter"><button class="pixel-button primary" type="button" data-enter-route="${route}" ${blockReason?'disabled':''}>进入${esc(scene[0])}</button>${blockReason?`<small>${esc(blockReason)}</small>`:''}</div></article>`;
     }).join('');
     $("atlas-routes").querySelectorAll('img[data-scene]').forEach(img=>img.onerror=()=>imageFallback(img,selectedRealm,img.dataset.scene.split(':')[1]));
     $("atlas-routes").querySelectorAll('[data-route]').forEach(button=>button.onclick=()=>{
+      if(active){viewedRoute=button.dataset.route;update(snapshot);return;}
       if(root.DaoBladeJourneyUI.selectMap(selectedRealm,button.dataset.route))$("atlas-error").textContent='';
       else $("atlas-error").textContent=active?'当前挑战进行中，请先恢复或放弃。':'无法切换路线，请检查征程存档。';
+    });
+    $("atlas-routes").querySelectorAll('[data-enter-route]').forEach(button=>button.onclick=()=>void root.DaoBladeJourneyUI.startMap(selectedRealm,button.dataset.enterRoute).catch(e=>{$("atlas-error").textContent=e.message;}));
+    for(const selector of ['[data-route]','[data-enter-route]'])$("atlas-routes").querySelectorAll(selector).forEach(button=>button.onkeydown=event=>{
+      if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key))return;
+      event.preventDefault();const next=button.dataset.route==='ridge'||button.dataset.enterRoute==='ridge'?'hollow':'ridge';
+      if(selector==='[data-route]')$("atlas-routes").querySelector(`[data-route="${next}"]`)?.click();
+      root.requestAnimationFrame?.(()=>$("atlas-routes").querySelector(selector.slice(0,-1)+`="${next}"]`)?.focus());
     });
     $("atlas-current").textContent=active?`进行中：${names[active.realm_id]}境 · ${active.map_id==='hollow'?'回廊':'高径'}，${active.checkpoint?'剑碑已保存':'从入口恢复'}。`:
       `已选：${names[selectedRealm]}境 · ${data.mapScenes[selectedRealm]?.[selectedRoute]?.[0]||selectedRoute}。`;
     $("atlas-start").disabled=busy||blocked||migrationRequired||dirty||!!active||!compiled.skills.some(Boolean);
     $("atlas-resume").disabled=busy||blocked||migrationRequired||!active;
+    $("atlas-resume").hidden=!active;
   }
   function reset(){update(null);$("atlas-error").textContent='';}
   function showAtlas(){document.querySelector('[data-panel="atlas"]').click();}
@@ -164,8 +189,11 @@
     if(snapshot?.state.active_trial)void root.DaoBladeJourneyUI.resumeTrial().catch(e=>{$("home-sync").textContent=e.message;});
     else showAtlas();
   };
-  $("atlas-start").onclick=()=>void root.DaoBladeJourneyUI.startSelected().catch(e=>{$("atlas-error").textContent=e.message;});
+  $("atlas-start").hidden=true;
+  $("atlas-trial-banner").appendChild?.($("atlas-resume"));
   $("atlas-resume").onclick=()=>void root.DaoBladeJourneyUI.resumeTrial().catch(e=>{$("atlas-error").textContent=e.message;});
+  $("atlas-reload").onclick=()=>void root.DaoBladeJourneyUI.load().catch(e=>{$("atlas-error").textContent=e.message;});
+  $("atlas-unify").onclick=()=>$("home-unify").click();
   $("bag-tab-beads").onclick=()=>{bagTab='beads';renderBag(snapshot);$("bag-tab-beads").focus?.();};
   $("bag-tab-swords").onclick=()=>{bagTab='swords';renderBag(snapshot);$("bag-tab-swords").focus?.();};
   for(const [id,tab] of [['bag-tab-beads','beads'],['bag-tab-swords','swords']])$(id).onkeydown=event=>{

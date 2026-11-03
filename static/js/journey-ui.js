@@ -31,6 +31,7 @@
     root.DaoBladeJourneyHome?.update(snapshot);
     root.DaoBladeVillage?.update(snapshot);
     root.DaoBladeVillageProgress?.update(snapshot);
+    root.DaoBladeBagua?.update(snapshot?{...snapshot,draft}:null);
   }
   function recommendation(){return config.realms.find(r=>!data.state.progress.clears[r])||config.realms.reduce((a,b)=>data.state.progress.clears[a]<=data.state.progress.clears[b]?a:b);}
   function mindDescription(id,level=1){
@@ -102,15 +103,43 @@
   }
   function launch(){const t=data.state.active_trial;if(!t)throw Error('没有未完成挑战');root.DaoBladeStartJourney(t,data.trial_compiled||t.compiled);}
   async function startTrial(breakthrough=false){await action('start',{realm_id:breakthrough?'fire':$("journey-realm").value,map_id:$("journey-map").value,breakthrough});launch();}
+  async function startMap(realm,route){
+    if(!data||!config?.realms.includes(realm)||!config.maps.some(map=>map.id===route))throw Error('路线无效，请重新打开山河图');
+    if(data.state.active_trial)throw Error('当前挑战尚未结束，请先恢复或放弃');
+    if(dirty())throw Error('八宫构筑尚未保存，请到师父处保存或放弃草稿');
+    if(!data.compiled.skills.some(Boolean))throw Error('尚未设置有效的主动技能，请先调整八宫');
+    await action('start',{realm_id:realm,map_id:route,breakthrough:false});launch();
+  }
   async function resumeTrial(){const generation=epoch;await load();if(generation!==epoch)throw Error('账号已变化');if(blocked)throw Error('重读失败');launch();}
   async function abandonTrial(){if(data?.state.active_trial)await action('abandon',{trial_id:data.state.active_trial.id});}
   async function restartTrial(expected,previous={}){const t=data?.state.active_trial;if(t&&t.id!==expected)throw Error('已有另一试炼，先核对');const breakthrough=!!(t?.breakthrough??previous.breakthrough);const realm=t?.realm_id??previous.realm_id,map=t?.map_id??previous.map_id;await abandonTrial();if(realm){$("journey-realm").value=realm;$("journey-map").value=map;}await startTrial(breakthrough);}
   function selectMap(realm,route){if(!data||busy||blocked||data.state.active_trial)return false;if(!config.realms.includes(realm)||!config.maps.some(m=>m.id===route))return false;$("journey-realm").value=realm;$("journey-map").value=route;describeMap();return true;}
+  function editNode(id,install,replaceVariant=false){
+    if(!data||busy||blocked||migrationRequired||data.state.active_trial)throw Error('当前不能调整八宫，请核对征程状态');
+    const node=config.nodes.find(n=>n.id===id);
+    if(!node)throw Error('八宫节点无效');
+    if(install&&!data.state.beads.some(bead=>bead.id===id))throw Error('尚未获得此灵珠');
+    const next=buildOf(draft);
+    if(install&&['edge','flow'].includes(node.role)){
+      const other=node.palace+'.'+(node.role==='edge'?'flow':'edge');
+      if(next.nodes[other]){if(!replaceVariant)throw Error('锐式与流式互斥，请先确认替换');next.nodes[other]=null;}
+    }
+    next.nodes[id]=install?id:null;
+    if(Object.values(next.nodes).filter(Boolean).length>config.ranks[data.state.rank].capacity)throw Error('已达当前境界的八宫容量上限');
+    draft=next;render();return true;
+  }
+  function assignSlot(kind,index,id){
+    if(!data||busy||blocked||migrationRequired||data.state.active_trial)throw Error('当前不能调整出战，请核对征程状态');
+    if(!['active','passive'].includes(kind)||![0,1].includes(index)||id!==null&&!config.palaces.some(p=>p.id===id))throw Error('出战栏选择无效');
+    const next=buildOf(draft);
+    if(id)next.loadout[kind]=next.loadout[kind].map((value,i)=>value===id&&i!==index?null:value);
+    next.loadout[kind][index]=id;draft=next;render();return true;
+  }
   function focusPalace(id){
     if(!config?.palaces?.some(p=>p.id===id))return false;
     selected=id;render();
-    const target=$("journey-palaces"),details=target?.closest?.('details');if(details)details.open=true;
-    root.requestAnimationFrame?.(()=>{target?.scrollIntoView?.({block:'start'});target?.querySelector?.(`[data-palace="${id}"]`)?.focus?.({preventScroll:true});});
+    root.DaoBladeBagua?.openTab('board');root.DaoBladeBagua?.selectPalace(id);
+    if(!root.DaoBladeBagua){const target=$("journey-palaces"),details=target?.closest?.('details');if(details)details.open=true;root.requestAnimationFrame?.(()=>{target?.scrollIntoView?.({block:'start'});target?.querySelector?.(`[data-palace="${id}"]`)?.focus?.({preventScroll:true});});}
     return true;
   }
   async function previewImport(){
@@ -155,5 +184,5 @@
   $("journey-import-confirm").onclick=run(confirmImport);
   $("journey-import-cancel").onclick=()=>$("journey-import-dialog").close();
   $("journey-import-dialog").onclose=()=>{importPreview=null;$("journey-import-error").textContent='';};
-  root.DaoBladeJourneyUI={load,reset,trialAction:action,previewUnify:previewImport,resumeTrial,restartTrial,selectMap,focusPalace,startSelected:()=>startTrial(false),mapScenes};
+  root.DaoBladeJourneyUI={load,reset,trialAction:action,previewUnify:previewImport,resumeTrial,restartTrial,selectMap,focusPalace,editNode,assignSlot,startMap,startSelected:()=>startTrial(false),mapScenes};
 })(globalThis);

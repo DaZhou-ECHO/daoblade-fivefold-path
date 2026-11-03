@@ -191,6 +191,8 @@ function renderAccount() {
   $("#account-login").hidden = Boolean(currentUser);
   $("#account-logout").hidden = !currentUser;
   $("#account-import").hidden = !currentUser;
+  $("#village-account-action").textContent = currentUser ? "退出登录" : "注册 / 登录";
+  $("#village-import-action").hidden = !currentUser;
 }
 
 async function submitAccount(action) {
@@ -216,7 +218,9 @@ async function submitAccount(action) {
   } catch (error) { showToast(error.message, true); }
 }
 
+function closeVillageMenu() { const menu = $("#village-menu"), toggle = $("#village-menu-toggle"); if (menu) menu.hidden = true; toggle?.setAttribute?.("aria-expanded", "false"); }
 function showPanel(name) {
+  closeVillageMenu();
   const villageWindow = ["atlas", "bag", "journey", "shop", "manual"].includes(name);
   const wasWindow = document.body?.classList?.contains("village-window-open");
   if (villageWindow && !wasWindow) villageReturnFocus = document.activeElement;
@@ -234,7 +238,7 @@ function showPanel(name) {
   if (village) village.inert = villageWindow;
   if (header) header.inert = villageWindow;
   if (villageWindow) {
-    const titles = { atlas: "十境山河图", bag: "八宫珠匣", journey: "师门修行", shop: "剑坊商店", manual: "剑诀" };
+    const titles = { atlas: "十境山河图", bag: "角色与背包", journey: "师门修行", shop: "剑坊商店", manual: "剑诀" };
     const title = $("#village-window-title"); if (title) title.textContent = titles[name];
     $("#village-window-close")?.focus?.({ preventScroll: true });
   } else if (wasWindow && name === "sanctuary") {
@@ -245,6 +249,7 @@ function showPanel(name) {
   if (name === "cultivation") renderCultivation();
   if (name === "realms") renderRealms();
   if (["journey", "atlas", "bag", "sanctuary"].includes(name)) void globalThis.DaoBladeJourneyUI?.load();
+  if (name === "journey") globalThis.DaoBladeBagua?.openTab?.('board');
   if (name === "bag") globalThis.DaoBladeJourneyHome?.showBag?.();
   if (name === "arraylab") void globalThis.DaoBladeArrayLabUI?.load();
   renderCheckpointRecovery();
@@ -2132,6 +2137,12 @@ function bindUi() {
   $("#result-dialog").addEventListener("cancel", event => event.preventDefault());
   $("#restore-checkpoint").addEventListener("click", restoreCheckpoint);
   $("#account-login").addEventListener("click", () => $("#account-dialog").showModal());
+  $("#village-menu-toggle").addEventListener("click", () => { const menu = $("#village-menu"); menu.hidden = !menu.hidden; $("#village-menu-toggle").setAttribute("aria-expanded", String(!menu.hidden)); if (!menu.hidden) menu.querySelector("button")?.focus(); });
+  $("#village-settings").addEventListener("click", () => { closeVillageMenu(); $("#settings-run").click(); });
+  $("#village-account-action").addEventListener("click", () => { closeVillageMenu(); $(currentUser ? "#account-logout" : "#account-login").click(); });
+  $("#village-import-action").addEventListener("click", () => { closeVillageMenu(); $("#account-import").click(); });
+  document.addEventListener?.("click", event => { if (!event.target.closest?.(".village-menu-wrap")) closeVillageMenu(); });
+  window.addEventListener("keydown", event => { if (event.code === "Escape" && !$("#village-menu").hidden) { event.preventDefault(); closeVillageMenu(); $("#village-menu-toggle").focus(); } });
   $("#close-account").addEventListener("click", () => $("#account-dialog").close());
   $("#submit-login").addEventListener("click", () => submitAccount("login"));
   $("#submit-register").addEventListener("click", () => submitAccount("register"));

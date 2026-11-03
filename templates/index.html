@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/game.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/journey-home.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/village.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/bagua-board.css') }}">
 </head>
 <body>
   <div class="ink-cloud cloud-a"></div>
@@ -18,6 +19,7 @@
     </div>
     <div class="journey-topline" aria-live="polite"><span id="home-top-rank">征程读取中</span><span id="home-top-clears">五境首通 0/5</span></div>
     <div class="account-actions"><span id="account-label">游客试玩</span><button id="account-login" class="pixel-button small" type="button">注册 / 登录</button><button id="account-import" class="pixel-button small" type="button" hidden>导入游客存档</button><button id="account-logout" class="pixel-button small" type="button" hidden>退出登录</button></div>
+    <div class="village-menu-wrap"><button id="village-menu-toggle" class="pixel-button small" type="button" aria-expanded="false" aria-controls="village-menu">菜单</button><div id="village-menu" class="village-menu" hidden><button type="button" data-go="manual">剑诀说明</button><button id="village-settings" type="button">按键设置</button><button id="village-account-action" type="button">注册 / 登录</button><button id="village-import-action" type="button" hidden>导入游客存档</button></div></div>
   </header>
   <nav class="main-nav" aria-label="主要页面">
     <button class="nav-button active" data-panel="sanctuary">新手村</button>
@@ -63,6 +65,7 @@
 
     <section id="panel-atlas" class="panel atlas-panel">
       <div class="section-heading"><div><p class="eyebrow">可自由前往 · 五行双路</p><h2>十境山河图</h2></div><p>选择一境，再看高径与回廊。两条路通往同一境的首领；画面地标、登台方向与折返提示各有不同。</p></div>
+      <div id="atlas-trial-banner" class="atlas-trial-banner" role="status"><span id="atlas-trial-copy">选择路线后即可进入关卡。</span><button id="atlas-reload" class="pixel-button" type="button" hidden>重读正式档</button><button id="atlas-unify" class="pixel-button" type="button" hidden>预览单档合并</button></div>
       <div class="atlas-layout"><div class="atlas-scroll"><div class="atlas-scroll-head"><span>八荒山河 · 五境无先后</span><small>选择山中地标</small></div><div class="atlas-map-frame"><svg class="atlas-landscape" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><path fill="#91b8ad" d="M0 0h1000v600H0z"/><path fill="#6e9a90" d="M0 226 95 117 181 215 291 87 390 212 516 112 627 231 741 96 869 208 950 108 1000 164v436H0z"/><path fill="#476d65" d="M0 340 110 233 248 335 345 194 468 310 585 196 710 324 826 211 1000 333v267H0z"/><path fill="#315851" d="M0 468 162 354 284 454 429 336 574 450 693 355 839 450 1000 353v247H0z"/><path fill="#c6c198" d="M0 505q163-66 313 8t344-6 343-23v116H0z"/><path d="M55 522Q197 423 321 471T565 409 776 457 965 372" fill="none" stroke="#eee2ac" stroke-width="9" stroke-dasharray="4 19" opacity=".8"/><g fill="#1c594e"><path d="m123 313 20-102 20 102zm35 6 17-82 17 82zm65-12 17-94 18 94z"/><path d="M107 319h164v17H107z"/></g><g fill="#a65343"><path d="m460 211 49-144 50 144zm88 27 34-91 31 91z"/><path d="M451 229h175v15H451z"/></g><g fill="#887651"><path d="M683 382h151v17H683zm21-26h108v20H704zm22-25h64v21h-64z"/></g><g fill="#c6d1c6"><path d="M683 466h143v11H683zm37-26 10-90 10 90zm46 1 11-110 10 110z"/></g><g fill="none" stroke="#bfdcd8" stroke-width="11"><path d="M52 466q58-42 118 0t120 0m-212 31q71-31 139 0t134 0"/></g></svg><div id="atlas-realms" class="atlas-realms" aria-label="五行山河地图"></div></div><p class="atlas-note">五境可自由选择；路线推荐仅提示初次行旅方向。</p></div><div class="atlas-detail"><p class="eyebrow" id="atlas-region-label">选择五境</p><h3 id="atlas-region-title">正在读取</h3><p id="atlas-region-intro"></p><div id="atlas-routes" class="atlas-routes"></div><p id="atlas-current" role="status"></p><p id="atlas-error" role="alert"></p><div class="atlas-actions"><button id="atlas-start" class="pixel-button primary" type="button">进入所选路线</button><button id="atlas-resume" class="pixel-button" type="button">恢复当前挑战</button><button class="pixel-button" data-go="journey">调整出战构筑</button></div></div></div>
     </section>
 
@@ -111,6 +114,20 @@
 
     <section id="panel-journey" class="panel lab-panel">
       <div class="section-heading"><div><p class="eyebrow">师父 · 修行与出战</p><h2>本命剑心</h2></div><p>研习师门三系身法，再调整八宫主动与心法出战。</p></div>
+      <nav id="bagua-tabs" class="bagua-tabs" aria-label="师门事务"><button type="button" data-bagua-tab="board">八宫阵盘</button><button type="button" data-bagua-tab="training">师门修习</button><button type="button" data-bagua-tab="breakthrough">筑基心劫</button></nav>
+      <div id="bagua-board-pane" class="bagua-pane">
+        <div id="bagua-summary" class="bagua-summary"></div>
+        <div id="bagua-tutorial" class="bagua-tutorial" hidden><p>师父指点：一、选宫看连线；二、装入核心与支路灵珠；三、设置 Q/E、心法并保存。</p><button id="bagua-tutorial-close" type="button">跳过指点</button></div>
+        <div id="bagua-slots" class="bagua-slots" aria-label="两主动与两心法出战栏"></div>
+        <div class="bagua-workspace">
+          <div class="bagua-chart-wrap"><div class="bagua-compass"><span>南 · 离火</span><small>上南下北 · 左东右西</small></div><div id="bagua-palaces" class="bagua-palaces" aria-label="后天八宫阵盘"></div><div class="bagua-legend"><span>◇ 草稿装入</span><span>━ 已保存连通</span><span>✦ 出战生效</span><span>┄ 未连通</span></div></div>
+          <section class="bagua-inspector" aria-label="所选宫位与灵珠节点"><h3 id="bagua-palace-title">选择宫位</h3><p id="bagua-palace-copy"></p><div id="bagua-nodes" class="bagua-nodes"></div><div id="bagua-node-detail" class="bagua-node-detail"></div></section>
+        </div>
+        <section class="bagua-record"><h3>已保存 · 实际生效</h3><div id="bagua-saved"></div></section>
+        <div id="bagua-actions" class="bagua-actions"></div>
+      </div>
+      <div id="bagua-training-pane" class="bagua-pane" hidden></div>
+      <div id="bagua-breakthrough-pane" class="bagua-pane" hidden><h3>筑基心劫</h3><p>修为达到 24、设置有效主动后可挑战。胜利才扣修为；进行中的挑战先恢复。</p><div id="bagua-break-status"></div><div id="bagua-break-actions" class="bagua-actions"></div></div>
       <section class="training-section" aria-labelledby="training-title"><div class="training-heading"><div><p class="eyebrow">师门传承</p><h3 id="training-title">剑术 · 身法 · 护体</h3></div><button id="training-reset" class="pixel-button" type="button">重置师门并返还修为</button></div><div id="training-tree" class="training-tree"></div><p id="training-status" role="status"></p></section>
       <p id="journey-draft" role="status"></p>
       <p id="journey-status" role="status">进入后读取</p><p id="journey-error" role="alert"></p>
@@ -118,7 +135,7 @@
       <button id="journey-next" class="pixel-button">选择推荐秘境</button>
       <div class="journey-build-focus"><div><p class="eyebrow">当前出战</p><h3>两主动 · 两心法</h3><p id="journey-compiled"></p></div><div id="journey-loadout" class="dialog-actions"></div><div class="dialog-actions"><button id="journey-save" class="pixel-button primary">保存全部改动</button><button id="journey-reload" class="pixel-button">重新读取服务存档</button></div></div>
       <details><summary>首次游玩与存档说明</summary><p>在新手村按 A/D 行走、F 与山河图、师父或商人交互。关卡内空格跳、J近战、K格挡、L剑气、Shift闪避；Q/E施放两个主动。前三敌清场后可触碰剑碑，祭坛是可选支路。</p><p>师门研习消耗修为，可在村中重置并返还；八宫装配与出战栏修改后点击“保存全部改动”。游客档供本机共用，长期游玩可登录账号；游客正式档可导入空账号。</p></details>
-      <details class="journey-detail"><summary>展开八宫详细配置与挑战记录</summary>
+      <details class="journey-detail legacy-journey-detail" hidden><summary>旧版文字配置兼容区</summary>
       <h3>八宫阵盘 · 关外调整</h3>
       <div class="lab-palaces" id="journey-palaces" aria-label="后天八卦阵盘，上南下北左东右西"></div>
       <h3 id="journey-palace-title"></h3><p id="journey-effect"></p>
@@ -200,6 +217,7 @@
   <script src="{{ url_for('static', filename='js/rules.js') }}"></script>
   <script src="{{ url_for('static', filename='js/game.js') }}"></script>
   <script src="{{ url_for('static', filename='js/journey-ui.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/bagua-board.js') }}"></script>
   <script src="{{ url_for('static', filename='js/journey-home.js') }}"></script>
   <script src="{{ url_for('static', filename='js/village.js') }}"></script>
   <script src="{{ url_for('static', filename='js/village-progress.js') }}"></script>

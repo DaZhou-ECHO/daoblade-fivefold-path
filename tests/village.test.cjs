@@ -34,7 +34,8 @@ test('041 村中行走、对话选择与 Esc 返回保留原位置',()=>{
   assert.equal(h.api.nearest(),'journey');
   h.key('KeyF');assert.match(h.nodes['village-speaker'].textContent,/师父/);
   h.key('Escape');assert.equal(h.nodes['village-dialogue'].hidden,true);
-  h.key('KeyF');assert.equal(h.nodes['village-choices'].children.length,2);
+  h.key('KeyF');assert.equal(h.nodes['village-choices'].children.length,3);
+  assert.deepEqual(h.nodes['village-choices'].children.map(button=>button.textContent),['调整八宫','修习师门','筑基心劫']);
 });
 
 test('041 点击 NPC 打开对话，手机取景跟随玩家',()=>{

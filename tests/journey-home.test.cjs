@@ -7,15 +7,15 @@ function harness(){
   function node(id){
     if(!nodes.has(id)){
       let html='',images=[],buttons=[];
-      nodes.set(id,{textContent:'',disabled:false,hidden:false,attributes:{},setAttribute(key,value){this.attributes[key]=value;},
+      nodes.set(id,{textContent:'',disabled:false,hidden:false,classList:{toggle(){}},attributes:{},setAttribute(key,value){this.attributes[key]=value;},
         get innerHTML(){return html;},set innerHTML(value){html=value;images=[];buttons=[];
           for(const m of value.matchAll(/<img src="([^"]+)"[^>]*data-scene="([^"]+)"/g))images.push({src:m[1],dataset:{scene:m[2]},hidden:false});
           for(const m of value.matchAll(/<button[^>]*data-([a-z-]+)="([^"]+)"/g))buttons.push({dataset:{[m[1].replace(/-([a-z])/g,(_,c)=>c.toUpperCase())]:m[2]}});
-        },querySelectorAll(selector){return selector==='img[data-scene]'?images:buttons;},querySelector(selector){return this.querySelectorAll(selector)[0];}});
+        },querySelectorAll(selector){if(selector==='img[data-scene]')return images;const key=selector.match(/\[data-([a-z-]+)\]/)?.[1]?.replace(/-([a-z])/g,(_,c)=>c.toUpperCase());return key?buttons.filter(button=>key in button.dataset):buttons;},querySelector(selector){return this.querySelectorAll(selector)[0];}});
     }return nodes.get(id);
   }
   const context=vm.createContext({document:{getElementById:node,querySelector:()=>({click:()=>calls.push('atlas')})},
-    DaoBladeJourneyMaps:maps,DaoBladeJourneyUI:{selectMap:(realm,route)=>{calls.push([realm,route]);return true;},
+    DaoBladeJourneyMaps:maps,DaoBladeJourneyUI:{selectMap:(realm,route)=>{calls.push([realm,route]);return true;},startMap:async(realm,route)=>calls.push(['startMap',realm,route]),
       startSelected:async()=>calls.push('start'),resumeTrial:async()=>calls.push('resume')}});
   vm.runInContext(fs.readFileSync(path.join(__dirname,'../static/js/journey-home.js'),'utf8'),context);
   const mapScenes=Object.fromEntries(fixture.config.realms.map(r=>[r,{ridge:[r+' 高径','向上'],hollow:[r+' 回廊','折返']}]))
@@ -102,4 +102,26 @@ test('043 空珠匣仍可查看基础剑，未同步档案不会伪造物品',()
   assert.match(h.node('bag-swords').innerHTML,/本命素剑/);
   assert.match(h.node('bag-status').textContent,/未同步/);
   assert.doesNotMatch(h.node('bag-swords').innerHTML,/青岚剑/);
+});
+
+test('044 十境路线卡分别直达对应正式地图，挑战中只提供恢复',async()=>{
+  const h=harness();
+  for(const realm of h.data.config.realms){
+    h.data.realm=realm;h.data.route='ridge';h.api.update(h.data);
+    const cards=h.node('atlas-routes').querySelectorAll('[data-enter-route]');
+    assert.equal(cards.length,2);
+    for(const card of cards)await card.onclick();
+  }
+  assert.deepEqual(h.calls.filter(call=>Array.isArray(call)&&call[0]==='startMap').map(call=>call.slice(1)),
+    h.data.config.realms.flatMap(realm=>[['ridge','hollow'].map(route=>[realm,route])]).flat());
+  h.data.state.active_trial={realm_id:'water',map_id:'hollow',checkpoint:null};
+  h.api.update(h.data);
+  assert.equal(h.node('atlas-resume').hidden,false);
+  assert.match(h.node('atlas-trial-copy').textContent,/玄水境回廊/);
+  assert.match(h.node('atlas-routes').innerHTML,/当前挑战进行中，请先恢复/);
+  h.data.state.active_trial=null;h.data.dirty=true;h.api.update(h.data);
+  assert.match(h.node('atlas-routes').innerHTML,/八宫构筑未保存/);
+  h.data.dirty=false;h.data.migrationRequired=true;h.api.update(h.data);
+  assert.equal(h.node('atlas-unify').hidden,false);
+  assert.match(h.node('atlas-routes').innerHTML,/单档合并/);
 });

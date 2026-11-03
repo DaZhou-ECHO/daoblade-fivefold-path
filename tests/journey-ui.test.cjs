@@ -136,3 +136,30 @@ test('040 单档预览列出两种珠和清除挑战，确认校验三个修订�
   assert.equal(h.node('journey-import-preview').disabled,true);
   assert.match(h.node('journey-import-status').textContent,/单一征程已就绪/);
 });
+
+test('044 十境路线从村内画卷直接使用正式开局，进行中不能重复启动',async()=>{
+  const h=harness();await h.api.load();
+  await assert.rejects(h.api.startMap('unknown','ridge'),/路线无效/);
+  await h.api.startMap('wood','hollow');
+  const start=h.calls.find(call=>call.action==='start');
+  assert.equal(start.realm_id,'wood');assert.equal(start.map_id,'hollow');assert.equal(start.breakthrough,false);
+  assert.equal(h.calls.filter(call=>call.launch).length,1);
+  await assert.rejects(h.api.startMap('fire','ridge'),/当前挑战尚未结束/);
+});
+
+test('044 图形阵盘草稿沿用容量、互斥和出战栏事务',async()=>{
+  const h=harness();h.state.beads.push({id:'li.flow',name:'离·流式珠',element:'fire',role:'flow',palace:'li',level:1,xp:0});
+  h.state.beads.push({id:'li.mind',name:'离·心法珠',element:'fire',role:'mind',palace:'li',level:1,xp:0});
+  h.state.beads.push({id:'gen.trace',name:'艮·纹路珠',element:'earth',role:'trace',palace:'gen',level:1,xp:0});
+  await h.api.load();
+  assert.throws(()=>h.api.editNode('li.flow',true),/互斥/);
+  h.api.editNode('li.flow',true,true);
+  assert.equal(h.node('journey-nodes').querySelectorAll().find(e=>e.dataset.node==='li.edge').value,'');
+  h.api.editNode('li.mind',true);assert.throws(()=>h.api.editNode('gen.trace',true),/容量/);
+  h.api.assignSlot('active',1,'li');
+  await assert.rejects(h.api.startMap('wood','ridge'),/尚未保存/);
+  await h.node('journey-save').onclick();
+  const build=h.calls.find(call=>call.action==='build');
+  assert.equal(build.nodes['li.edge'],null);assert.equal(build.nodes['li.flow'],'li.flow');
+  assert.deepEqual(build.loadout.active,[null,'li']);
+});

@@ -8,7 +8,7 @@
   const dialogue=document.getElementById("village-dialogue");
   const targets=[
     {x:173,panel:"atlas",label:"山河图传送台",speaker:"山河图",line:"五境皆可前往。想从哪条路开始？",choices:[["查看十境","atlas"]]},
-    {x:480,panel:"journey",label:"师父",speaker:"师父",line:"先稳住剑心，再决定今日的修行。",choices:[["修习师门","journey"],["调整八宫","journey","journey-palaces"]]},
+    {x:480,panel:"journey",label:"师父",speaker:"师父",line:"八宫承五行。先看剑心，再定今日的修行。",choices:[["调整八宫","journey","board"],["修习师门","journey","training"],["筑基心劫","journey","breakthrough"]]},
     {x:780,panel:"shop",label:"剑坊商人",speaker:"商人",line:"本命剑形随心而变，剑锋的分寸仍由你掌握。",choices:[["浏览剑坊","shop"]]}
   ];
   const player={x:250,y:412,w:38,h:70,vx:0,vy:0,face:1,hp:1,onGround:true,animTime:0};
@@ -18,7 +18,7 @@
   image.onload=()=>{background=image;};
   image.onerror=()=>{background=null;};
   image.src="/static/sprites/world-v1/wood-far.png";
-  const open=(panel,focusId)=>{closeDialogue(false);document.querySelector(`.nav-button[data-panel="${panel}"]`)?.click();if(focusId){const target=document.getElementById(focusId);if(target?.closest?.("details"))target.closest("details").open=true;target?.scrollIntoView?.({block:"start"});}};
+  const open=(panel,focusId)=>{closeDialogue(false);document.querySelector(`.nav-button[data-panel="${panel}"]`)?.click();if(panel==='journey'&&focusId)root.DaoBladeBagua?.openTab(focusId);};
   function closeDialogue(restore=true){dialogue.hidden=true;if(restore)canvas.focus({preventScroll:true});}
   function converse(target){
     if(!active())return;
