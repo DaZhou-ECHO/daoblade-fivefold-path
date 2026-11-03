@@ -217,7 +217,7 @@ async function submitAccount(action) {
 }
 
 function showPanel(name) {
-  const villageWindow = ["atlas", "journey", "shop", "manual"].includes(name);
+  const villageWindow = ["atlas", "bag", "journey", "shop", "manual"].includes(name);
   const wasWindow = document.body?.classList?.contains("village-window-open");
   if (villageWindow && !wasWindow) villageReturnFocus = document.activeElement;
   if (villageWindow) globalThis.DaoBladeVillage?.closeDialogue?.(false);
@@ -234,7 +234,7 @@ function showPanel(name) {
   if (village) village.inert = villageWindow;
   if (header) header.inert = villageWindow;
   if (villageWindow) {
-    const titles = { atlas: "十境山河图", journey: "师门修行", shop: "剑坊商店", manual: "剑诀" };
+    const titles = { atlas: "十境山河图", bag: "八宫珠匣", journey: "师门修行", shop: "剑坊商店", manual: "剑诀" };
     const title = $("#village-window-title"); if (title) title.textContent = titles[name];
     $("#village-window-close")?.focus?.({ preventScroll: true });
   } else if (wasWindow && name === "sanctuary") {
@@ -244,7 +244,7 @@ function showPanel(name) {
   if (name === "inventory") renderInventory();
   if (name === "cultivation") renderCultivation();
   if (name === "realms") renderRealms();
-  if (name === "journey" || name === "atlas" || name === "sanctuary") void globalThis.DaoBladeJourneyUI?.load();
+  if (["journey", "atlas", "bag", "sanctuary"].includes(name)) void globalThis.DaoBladeJourneyUI?.load();
   if (name === "arraylab") void globalThis.DaoBladeArrayLabUI?.load();
   renderCheckpointRecovery();
   window.scrollTo({ top: 0, behavior: "smooth" });

@@ -49,3 +49,19 @@ test('039 首页展示正式档和未完成挑战，锁住新局但保留恢复�
   assert.equal(h.node('atlas-start').disabled,true);
   assert.match(h.node('home-sync').textContent,/未保存/);
 });
+
+test('042 背包只读正式珠匣，并区分有效装配、待连通及未装灵珠',()=>{
+  const h=harness();
+  h.data.compiled.effective_bead_ids=['li.core'];
+  h.data.state.nodes['li.edge']=null;
+  h.api.update(h.data);
+  const bag=h.node('bag-groups').innerHTML;
+  assert.match(h.node('bag-summary').textContent,/正式珠 5\/40/);
+  assert.match(bag,/离·核心珠[\s\S]*?已装有效/);
+  assert.match(bag,/离·纹路珠[\s\S]*?已装待连通/);
+  assert.match(bag,/离·锐式珠[\s\S]*?珠匣/);
+  assert.equal((bag.match(/class="bag-group"/g)||[]).length,5);
+  h.data.state.active_trial={realm_id:'fire',map_id:'ridge'};
+  h.api.update(h.data);
+  assert.match(h.node('bag-summary').textContent,/挑战中仅可查看/);
+});

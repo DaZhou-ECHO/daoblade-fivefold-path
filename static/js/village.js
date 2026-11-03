@@ -11,7 +11,7 @@
     {x:480,panel:"journey",label:"师父",speaker:"师父",line:"先稳住剑心，再决定今日的修行。",choices:[["修习师门","journey"],["调整八宫","journey","journey-palaces"]]},
     {x:780,panel:"shop",label:"剑坊商人",speaker:"商人",line:"本命剑形随心而变，剑锋的分寸仍由你掌握。",choices:[["浏览剑坊","shop"]]}
   ];
-  const player={x:250,y:242,w:38,h:70,vx:0,vy:0,face:1,hp:1,onGround:true,animTime:0};
+  const player={x:250,y:412,w:38,h:70,vx:0,vy:0,face:1,hp:1,onGround:true,animTime:0};
   const pressed=new Set();
   let snapshot=null,last=0,background=null;
   const image=new Image();
@@ -57,28 +57,33 @@
   document.getElementById("village-interact").onclick=interact;
   document.querySelectorAll("[data-village]").forEach(button=>button.onclick=()=>converse(targets.find(target=>target.panel===button.dataset.village)));
   function camera(){
-    const width=stage?.clientWidth||960,height=stage?.clientHeight||370;
-    const worldWidth=width>700?width:Math.max(width,height*960/370);
+    const width=stage?.clientWidth||960,height=stage?.clientHeight||540;
+    const worldWidth=Math.max(width,height*960/540);
     if(world){world.style.width=`${worldWidth}px`;world.style.transform=`translateX(${-Math.max(0,Math.min(worldWidth-width,player.x/960*worldWidth-width/2))}px)`;}
   }
   root.addEventListener("resize",camera);
   function polygon(points,fill,stroke){ctx.beginPath();ctx.moveTo(...points[0]);for(const point of points.slice(1))ctx.lineTo(...point);ctx.closePath();ctx.fillStyle=fill;ctx.fill();if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.stroke();}}
   function building(x,w,roof,wall,sign){
-    ctx.fillStyle="rgba(5,16,23,.32)";ctx.fillRect(x-8,223,w+16,96);
-    ctx.fillStyle=wall;ctx.fillRect(x,201,w,111);
-    ctx.fillStyle="#233b3d";for(let i=x+13;i<x+w-8;i+=28){ctx.fillRect(i,220,15,34);ctx.fillStyle="#e8d59e";ctx.fillRect(i+4,226,7,18);ctx.fillStyle="#233b3d";}
-    polygon([[x-17,200],[x+w/2,156],[x+w+17,200],[x+w+7,204],[x+w/2,173],[x-7,204]],roof,"#d2b775");
-    ctx.fillStyle="#b99462";ctx.fillRect(x-3,203,w+6,7);ctx.fillStyle="#233431";ctx.fillRect(x+w/2-17,256,34,56);
-    ctx.fillStyle="#ead8a6";ctx.font="bold 16px serif";ctx.textAlign="center";ctx.fillText(sign,x+w/2,192);
+    ctx.fillStyle="#173238";ctx.fillRect(x-8,213,w+16,102);
+    ctx.fillStyle=wall;ctx.fillRect(x,207,w,105);
+    ctx.fillStyle="#294448";for(let i=x+10;i<x+w-5;i+=24){ctx.fillRect(i,222,15,38);ctx.fillStyle="#d9c28a";ctx.fillRect(i+4,229,7,20);ctx.fillStyle="#294448";}
+    for(let row=0;row<7;row++){const inset=Math.abs(6-row)*12;ctx.fillStyle=row%2?roof:"#263f42";ctx.fillRect(x-24+inset,156+row*8,w+48-inset*2,8);}
+    ctx.fillStyle="#b39863";ctx.fillRect(x-14,207,w+28,6);ctx.fillRect(x+5,213,7,96);ctx.fillRect(x+w-12,213,7,96);
+    ctx.fillStyle="#172d31";ctx.fillRect(x+w/2-19,259,38,53);ctx.fillStyle="#d2b06b";ctx.fillRect(x+w/2-3,270,6,7);
+    ctx.fillStyle="#172d31";ctx.fillRect(x+w/2-27,183,54,25);ctx.strokeStyle="#d5b875";ctx.lineWidth=3;ctx.strokeRect(x+w/2-27,183,54,25);
+    ctx.fillStyle="#f5dfab";ctx.font="bold 16px serif";ctx.textAlign="center";ctx.fillText(sign,x+w/2,201);
   }
   function scene(t){
-    const sky=ctx.createLinearGradient(0,0,0,310);sky.addColorStop(0,"#b9d3c4");sky.addColorStop(.55,"#719c99");sky.addColorStop(1,"#344f52");ctx.fillStyle=sky;ctx.fillRect(0,0,960,370);
-    if(background){ctx.globalAlpha=.44;ctx.drawImage(background,0,0,background.naturalWidth,background.naturalHeight,0,0,960,250);ctx.globalAlpha=1;}
+    ctx.imageSmoothingEnabled=false;
+    const sky=ctx.createLinearGradient(0,0,0,540);sky.addColorStop(0,"#738e8c");sky.addColorStop(.65,"#567777");sky.addColorStop(1,"#193a3b");ctx.fillStyle=sky;ctx.fillRect(0,0,960,540);
+    if(background){ctx.globalAlpha=.09;ctx.drawImage(background,0,0,background.naturalWidth,background.naturalHeight,0,0,960,420);ctx.globalAlpha=1;}
+    ctx.save();ctx.translate(0,170);
     polygon([[0,212],[82,130],[160,211],[250,106],[365,212],[505,119],[655,210],[778,139],[960,215]],"rgba(40,76,75,.43)");
     polygon([[0,234],[120,182],[225,220],[358,167],[483,228],[612,177],[735,221],[864,173],[960,230]],"rgba(33,73,65,.68)");
-    ctx.fillStyle="rgba(225,237,215,.3)";for(let i=0;i<4;i++)ctx.fillRect(0,219+i*9,960,4);
-    ctx.fillStyle="#34584c";ctx.fillRect(0,272,960,98);ctx.fillStyle="#507461";ctx.fillRect(0,292,960,22);
-    ctx.fillStyle="#a4a27a";ctx.fillRect(0,309,960,61);ctx.fillStyle="#c9bb86";for(let x=8;x<960;x+=52){ctx.fillRect(x,318+(x%3)*8,30,3);ctx.fillRect(x+19,349,23,2);}
+    ctx.fillStyle="rgba(225,237,215,.2)";for(let i=0;i<4;i++)ctx.fillRect(0,219+i*9,960,4);
+    ctx.fillStyle="#284b45";ctx.fillRect(0,272,960,98);ctx.fillStyle="#426552";ctx.fillRect(0,292,960,22);
+    ctx.fillStyle="#766e54";ctx.fillRect(0,309,960,61);ctx.fillStyle="#a69668";for(let x=8;x<960;x+=52){ctx.fillRect(x,318+(x%3)*8,30,3);ctx.fillRect(x+19,349,23,2);}
+    ctx.fillStyle="#3b5c4e";for(let x=0;x<960;x+=67){ctx.fillRect(x,300+(x%3)*3,18,7);ctx.fillRect(x+4,293,5,9);}
     building(405,152,"#526b56","#69806a","修行");building(703,155,"#6e5e48","#8a7559","剑坊");
     for(const [x,robe,trim] of [[480,"#e3e6d2","#4e9d91"],[780,"#e9c37f","#725139"]]){
       ctx.save();ctx.translate(0,Math.sin(t*.002+x)*1.5);
@@ -92,15 +97,18 @@
       ctx.restore();
     }
     // 传送台与刻有五行的山河图。
-    ctx.fillStyle="#435b5d";ctx.fillRect(111,270,120,43);ctx.fillStyle="#c9b477";ctx.fillRect(124,264,94,8);
-    ctx.fillStyle="#254950";ctx.fillRect(139,174,65,92);ctx.strokeStyle="#e8ca83";ctx.lineWidth=5;ctx.strokeRect(139,174,65,92);ctx.fillStyle="#78bfc4";ctx.fillRect(148,184,47,71);
-    ctx.fillStyle="#e6d9af";ctx.font="bold 25px serif";ctx.fillText("五",171,215);ctx.fillText("境",171,245);
+    ctx.fillStyle="#273e40";ctx.fillRect(111,270,120,43);ctx.fillStyle="#c9b477";ctx.fillRect(124,264,94,8);
+    ctx.fillStyle="#183f44";ctx.fillRect(137,164,70,102);ctx.fillStyle="#c7ab6e";ctx.fillRect(133,160,78,7);ctx.fillRect(133,260,78,7);ctx.fillRect(136,167,7,94);ctx.fillRect(201,167,7,94);
+    ctx.fillStyle="#488d92";ctx.fillRect(146,177,53,75);ctx.fillStyle="#b4cfc0";ctx.fillRect(151,182,43,65);ctx.fillStyle="#1e555d";ctx.fillRect(156,187,33,55);
+    ctx.fillStyle="#f6df9e";ctx.font="bold 25px serif";ctx.fillText("五",172,213);ctx.fillText("境",172,242);
+    ctx.fillStyle="#e1c681";for(let i=0;i<4;i++){const pulse=Math.sin(t*.002+i)*4;ctx.fillRect(122+i*34,153+pulse,4,4);}
     // 草、悬灯与光点使村落有生命力，亮度不压过交互标记。
     for(let x=25;x<950;x+=43){ctx.fillStyle=x%2?"#557d61":"#72946a";ctx.fillRect(x,289,2,10);ctx.fillRect(x-3,295,8,2);}
     for(let i=0;i<11;i++){const x=(i*89+30)%930,y=102+Math.sin(t*.0005+i*2)*8+i%3*27;ctx.fillStyle="rgba(240,218,151,.65)";ctx.fillRect(x,y,3,3);}
     for(const point of [376,647,904]){ctx.fillStyle="#34453e";ctx.fillRect(point,244,6,56);ctx.fillStyle="#e7c583";ctx.fillRect(point-3,229,12,18);ctx.fillStyle="rgba(242,207,119,.17)";ctx.fillRect(point-11,225,28,30);}
     const selected=nearest();
-    for(const target of targets){if(target===selected&&Math.abs(target.x-player.x)<=90){ctx.strokeStyle="#f5dd9d";ctx.lineWidth=3;ctx.strokeRect(target.x-32,160,64,144);}}
+    for(const target of targets){if(target===selected&&Math.abs(target.x-player.x)<=90&&dialogue.hidden){ctx.strokeStyle="#f5dd9d";ctx.lineWidth=3;ctx.strokeRect(target.x-32,154,64,154);}}
+    ctx.restore();
   }
   function fallbackSword(color){
     ctx.fillStyle="#111c29";ctx.fillRect(player.x+13,player.y,21,10);

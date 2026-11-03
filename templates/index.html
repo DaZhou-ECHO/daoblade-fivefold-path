@@ -34,18 +34,23 @@
     <section id="panel-sanctuary" class="panel active">
       <div class="village-stage" aria-label="可行走的新手村，按左右移动，靠近目标按交互键">
         <div id="village-world" class="village-world">
-          <canvas id="village-canvas" width="960" height="370" tabindex="0" aria-label="新手村场景"></canvas>
-          <button class="village-target" data-village="atlas" style="--target-x:18%" type="button">山河图<small>十境传送</small></button>
-          <button class="village-target" data-village="journey" style="--target-x:50%" type="button">师父<small>修行与出战</small></button>
-          <button class="village-target" data-village="shop" style="--target-x:81%" type="button">商人<small>剑与剑光</small></button>
+          <canvas id="village-canvas" width="960" height="540" tabindex="0" aria-label="新手村场景"></canvas>
+          <button class="village-hotspot" data-village="atlas" style="--target-x:18%" type="button" aria-label="与山河图传送台交互"><span class="sr-only">山河图传送台</span></button>
+          <button class="village-hotspot" data-village="journey" style="--target-x:50%" type="button" aria-label="与师父交谈"><span class="sr-only">师父</span></button>
+          <button class="village-hotspot" data-village="shop" style="--target-x:81%" type="button" aria-label="与剑坊商人交谈"><span class="sr-only">剑坊商人</span></button>
         </div>
-        <div class="village-heading"><div><p class="eyebrow">本命剑 · 行旅起点</p><h2>青云新手村</h2><p id="home-next-step">正在读取你的征程。</p></div><div class="village-heading-actions"><button id="home-primary" class="pixel-button primary" type="button">选择地图</button></div></div>
+        <div class="village-heading"><div><p class="eyebrow">本命剑 · 行旅起点</p><h2>青云新手村</h2><p id="home-next-step">正在读取你的征程。</p></div><div class="village-heading-actions" hidden><button id="home-primary" class="pixel-button primary" type="button">选择地图</button></div></div>
         <p id="village-prompt" class="village-prompt" aria-live="polite">A / D 行走 · F 交互</p>
         <div id="village-dialogue" class="village-dialogue" role="dialog" aria-label="村落交谈" hidden><div><p class="eyebrow" id="village-speaker"></p><p id="village-line"></p></div><div id="village-choices" class="village-choices"></div><button id="village-dialogue-close" type="button" aria-label="结束交谈">×</button></div>
+        <nav class="village-hud" aria-label="村落快捷入口">
+          <button type="button" data-go="atlas" aria-label="打开十境山河图"><span class="hud-icon" aria-hidden="true">图</span><span>地图</span></button>
+          <button type="button" data-go="bag" aria-label="打开正式灵珠背包"><span class="hud-icon" aria-hidden="true">匣</span><span>背包</span></button>
+          <button type="button" data-go="journey" aria-label="打开师门修行"><span class="hud-icon" aria-hidden="true">诀</span><span>修行</span></button>
+          <button type="button" data-go="shop" aria-label="打开剑坊商店"><span class="hud-icon" aria-hidden="true">剑</span><span>剑坊</span></button>
+        </nav>
         <section id="migration-panel" class="migration-panel" hidden><p class="eyebrow">一次性合档</p><h3>将旧修行与试验珠并入当前征程</h3><p>确认前可查看逐珠变化与舍弃的进行中挑战。确认后旧档删除。</p><button id="home-unify" class="pixel-button primary" type="button">预览合档</button></section>
       </div>
       <div class="village-touch" aria-label="新手村触控"><button data-village-move="left" type="button">◀</button><button data-village-move="right" type="button">▶</button><button id="village-interact" type="button">交互</button></div>
-      <div class="village-shortcuts"><button class="pixel-button" data-go="atlas">山河图</button><button class="pixel-button" data-go="journey">师门</button><button class="pixel-button" data-go="shop">剑坊</button></div>
       <p id="home-sync" class="home-fine" role="status"></p>
       <div class="home-progress" aria-label="正式征程概况">
         <article><small>当前境界</small><strong id="home-rank">读取中</strong></article>
@@ -58,7 +63,15 @@
 
     <section id="panel-atlas" class="panel atlas-panel">
       <div class="section-heading"><div><p class="eyebrow">可自由前往 · 五行双路</p><h2>十境山河图</h2></div><p>选择一境，再看高径与回廊。两条路通往同一境的首领；画面地标、登台方向与折返提示各有不同。</p></div>
-      <div class="atlas-layout"><div><div id="atlas-realms" class="atlas-realms" aria-label="五行区域"></div><p class="atlas-note">五境无强制顺序；推荐路线只为初次游玩提供方向。</p></div><div class="atlas-detail"><p class="eyebrow" id="atlas-region-label">选择五境</p><h3 id="atlas-region-title">正在读取</h3><p id="atlas-region-intro"></p><div id="atlas-routes" class="atlas-routes"></div><p id="atlas-current" role="status"></p><p id="atlas-error" role="alert"></p><div class="atlas-actions"><button id="atlas-start" class="pixel-button primary" type="button">进入所选路线</button><button id="atlas-resume" class="pixel-button" type="button">恢复当前挑战</button><button class="pixel-button" data-go="journey">调整出战构筑</button></div></div></div>
+      <div class="atlas-layout"><div class="atlas-scroll"><div class="atlas-scroll-head"><span>八荒山河 · 五境无先后</span><small>选择山中地标</small></div><div class="atlas-map-frame"><svg class="atlas-landscape" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><path fill="#91b8ad" d="M0 0h1000v600H0z"/><path fill="#6e9a90" d="M0 226 95 117 181 215 291 87 390 212 516 112 627 231 741 96 869 208 950 108 1000 164v436H0z"/><path fill="#476d65" d="M0 340 110 233 248 335 345 194 468 310 585 196 710 324 826 211 1000 333v267H0z"/><path fill="#315851" d="M0 468 162 354 284 454 429 336 574 450 693 355 839 450 1000 353v247H0z"/><path fill="#c6c198" d="M0 505q163-66 313 8t344-6 343-23v116H0z"/><path d="M55 522Q197 423 321 471T565 409 776 457 965 372" fill="none" stroke="#eee2ac" stroke-width="9" stroke-dasharray="4 19" opacity=".8"/><g fill="#1c594e"><path d="m123 313 20-102 20 102zm35 6 17-82 17 82zm65-12 17-94 18 94z"/><path d="M107 319h164v17H107z"/></g><g fill="#a65343"><path d="m460 211 49-144 50 144zm88 27 34-91 31 91z"/><path d="M451 229h175v15H451z"/></g><g fill="#887651"><path d="M683 382h151v17H683zm21-26h108v20H704zm22-25h64v21h-64z"/></g><g fill="#c6d1c6"><path d="M683 466h143v11H683zm37-26 10-90 10 90zm46 1 11-110 10 110z"/></g><g fill="none" stroke="#bfdcd8" stroke-width="11"><path d="M52 466q58-42 118 0t120 0m-212 31q71-31 139 0t134 0"/></g></svg><div id="atlas-realms" class="atlas-realms" aria-label="五行山河地图"></div></div><p class="atlas-note">五境可自由选择；路线推荐仅提示初次行旅方向。</p></div><div class="atlas-detail"><p class="eyebrow" id="atlas-region-label">选择五境</p><h3 id="atlas-region-title">正在读取</h3><p id="atlas-region-intro"></p><div id="atlas-routes" class="atlas-routes"></div><p id="atlas-current" role="status"></p><p id="atlas-error" role="alert"></p><div class="atlas-actions"><button id="atlas-start" class="pixel-button primary" type="button">进入所选路线</button><button id="atlas-resume" class="pixel-button" type="button">恢复当前挑战</button><button class="pixel-button" data-go="journey">调整出战构筑</button></div></div></div>
+    </section>
+
+    <section id="panel-bag" class="panel bag-panel" aria-label="正式灵珠背包">
+      <div class="section-heading"><div><p class="eyebrow">本命剑 · 随身灵珠</p><h2>八宫珠匣</h2></div><p>此处查看正式征程的灵珠与已保存装配。调整宫位请前往师父。</p></div>
+      <p id="bag-summary" role="status">正在读取珠匣</p>
+      <div id="bag-groups" class="bag-groups"></div>
+      <p id="bag-status" role="alert"></p>
+      <button id="bag-to-journey" class="pixel-button primary" type="button">前往师门调整八宫</button>
     </section>
 
     <section id="panel-realms" class="panel">

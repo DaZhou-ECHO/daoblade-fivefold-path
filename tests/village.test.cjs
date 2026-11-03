@@ -20,7 +20,7 @@ function harness(viewport=960){
     requestAnimationFrame:fn=>frame=fn,addEventListener:(type,fn)=>listeners[type]=fn,console});
   vm.runInContext(fs.readFileSync(path.join(__dirname,'../static/js/village.js'),'utf8'),context);
   const key=code=>listeners.keydown({code,target:{closest:()=>null},preventDefault(){}});
-  return {api:context.DaoBladeVillage,listeners,panels,targets,nodes,stage,key,step:now=>frame(now)};
+  return {api:context.DaoBladeVillage,listeners,panels,targets,touch,nodes,stage,key,step:now=>frame(now)};
 }
 
 test('041 村中行走、对话选择与 Esc 返回保留原位置',()=>{
@@ -46,4 +46,25 @@ test('041 点击 NPC 打开对话，手机取景跟随玩家',()=>{
   assert.deepEqual(h.panels,['shop']);
   h.key('KeyD');for(let i=1;i<=30;i++)h.step(i*50);
   assert.match(h.nodes['village-world'].style.transform,/translateX\(-/);
+});
+
+test('042 窄屏村落按画布比例取景，角色与建筑不横向压缩',()=>{
+  const h=harness(390);h.step(0);
+  const worldWidth=parseFloat(h.nodes['village-world'].style.width);
+  assert.ok(Math.abs(worldWidth/h.stage.clientHeight-960/540)<.01);
+  assert.ok(worldWidth>h.stage.clientWidth);
+});
+
+test('042 触控移动到师父并交互，松开后停止移动',()=>{
+  const h=harness(390);h.step(0);
+  const before=h.nodes['village-world'].style.transform;
+  h.touch[1].pointerdown({pointerId:1,preventDefault(){}});
+  for(let i=1;i<=24;i++)h.step(i*50);
+  h.touch[1].pointerup({pointerId:1});
+  assert.notEqual(h.nodes['village-world'].style.transform,before);
+  assert.equal(h.api.nearest(),'journey');
+  const stopped=h.nodes['village-world'].style.transform;
+  h.step(1300);assert.equal(h.nodes['village-world'].style.transform,stopped);
+  h.nodes['village-interact'].onclick();
+  assert.match(h.nodes['village-speaker'].textContent,/师父/);
 });
