@@ -106,6 +106,13 @@
   async function abandonTrial(){if(data?.state.active_trial)await action('abandon',{trial_id:data.state.active_trial.id});}
   async function restartTrial(expected,previous={}){const t=data?.state.active_trial;if(t&&t.id!==expected)throw Error('已有另一试炼，先核对');const breakthrough=!!(t?.breakthrough??previous.breakthrough);const realm=t?.realm_id??previous.realm_id,map=t?.map_id??previous.map_id;await abandonTrial();if(realm){$("journey-realm").value=realm;$("journey-map").value=map;}await startTrial(breakthrough);}
   function selectMap(realm,route){if(!data||busy||blocked||data.state.active_trial)return false;if(!config.realms.includes(realm)||!config.maps.some(m=>m.id===route))return false;$("journey-realm").value=realm;$("journey-map").value=route;describeMap();return true;}
+  function focusPalace(id){
+    if(!config?.palaces?.some(p=>p.id===id))return false;
+    selected=id;render();
+    const target=$("journey-palaces"),details=target?.closest?.('details');if(details)details.open=true;
+    root.requestAnimationFrame?.(()=>{target?.scrollIntoView?.({block:'start'});target?.querySelector?.(`[data-palace="${id}"]`)?.focus?.({preventScroll:true});});
+    return true;
+  }
   async function previewImport(){
     if(!data||busy||blocked||dirty()||!migrationRequired)throw Error('请先同步构筑并确认当前需要合档');
     const generation=epoch;
@@ -148,5 +155,5 @@
   $("journey-import-confirm").onclick=run(confirmImport);
   $("journey-import-cancel").onclick=()=>$("journey-import-dialog").close();
   $("journey-import-dialog").onclose=()=>{importPreview=null;$("journey-import-error").textContent='';};
-  root.DaoBladeJourneyUI={load,reset,trialAction:action,previewUnify:previewImport,resumeTrial,restartTrial,selectMap,startSelected:()=>startTrial(false),mapScenes};
+  root.DaoBladeJourneyUI={load,reset,trialAction:action,previewUnify:previewImport,resumeTrial,restartTrial,selectMap,focusPalace,startSelected:()=>startTrial(false),mapScenes};
 })(globalThis);

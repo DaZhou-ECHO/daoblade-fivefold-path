@@ -32,5 +32,5 @@
   }
   $("training-reset").onclick=()=>act('reset_training',{},'training-status');
   $("home-unify").onclick=()=>void root.DaoBladeJourneyUI.previewUnify().catch(error=>{$("home-sync").textContent=error.message;});
-  root.DaoBladeVillageProgress={update};
+  root.DaoBladeVillageProgress={update,swordIcon};
 })(globalThis);

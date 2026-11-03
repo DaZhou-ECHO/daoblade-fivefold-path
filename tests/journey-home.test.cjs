@@ -7,11 +7,11 @@ function harness(){
   function node(id){
     if(!nodes.has(id)){
       let html='',images=[],buttons=[];
-      nodes.set(id,{textContent:'',disabled:false,
+      nodes.set(id,{textContent:'',disabled:false,hidden:false,attributes:{},setAttribute(key,value){this.attributes[key]=value;},
         get innerHTML(){return html;},set innerHTML(value){html=value;images=[];buttons=[];
           for(const m of value.matchAll(/<img src="([^"]+)"[^>]*data-scene="([^"]+)"/g))images.push({src:m[1],dataset:{scene:m[2]},hidden:false});
-          for(const m of value.matchAll(/<button[^>]*data-(realm|route)="([^"]+)"/g))buttons.push({dataset:{[m[1]]:m[2]}});
-        },querySelectorAll(selector){return selector==='img[data-scene]'?images:buttons;}});
+          for(const m of value.matchAll(/<button[^>]*data-([a-z-]+)="([^"]+)"/g))buttons.push({dataset:{[m[1].replace(/-([a-z])/g,(_,c)=>c.toUpperCase())]:m[2]}});
+        },querySelectorAll(selector){return selector==='img[data-scene]'?images:buttons;},querySelector(selector){return this.querySelectorAll(selector)[0];}});
     }return nodes.get(id);
   }
   const context=vm.createContext({document:{getElementById:node,querySelector:()=>({click:()=>calls.push('atlas')})},
@@ -50,18 +50,56 @@ test('039 首页展示正式档和未完成挑战，锁住新局但保留恢复�
   assert.match(h.node('home-sync').textContent,/未保存/);
 });
 
-test('042 背包只读正式珠匣，并区分有效装配、待连通及未装灵珠',()=>{
+test('043 背包从正式档展示四类灵珠状态、真实出战及持有剑饰',()=>{
   const h=harness();
   h.data.compiled.effective_bead_ids=['li.core'];
+  h.data.compiled.connected=['li.core','li.trace','gen.core','gen.mind'];
   h.data.state.nodes['li.edge']=null;
+  h.data.compiled.inactive['li.edge']='缺少纹路连接';
+  h.data.state.cosmetics.owned.push('azure');
+  h.data.state.cosmetics.equipped='azure';
   h.api.update(h.data);
   const bag=h.node('bag-groups').innerHTML;
   assert.match(h.node('bag-summary').textContent,/正式珠 5\/40/);
-  assert.match(bag,/离·核心珠[\s\S]*?已装有效/);
-  assert.match(bag,/离·纹路珠[\s\S]*?已装待连通/);
-  assert.match(bag,/离·锐式珠[\s\S]*?珠匣/);
-  assert.equal((bag.match(/class="bag-group"/g)||[]).length,5);
+  assert.match(bag,/离·核心珠[\s\S]*?出战生效/);
+  assert.match(bag,/离·纹路珠[\s\S]*?已连通未出战/);
+  assert.match(bag,/离·锐式珠[\s\S]*?未装/);
+  assert.match(h.node('bag-loadout').innerHTML,/Q · 主动[\s\S]*?离火/);
+  assert.match(h.node('bag-loadout').innerHTML,/心法 1[\s\S]*?艮宫心法/);
+  assert.match(h.node('bag-capacity').textContent,/5\/6/);
+  assert.match(h.node('bag-equipped-sword').textContent,/青岚剑/);
+  h.data.state.loadout.passive=[null,'gen'];h.api.update(h.data);
+  assert.match(h.node('bag-loadout').innerHTML,/心法 1[\s\S]*?未出战[\s\S]*?心法 2[\s\S]*?艮宫心法/);
+  h.data.state.nodes['li.edge']='li.edge';h.api.update(h.data);
+  assert.match(h.node('bag-groups').innerHTML,/离·锐式珠[\s\S]*?已装未连通/);
+  h.node('bag-tab-swords').onclick();
+  assert.match(h.node('bag-swords').innerHTML,/青岚剑/);
+  assert.doesNotMatch(h.node('bag-swords').innerHTML,/赤霞剑/);
+  assert.match(h.node('bag-detail-action').textContent,/剑坊/);
+  assert.equal(h.node('bag-bead-panel').hidden,true);
   h.data.state.active_trial={realm_id:'fire',map_id:'ridge'};
   h.api.update(h.data);
   assert.match(h.node('bag-summary').textContent,/挑战中仅可查看/);
+});
+
+test('043 灵珠筛选只改变视图，账号重置清除上一个角色物品',()=>{
+  const h=harness();h.api.update(h.data);
+  h.node('bag-element-filters').querySelectorAll('[data-bag-element]').find(b=>b.dataset.bagElement==='fire').onclick();
+  assert.match(h.node('bag-groups').innerHTML,/离·核心珠/);
+  assert.doesNotMatch(h.node('bag-groups').innerHTML,/艮·核心珠/);
+  h.node('bag-equip-filters').querySelectorAll('[data-bag-equip]').find(b=>b.dataset.bagEquip==='loose').onclick();
+  assert.match(h.node('bag-groups').textContent+h.node('bag-groups').innerHTML,/没有灵珠/);
+  assert.equal(h.data.state.beads.length,5);
+  h.api.reset();
+  assert.equal(h.node('bag-groups').textContent,'');
+  assert.equal(h.node('bag-equipped-sword').textContent,'');
+});
+
+test('043 空珠匣仍可查看基础剑，未同步档案不会伪造物品',()=>{
+  const h=harness();h.data.state.beads=[];h.data.state.nodes={};h.data.blocked=true;
+  h.api.update(h.data);
+  assert.match(h.node('bag-groups').innerHTML,/没有灵珠/);
+  assert.match(h.node('bag-swords').innerHTML,/本命素剑/);
+  assert.match(h.node('bag-status').textContent,/未同步/);
+  assert.doesNotMatch(h.node('bag-swords').innerHTML,/青岚剑/);
 });

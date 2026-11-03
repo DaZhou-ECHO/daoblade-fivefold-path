@@ -245,6 +245,7 @@ function showPanel(name) {
   if (name === "cultivation") renderCultivation();
   if (name === "realms") renderRealms();
   if (["journey", "atlas", "bag", "sanctuary"].includes(name)) void globalThis.DaoBladeJourneyUI?.load();
+  if (name === "bag") globalThis.DaoBladeJourneyHome?.showBag?.();
   if (name === "arraylab") void globalThis.DaoBladeArrayLabUI?.load();
   renderCheckpointRecovery();
   window.scrollTo({ top: 0, behavior: "smooth" });

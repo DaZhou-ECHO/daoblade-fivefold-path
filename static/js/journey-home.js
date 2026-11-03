@@ -10,22 +10,97 @@
   const regionCopy={wood:"沿根桥或古木廊窗，追寻山中仙门。",fire:"从赤霞山脊或炉后石廊，走向悬空丹阙。",earth:"在叠岩石阶与地脉遗院间，接近镇岳殿。",metal:"循断剑林或矿脉剑廊，登向铸剑主峰。",water:"越寒潭天桥或水下石廊，望向倒影中的楼阁。"};
   const esc=value=>String(value).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   let snapshot=null;
+  let bagTab='beads',bagElement='all',bagEquip='all',bagBead=null,bagSword=null,portraitRunning=false;
   function imagePath(realm,route){return `/static/sprites/world-v1/${realm}${route==='hollow'?'-hollow':''}-far.png`;}
   function imageFallback(img,realm,route){
     if(route==='hollow'&&!img.dataset.fallback){img.dataset.fallback='1';img.src=imagePath(realm,'ridge');}
     else img.hidden=true;
   }
+  function beadStatus(bead,state,compiled){
+    if(state.nodes?.[bead.id]!==bead.id)return '未装';
+    if(!compiled.connected?.includes(bead.id))return '已装未连通';
+    return compiled.effective_bead_ids?.includes(bead.id)?'出战生效':'已连通未出战';
+  }
+  function openBagDestination(panel,palaceId){
+    document.querySelector(`[data-panel="${panel}"]`)?.click();
+    if(panel==='journey'&&palaceId)root.DaoBladeJourneyUI?.focusPalace?.(palaceId);
+  }
+  function drawPortrait(time=0){
+    const canvas=$("bag-character-canvas"),ctx=canvas?.getContext?.('2d');
+    if(!ctx)return;
+    ctx.imageSmoothingEnabled=false;
+    ctx.fillStyle='#153b40';ctx.fillRect(0,0,256,320);
+    ctx.fillStyle='#31565a';ctx.fillRect(0,250,256,70);
+    ctx.fillStyle='#79907c';ctx.fillRect(36,264,184,8);
+    ctx.fillStyle='#5a695c';ctx.fillRect(47,272,162,16);
+    const cosmetic=snapshot?.state?.cosmetics?.equipped||'plain';
+    const color=snapshot?.config?.cosmetics?.[cosmetic]?.color||'#b6dbe6';
+    const player={x:103,y:79,w:50,h:177,face:1,hp:1,onGround:true,vx:0,vy:0,animTime:time/1000};
+    ctx.save();ctx.translate(128,256);ctx.scale(2.35,2.35);ctx.translate(-128,-256);
+    const drawn=root.DaoBladeCharacterArt?.renderer?.draw(ctx,player,color,cosmetic);
+    ctx.restore();
+    if(!drawn){
+      // 素材加载失败时仍展示持剑全身轮廓；绘制只影响此预览画布。
+      ctx.fillStyle='#d7e4d4';ctx.fillRect(112,76,32,35);ctx.fillStyle='#204c50';ctx.fillRect(101,114,54,91);
+      ctx.fillStyle='#e4d7b1';ctx.fillRect(90,121,12,71);ctx.fillRect(154,121,12,71);
+      ctx.fillStyle='#182d37';ctx.fillRect(105,205,21,50);ctx.fillRect(134,205,21,50);
+      ctx.fillStyle=color;ctx.fillRect(166,90,8,102);ctx.fillStyle='#dfbb73';ctx.fillRect(153,181,35,8);
+    }
+  }
+  function animatePortrait(time){
+    if(!$("panel-bag")?.classList?.contains('active')){portraitRunning=false;return;}
+    drawPortrait(time);
+    root.requestAnimationFrame?.(animatePortrait);
+    if(!root.requestAnimationFrame)portraitRunning=false;
+  }
+  function showBag(){
+    void root.DaoBladeCharacterArt?.renderer?.load?.();
+    if(!portraitRunning){portraitRunning=true;root.requestAnimationFrame?.(animatePortrait);if(!root.requestAnimationFrame){drawPortrait();portraitRunning=false;}}
+  }
   function renderBag(data){
     const summary=$("bag-summary"),groups=$("bag-groups");
     if(!summary||!groups)return;
-    if(!data){summary.textContent="正在读取正式珠匣";groups.textContent="";return;}
-    const {state,compiled,config}=data,owned=new Set(Object.values(state.nodes||{}).filter(Boolean));
-    const effective=new Set(compiled.effective_bead_ids||[]);
-    summary.textContent=`正式珠 ${state.beads.length}/40 · 已装 ${compiled.used}/${compiled.capacity} · ${state.active_trial?'挑战中仅可查看':'装配请前往师门八宫'}`;
-    groups.innerHTML=config.realms.map(realm=>{
-      const beads=state.beads.filter(bead=>bead.element===realm);
-      return `<section class="bag-group" style="--realm-color:${colors[realm]}"><h3>${symbols[realm]} · ${names[realm]}境 <small>${beads.length} 颗</small></h3><div class="bag-beads">${beads.map(bead=>`<article class="bag-bead"><span class="bag-bead-mark" aria-hidden="true">${symbols[realm]}</span><span><b>${esc(bead.name)}</b><small>${roles[bead.role]||esc(bead.role)} · Lv${bead.level} · XP${bead.xp}</small></span><em>${owned.has(bead.id)?effective.has(bead.id)?'已装有效':'已装待连通':'珠匣'}</em></article>`).join('')||'<p class="bag-empty">尚未寻得本境灵珠</p>'}</div></section>`;
-    }).join('');
+    if(!data){
+      bagTab='beads';bagElement='all';bagEquip='all';bagBead=null;bagSword=null;
+      summary.textContent='正在读取正式征程';groups.textContent='';$("bag-swords").textContent='';$("bag-detail").textContent='';
+      $("bag-rank").textContent='读取中';$("bag-loadout").textContent='';$("bag-capacity").textContent='';$("bag-equipped-sword").textContent='';return;
+    }
+    const {state,compiled,config}=data,beads=state.beads||[],cosmetics=state.cosmetics||{owned:['plain'],equipped:'plain',tickets:0};
+    const palace=id=>config.palaces.find(p=>p.id===id);
+    const sword=config.cosmetics[cosmetics.equipped]||config.cosmetics.plain;
+    $("bag-rank").textContent=config.ranks[state.rank]?.name||'剑修';
+    $("bag-equipped-sword").textContent=`当前剑饰 · ${sword.name}`;
+    $("bag-loadout").innerHTML=[...['Q','E'].map((label,i)=>`<div class="bag-slot"><small>${label} · 主动</small><b>${compiled.skills[i]?esc(compiled.skills[i].name):'未出战'}</b></div>`),
+      ...[0,1].map(i=>{const id=state.loadout?.passive?.[i];return `<div class="bag-slot"><small>心法 ${i+1}</small><b>${id?(esc(palace(id)?.name||id)+'宫心法'+(compiled.minds.includes(id)?'':' · 未生效')):'未出战'}</b></div>`;})].join('');
+    $("bag-capacity").textContent=`八宫容量 ${compiled.used}/${compiled.capacity} · 外观券 ${cosmetics.tickets}`;
+    summary.textContent=`正式珠 ${beads.length}/40 · 已装 ${compiled.used}/${compiled.capacity} · ${state.active_trial?'挑战中仅可查看':data.blocked?'档案未同步，请重读':'装配请前往师门八宫'}`;
+    $("bag-status").textContent=data.migrationRequired?'请先确认单档合并。':data.blocked?'正式档未同步，请关闭窗口后重读。':data.dirty?'师门有未保存构筑；这里显示已保存出战。':'';
+    $("bag-tab-beads").setAttribute?.('aria-selected',String(bagTab==='beads'));
+    $("bag-tab-swords").setAttribute?.('aria-selected',String(bagTab==='swords'));
+    $("bag-tab-beads").tabIndex=bagTab==='beads'?0:-1;$("bag-tab-swords").tabIndex=bagTab==='swords'?0:-1;
+    $("bag-bead-panel").hidden=bagTab!=='beads';$("bag-sword-panel").hidden=bagTab!=='swords';
+    $("bag-count").textContent=bagTab==='beads'?`${beads.length} / 40 灵珠`:`${cosmetics.owned.length} 款剑饰 · ${cosmetics.tickets} 外观券`;
+    $("bag-element-filters").innerHTML=[['all','全部'],...config.realms.map(r=>[r,symbols[r]+'行'])].map(([id,label])=>`<button type="button" data-bag-element="${id}" aria-pressed="${bagElement===id}">${label}</button>`).join('');
+    $("bag-equip-filters").innerHTML=[['all','全部'],['installed','已装'],['loose','未装']].map(([id,label])=>`<button type="button" data-bag-equip="${id}" aria-pressed="${bagEquip===id}">${label}</button>`).join('');
+    $("bag-element-filters").querySelectorAll('[data-bag-element]').forEach(button=>button.onclick=()=>{bagElement=button.dataset.bagElement;renderBag(data);$("bag-element-filters").querySelector?.(`[data-bag-element="${bagElement}"]`)?.focus?.();});
+    $("bag-equip-filters").querySelectorAll('[data-bag-equip]').forEach(button=>button.onclick=()=>{bagEquip=button.dataset.bagEquip;renderBag(data);$("bag-equip-filters").querySelector?.(`[data-bag-equip="${bagEquip}"]`)?.focus?.();});
+    const visible=beads.filter(b=>(bagElement==='all'||b.element===bagElement)&&(bagEquip==='all'||(bagEquip==='installed')===(state.nodes?.[b.id]===b.id)));
+    if(!visible.some(b=>b.id===bagBead))bagBead=visible[0]?.id||null;
+    groups.innerHTML=visible.map(bead=>{
+      const status=beadStatus(bead,state,compiled);
+      return `<button type="button" class="bag-item" data-bag-bead="${esc(bead.id)}" aria-pressed="${bead.id===bagBead}" aria-label="${esc(bead.name)}，${roles[bead.role]||esc(bead.role)}，${status}"><span class="bag-item-mark" style="--realm-color:${colors[bead.element]}" aria-hidden="true">${symbols[bead.element]}</span><b>${esc(bead.name)}</b><small>Lv${bead.level} · ${status}</small></button>`;
+    }).join('')||'<p class="bag-empty">此筛选下没有灵珠；可切换五行或装配状态。</p>';
+    groups.querySelectorAll('[data-bag-bead]').forEach(button=>button.onclick=()=>{bagBead=button.dataset.bagBead;renderBag(data);groups.querySelector?.(`[data-bag-bead="${bagBead}"]`)?.focus?.();});
+    const owned=cosmetics.owned.filter(id=>config.cosmetics[id]);
+    if(!owned.includes(bagSword))bagSword=cosmetics.equipped;
+    $("bag-swords").innerHTML=owned.map(id=>`<button type="button" class="bag-item" data-bag-sword="${id}" aria-pressed="${id===bagSword}" aria-label="${esc(config.cosmetics[id].name)}，${id===cosmetics.equipped?'当前装备':'已拥有'}"><span class="bag-sword-mark" style="--sword:${config.cosmetics[id].color}" aria-hidden="true">${root.DaoBladeVillageProgress?.swordIcon?.(config.cosmetics[id].color,id)||'†'}</span><b>${esc(config.cosmetics[id].name)}</b><small>${id===cosmetics.equipped?'装备中':'已拥有'} · 仅外观</small></button>`).join('');
+    $("bag-swords").querySelectorAll('[data-bag-sword]').forEach(button=>button.onclick=()=>{bagSword=button.dataset.bagSword;renderBag(data);$("bag-swords").querySelector?.(`[data-bag-sword="${bagSword}"]`)?.focus?.();});
+    const selected=visible.find(b=>b.id===bagBead);
+    $("bag-detail").innerHTML=bagTab==='beads'?(selected?`<h4>${esc(selected.name)}</h4><p>${names[selected.element]} · ${roles[selected.role]||esc(selected.role)} · Lv${selected.level} / XP${selected.xp}</p><p>当前状态：${beadStatus(selected,state,compiled)}${compiled.inactive?.[selected.id]?` · ${esc(compiled.inactive[selected.id])}`:''}</p><p>所属宫位：${esc(palace(selected.palace||selected.id.split('.')[0])?.name||selected.id.split('.')[0])}宫。调整装配请前往师门。</p>`:'<p>没有符合筛选条件的灵珠。</p>'):
+      `<h4>${esc(config.cosmetics[bagSword]?.name||sword.name)}</h4><p>${bagSword===cosmetics.equipped?'当前装备':'已拥有'} · 剑身与剑光外观</p><p>不改变伤害、碰撞或攻击范围。装备及购买请前往剑坊。</p>`;
+    $("bag-detail-action").textContent=bagTab==='beads'?'前往师门调整八宫':'前往剑坊查看剑饰';
+    $("bag-detail-action").onclick=()=>openBagDestination(bagTab==='beads'?'journey':'shop',selected?.id.split('.')[0]);
+    drawPortrait();
   }
   function update(data){
     snapshot=data;
@@ -91,12 +166,15 @@
   };
   $("atlas-start").onclick=()=>void root.DaoBladeJourneyUI.startSelected().catch(e=>{$("atlas-error").textContent=e.message;});
   $("atlas-resume").onclick=()=>void root.DaoBladeJourneyUI.resumeTrial().catch(e=>{$("atlas-error").textContent=e.message;});
-  if($("bag-to-journey"))$("bag-to-journey").onclick=()=>{
-    document.querySelector('[data-panel="journey"]').click();
-    const target=$("journey-palaces");if(target?.closest?.("details"))target.closest("details").open=true;
-    target?.scrollIntoView?.({block:"start"});
+  $("bag-tab-beads").onclick=()=>{bagTab='beads';renderBag(snapshot);$("bag-tab-beads").focus?.();};
+  $("bag-tab-swords").onclick=()=>{bagTab='swords';renderBag(snapshot);$("bag-tab-swords").focus?.();};
+  for(const [id,tab] of [['bag-tab-beads','beads'],['bag-tab-swords','swords']])$(id).onkeydown=event=>{
+    if(event.key==='ArrowRight'||event.key==='ArrowLeft'){
+      event.preventDefault();bagTab=tab==='beads'?'swords':'beads';renderBag(snapshot);$(bagTab==='beads'?'bag-tab-beads':'bag-tab-swords').focus?.();
+    }
   };
-  root.DaoBladeJourneyHome={update,reset,imagePath};
+  $("bag-to-journey").onclick=()=>openBagDestination('journey',bagBead?.split('.')[0]);
+  root.DaoBladeJourneyHome={update,reset,imagePath,showBag};
   update(null);
   root.addEventListener?.('DOMContentLoaded',()=>void root.DaoBladeJourneyUI?.load());
 })(globalThis);

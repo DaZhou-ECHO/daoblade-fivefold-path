@@ -89,9 +89,6 @@ body.village-window-open .section-heading h2{color:#f3e5ba}
 body.village-window-open .section-heading>p{font-size:14px}
 .training-section,.training-branch,.shop-item,.journey-build-focus,.journey-detail{border-radius:2px;box-shadow:3px 3px 0 rgba(4,22,27,.35)}
 .training-section{background:#1d4647}.training-branch,.shop-item{background:#163940}
-.bag-groups{display:grid;gap:17px;grid-template-columns:repeat(2,minmax(0,1fr));margin:24px 0}
-.bag-group{padding:16px;border:2px solid var(--realm-color);background:#17373c}.bag-group h3{display:flex;align-items:baseline;justify-content:space-between;margin:0 0 12px;color:#f4e8c4}.bag-group h3 small{font:400 13px sans-serif;color:#bed2c8}
-.bag-beads{display:grid;gap:7px}.bag-bead{display:grid;grid-template-columns:36px minmax(0,1fr) auto;align-items:center;gap:10px;padding:8px;border:1px solid #526d69;background:#102b31}.bag-bead-mark{display:grid;place-items:center;width:32px;height:32px;border:2px solid var(--realm-color);color:var(--realm-color);font-size:20px}.bag-bead b{display:block}.bag-bead small{display:block;margin-top:2px;color:#b6d0cb}.bag-bead em{font-size:12px;font-style:normal;color:#efd895}.bag-empty{margin:4px 0;color:#b6d0cb}
 #bag-summary{padding:10px 14px;border-left:4px solid #d5b777;background:#214a49;color:#f1e1b8}
 @media(max-width:700px){
   .village-heading{max-width:calc(100% - 92px);padding:7px 10px}.village-heading h2{font-size:21px}.village-heading #home-next-step{font-size:11px}
@@ -102,6 +99,38 @@ body.village-window-open .section-heading>p{font-size:14px}
   .village-touch{bottom:75px}.village-prompt{bottom:160px;min-width:0;padding:4px 7px;font-size:11px}
   .village-dialogue:not([hidden]){bottom:170px}
   body.village-window-open .village-hud{display:none}
-  .bag-groups{grid-template-columns:1fr}.bag-bead{grid-template-columns:34px minmax(0,1fr);gap:7px}.bag-bead em{grid-column:2}
 }
 .legacy-tools[hidden],#migration-panel[hidden]{display:none!important}
+/* 043: the saved character build and owned items share one readable inventory window. */
+.bag-layout{display:grid;grid-template-columns:minmax(260px,38%) minmax(0,1fr);gap:18px;margin-top:18px;align-items:start}
+.bag-character,.bag-inventory{min-width:0;padding:17px;border:3px solid #b99d66;background:#163a3e;box-shadow:4px 4px 0 #0a252b}
+.bag-character-head,.bag-inventory-head{display:flex;align-items:center;justify-content:space-between;gap:12px;color:#f3e5b8}
+.bag-character-head strong{padding:3px 9px;border:1px solid #d2bb85;background:#345a50}
+.bag-portrait{display:grid;place-items:center;min-height:310px;margin:14px 0 8px;border:3px solid #718d7c;background:linear-gradient(#214b4c,#193c42);overflow:hidden}
+#bag-character-canvas{display:block;width:min(100%,256px);height:auto;image-rendering:pixelated}
+.bag-sword-label,.bag-capacity{margin:8px 0;padding:8px 10px;border-left:3px solid #d6bb79;background:#234a48;color:#f0e2b7}
+.bag-character h3,.bag-inventory h3{margin:14px 0 10px;color:#f4e4b9}
+.bag-loadout{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.bag-slot{min-height:64px;padding:8px;border:1px solid #809781;background:#102f35}.bag-slot small{display:block;color:#b8d2c9}.bag-slot b{display:block;margin-top:4px;color:#f5e9c9}
+.bag-character .pixel-button{width:100%;min-height:44px;margin-top:8px}
+.bag-inventory-head h3{margin:0}.bag-inventory-head span{color:#c5dbd2;font-size:13px}
+.bag-tabs{display:flex;gap:6px;margin:17px 0 12px;border-bottom:2px solid #8c9875}
+.bag-tabs button{min-width:104px;min-height:44px;padding:8px 13px;border:2px solid transparent;border-bottom:0;background:#22464a;color:#d0dfd4;font-family:inherit;font-size:16px;font-weight:700;line-height:1.2;cursor:pointer}
+.bag-tabs button[aria-selected="true"]{border-color:#d4ba78;background:#345c55;color:#fff0c3}
+.bag-filters{display:flex;flex-wrap:wrap;gap:5px;margin:7px 0}.bag-filters button{min-height:38px;padding:5px 10px;border:1px solid #7d9b8a;background:#18393d;color:#dbe6d5;cursor:pointer}
+.bag-filters button[aria-pressed="true"]{border-color:#f0d388;background:#466655;color:#fff1c7}
+.bag-groups,.bag-swords{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:14px 0;max-height:330px;overflow:auto;align-content:start}
+.bag-item{display:flex;flex-direction:column;align-items:start;gap:5px;min-width:0;min-height:116px;padding:9px;border:2px solid #587b75;background:#0d2b34;color:#eaf0db;text-align:left;cursor:pointer}
+.bag-item[aria-pressed="true"]{border-color:#f5d684;background:#254b4b;box-shadow:inset 0 0 0 2px #6a7856}
+.bag-item-mark,.bag-sword-mark{display:grid;place-items:center;width:32px;height:32px;border:2px solid var(--realm-color,#dec98c);color:var(--realm-color,#dec98c);font:700 20px/1 "STKaiti","KaiTi",serif}
+.bag-sword-mark{border-color:var(--sword);color:var(--sword);font:700 26px/1 serif}
+.bag-sword-mark svg{width:23px;height:29px;filter:drop-shadow(0 0 3px var(--sword))}
+.bag-item b,.bag-item small{max-width:100%;overflow-wrap:anywhere}.bag-item b{font-size:13px}.bag-item small{color:#c7d7cf;font-size:11px}
+.bag-item:hover,.bag-item:focus-visible,.bag-filters button:focus-visible,.bag-tabs button:focus-visible{outline:2px solid #ffe5a4;outline-offset:2px}
+.bag-empty{grid-column:1/-1;padding:20px;border:1px dashed #799487}
+.bag-detail{min-height:118px;margin:12px 0;padding:12px 14px;border:2px solid #78917e;background:#0e2e36}.bag-detail h4{margin:0 0 7px;color:#f4dfaa}.bag-detail p{margin:5px 0;color:#d5e3da}
+#bag-detail-action{min-height:44px}#bag-status:empty{display:none}
+#bag-bead-panel[hidden],#bag-sword-panel[hidden]{display:none!important}
+@media(max-width:900px){.bag-groups,.bag-swords{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:700px){.bag-layout{grid-template-columns:1fr}.bag-character,.bag-inventory{padding:12px}.bag-portrait{min-height:220px}.bag-portrait canvas{max-height:220px;object-fit:contain}.bag-groups,.bag-swords{grid-template-columns:repeat(3,minmax(0,1fr));max-height:none}.bag-item{min-height:106px}.bag-filters button{min-height:44px}}
+@media(max-width:390px){.bag-groups,.bag-swords{grid-template-columns:repeat(2,minmax(0,1fr))}}
