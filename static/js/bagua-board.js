@@ -7,7 +7,7 @@
   const elements={wood:['木','#64c894'],fire:['火','#fa8665'],earth:['土','#dec083'],metal:['金','#ddd9b2'],water:['水','#80c8e8']};
   const roles={core:'核心',trace:'纹路',edge:'锐式',flow:'流式',mind:'心法'};
   const icons={core:'◆',trace:'▤',edge:'✦',flow:'〰',mind:'◎'};
-  const points={xun:[50,50],li:[150,50],kun:[250,50],zhen:[50,150],dui:[250,150],gen:[50,250],kan:[150,250],qian:[250,250]};
+  const points={xun:[60,60],li:[150,30],kun:[240,60],zhen:[30,150],dui:[270,150],gen:[60,240],kan:[150,270],qian:[240,240]};
   let snapshot=null,tab='board',selectedPalace='li',selectedNode='li.core',selectedSlot=null,pending=null;
   const palace=id=>snapshot?.config?.palaces?.find(p=>p.id===id);
   const node=id=>snapshot?.config?.nodes?.find(n=>n.id===id);
@@ -17,7 +17,7 @@
   function editable(){return !!snapshot&&!snapshot.busy&&!snapshot.blocked&&!snapshot.migrationRequired&&!snapshot.state.active_trial;}
   function marks(id){
     const edit=snapshot.draft.loadout,items=[];
-    for(const [kind,labels] of [['active',['Q','E']],['passive',['心一','心二']]])edit[kind].forEach((value,i)=>{if(value===id)items.push(labels[i]);});
+    for(const [kind,labels] of [['active',[root.DaoBladeKeyLabel?.(0)||'Q',root.DaoBladeKeyLabel?.(1)||'E']],['passive',['心一','心二']]])edit[kind].forEach((value,i)=>{if(value===id)items.push(labels[i]);});
     return items.join(' · ');
   }
   function trigram(id){return `<span class="bagua-trigram" aria-hidden="true">${[...lines[id]].map(bit=>`<i class="${bit==='1'?'solid':'broken'}"></i>`).join('')}</span>`;}
@@ -33,7 +33,7 @@
   function focus(selector){root.requestAnimationFrame?.(()=>document.querySelector(selector)?.focus?.({preventScroll:true}));}
   function renderSlots(){
     const edit=snapshot.draft.loadout;
-    $('bagua-slots').innerHTML=[['active',0,'Q · 主动'],['active',1,'E · 主动'],['passive',0,'心法一'],['passive',1,'心法二']].map(([kind,index,label])=>{
+    $('bagua-slots').innerHTML=[['active',0,(root.DaoBladeKeyLabel?.(0)||'Q')+' · 主动'],['active',1,(root.DaoBladeKeyLabel?.(1)||'E')+' · 主动'],['passive',0,'心法一'],['passive',1,'心法二']].map(([kind,index,label])=>{
       const id=edit[kind][index],p=palace(id),ready=id&&connected(id+(kind==='active'?'.core':'.mind'));
       return `<button type="button" class="bagua-slot ${ready?'ready':id?'inactive':''}" data-bagua-slot="${kind}:${index}" aria-expanded="${selectedSlot?.kind===kind&&selectedSlot.index===index}"><small>${label}</small><b>${p?`${trigram(id)}${esc(p.name)} · ${esc(kind==='active'?p.skill:'心法')}`:'未指定'}</b><em>${!id?'点击选宫':ready?'草稿可生效':'缺少连通珠，保存后仍无效'}</em></button>`;
     }).join('');
@@ -62,7 +62,7 @@
       const core=id+'.core',status=connected(core)?`connected ${snapshot.state.nodes[core]===core?'saved':'draft'}`:'unlinked';
       return `<path d="M150 150 L${x} ${y}" class="${id===selectedPalace?'selected':''} ${status}"/>`;
     }).join('');
-    const assignments=[...snapshot.draft.loadout.active.map((id,i)=>[id,i?'E':'Q']),...snapshot.draft.loadout.passive.map((id,i)=>[id,i?'心二':'心一'])]
+    const assignments=[...snapshot.draft.loadout.active.map((id,i)=>[id,root.DaoBladeKeyLabel?.(i)||(i?'E':'Q')]),...snapshot.draft.loadout.passive.map((id,i)=>[id,i?'心二':'心一'])]
       .filter(([id])=>points[id]).map(([id,label])=>{const [x,y]=points[id];return `<text x="${(x+150)/2}" y="${(y+150)/2-5}">${label}</text>`;}).join('');
     $('bagua-palaces').innerHTML=`<svg class="bagua-vein-map" viewBox="0 0 300 300" preserveAspectRatio="none" aria-hidden="true">${paths}<circle cx="150" cy="150" r="97"/><circle cx="150" cy="150" r="138"/>${assignments}</svg>`+order.map(id=>{
       if(!id)return '<div class="bagua-heart" aria-label="本命剑心"><img src="/static/sprites/weapons/base/jian.png" alt=""><small>本命剑心</small></div>';
@@ -135,11 +135,11 @@
   function update(next){snapshot=next;if(!next){selectedSlot=null;pending=null;}render();}
   function openTab(name='board'){
     root.DaoBladeSkillGuide?.stop();
-    if(!['board','training','breakthrough'].includes(name))name='board';tab=name;selectedSlot=null;pending=null;
+    if(!['board','training','breakthrough'].includes(name))name='board';tab=name;root.DaoBladeScene?.boardMode?.(name==='board');selectedSlot=null;pending=null;
     for(const key of ['board','training','breakthrough']){$(`bagua-${key}-pane`).hidden=key!==name;const button=document.querySelector(`[data-bagua-tab="${key}"]`);button?.setAttribute('aria-current',key===name?'page':'false');}
     if(snapshot)render();
   }
-  function selectPalace(id){if(!palace(id))return;selectedPalace=id;selectedNode=id+'.core';pending=null;openTab('board');focus(`[data-bagua-palace="${id}"]`);}
+  function selectPalace(id){if(!palace(id))return;root.DaoBladeScene?.palaceSelected?.();selectedPalace=id;selectedNode=id+'.core';pending=null;openTab('board');focus(`[data-bagua-palace="${id}"]`);}
   $('bagua-summary').insertAdjacentHTML('afterbegin','<div class="bagua-pills"><strong id="bagua-capacity">草稿已装 0/6</strong><span id="bagua-freeze">正在读取</span></div>');
   $('bagua-training-pane').append($('panel-journey').querySelector('.training-section'));
   $('bagua-summary').append($('journey-status'),$('journey-draft'),$('journey-error'));

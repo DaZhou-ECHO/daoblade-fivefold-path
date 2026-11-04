@@ -106,6 +106,7 @@
   }
   function update(data){
     snapshot=data;
+    root.DaoBladeScene?.home?.(data);
     renderBag(data);
     if(!data){
       $("home-top-rank").textContent='征程读取中';$("home-top-clears").textContent='五境首通 0/5';

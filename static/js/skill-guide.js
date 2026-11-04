@@ -68,7 +68,7 @@
     if(key!==nextKey){key=nextKey;preview=null;error='';const ticket=++serial;root.clearTimeout(timer);
       if(next.dirty&&!next.busy&&!next.blocked&&!next.state.active_trial&&!next.migrationRequired){timer=root.setTimeout(async()=>{try{const result=await root.DaoBladeJourneyUI.previewBuild(next.draft);if(ticket!==serial)return;preview=result;error='';}catch(e){if(ticket!==serial)return;error=e.message;}viewKey='';renderGuide();renderCompare();},150);}
     }
-    const signature=key+selected+next.busy+mode;
+    const signature=key+selected+next.busy+mode+keyLabel(0)+keyLabel(1);
     if(viewKey!==signature){stop();viewKey=signature;renderGuide();}
     renderCompare();
   }

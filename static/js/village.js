@@ -136,6 +136,6 @@
     camera();
     root.requestAnimationFrame(frame);
   }
-  root.DaoBladeVillage={update,nearest:()=>nearest().panel,interact,closeDialogue};
+  root.DaoBladeVillage={update,nearest:()=>nearest().panel,interact,closeDialogue,clearInput:()=>pressed.clear()};
   root.requestAnimationFrame(frame);
 })(globalThis);

@@ -73,7 +73,9 @@ function keyLabel(code) {
   return code.replace(/^Key|^Digit/, "").replace("ShiftLeft", "Shift").replace("Escape", "Esc").replace("Space", "空格").replace("Arrow", "方向");
 }
 
+globalThis.DaoBladeKeyLabel = index => keyLabel(controls[index ? "dao2" : "dao"]);
 function renderControls() {
+  globalThis.DaoBladeScene?.controlsChanged?.();
   $$('[data-control]').forEach(node => { node.textContent = keyLabel(controls[node.dataset.control]); });
   $("#control-settings").innerHTML = Object.entries(ACTION_LABELS).map(([action, label]) => `<button type="button" class="pixel-button" data-rebind="${action}"><span>${label}</span><kbd>${keyLabel(controls[action])}</kbd></button>`).join("");
   $$('[data-rebind]').forEach(button => button.addEventListener("click", () => {
@@ -310,6 +312,8 @@ async function submitAccount(action, fromEntry = false) {
 function closeVillageMenu() { const menu = $("#village-menu"), toggle = $("#village-menu-toggle"); if (menu) menu.hidden = true; toggle?.setAttribute?.("aria-expanded", "false"); }
 function showPanel(name) {
   closeVillageMenu();
+  globalThis.DaoBladeSkillGuide?.stop();
+  document.body?.classList?.remove("board-screen");
   const villageWindow = ["atlas", "bag", "journey", "shop", "manual"].includes(name);
   const wasWindow = document.body?.classList?.contains("village-window-open");
   if (villageWindow && !wasWindow) villageReturnFocus = document.activeElement;
@@ -896,6 +900,7 @@ class BattleGame {
   }
 
   keyDown(event) {
+    if (document.querySelector("dialog[open]")?.open) return;
     const action = actionForCode(event.code);
     if (action) event.preventDefault();
     if (event.repeat) return;
@@ -1931,10 +1936,11 @@ class BattleGame {
         ? this.trial.activated ? " · 剑碑已激活" : " · 前段清场后前往剑碑恢复"
         : "") + this.terrainReadout();
     }
+    globalThis.DaoBladeScene?.battle?.(this);
     $("#hud-hp").textContent = `${Math.ceil(Math.max(0, this.player.hp))} / ${this.stats.hpMax}`;
     $("#hud-qi").textContent = Math.floor(this.player.qi)+" / "+this.stats.qiMax+(this.combatV2?" · "+(this.player.guardBreak>0?"破防 "+this.player.guardBreak.toFixed(1)+"s":this.player.blocking?"普通挡耗12 / 重击20 · 停止回气":this.guardNotice||"精准格挡回气；下＋跳跃下落"):"");
     $("#hud-enemies").textContent = this.enemies.filter(enemy => !enemy.dead).length;
-    $("#skill-hud").textContent = this.stats.loadout.active.map((key, index) => `${index ? "E" : "Q"} ${key ? TRIGRAMS[key].skill : "未装备"}${this.player.skillCooldowns[index] > 0 ? ` ${this.player.skillCooldowns[index].toFixed(1)}s` : ""}`).join(" · ");
+    $("#skill-hud").textContent = this.stats.loadout.active.map((key, index) => `${keyLabel(controls[index ? "dao2" : "dao"])} ${key ? TRIGRAMS[key].skill : "未装备"}${this.player.skillCooldowns[index] > 0 ? ` ${this.player.skillCooldowns[index].toFixed(1)}s` : ""}`).join(" · ");
     if(this.journey){
       $("#objective-text").textContent=(this.breakthrough?"筑基心劫 · 击败离火剑魁，成功后扣24修为，容量升至10":$("#objective-text").textContent+" · "+this.level.route_label);
     }
@@ -1942,7 +1948,7 @@ class BattleGame {
     const route=$("#route-readout");if(route){route.hidden=!this.journey;route.textContent=this.journey?this.journeyRouteReadout():"";}
     const markedTarget=this.nearestEnemy();
     if (this.lab) $("#skill-hud").textContent = `${this.lab.skill.enabled ? "Q " + (this.lab.skill.focus ? "聚焰" : "离火留痕") + (this.lab.skill.burst ? " · E引爆" : this.lab.skill.cycle ? " · E回火" : "") : "核心未连接 · 技能停用"} · Q ${this.player.skillCooldowns[0].toFixed(1)}s${(this.lab.skill.burst||this.lab.skill.cycle)?" / E "+this.player.skillCooldowns[1].toFixed(1)+"s":""} · 护盾${Math.ceil(this.player.shield)} · 近敌火痕 ${markedTarget?.labMarks || 0}/3 · 直伤${Math.round(this.labMetrics.direct)} / 灼烧${this.labMetrics.burn} / 引爆${this.labMetrics.burst}`;
-    if(this.journey)$("#skill-hud").textContent=this.lab.skills.map((s,i)=>s?`${i?"E":"Q"} ${s.name}(${s.element}) ${this.player.skillCooldowns[i].toFixed(1)}s`:`${i?"E":"Q"}停用`).join(" · ")+` · 心法${this.lab.minds.join("/")||"无"} · 护盾${Math.ceil(this.player.shield)}`;
+    if(this.journey)$("#skill-hud").textContent=this.lab.skills.map((s,i)=>s?`${keyLabel(controls[i?"dao2":"dao"])} ${s.name}(${s.element}) ${this.player.skillCooldowns[i].toFixed(1)}s`:`${keyLabel(controls[i?"dao2":"dao"])}停用`).join(" · ")+` · 心法${this.lab.minds.join("/")||"无"} · 护盾${Math.ceil(this.player.shield)}`;
   }
 
   draw() {
@@ -2214,7 +2220,7 @@ class BattleGame {
   }
 
   drawMinimap(ctx) {
-    const x = 720, y = 18, w = 210; ctx.fillStyle = "rgba(4,9,16,.72)"; ctx.fillRect(x - 8, y - 8, w + 16, 30); ctx.fillStyle = "#405269"; ctx.fillRect(x, y + 5, w, 4);
+    const x = 20, y = 72, w = 210; ctx.fillStyle = "rgba(4,9,16,.72)"; ctx.fillRect(x - 8, y - 8, w + 16, 30); ctx.fillStyle = "#405269"; ctx.fillRect(x, y + 5, w, 4);
     ctx.fillStyle = "#f1eadb"; ctx.fillRect(x + this.player.x / this.worldWidth * w - 3, y, 6, 14);
     this.enemies.filter(e => !e.dead).forEach(e => { ctx.fillStyle = e.kind === "boss" ? "#dfad4c" : this.element.color; ctx.fillRect(x + e.x / this.worldWidth * w - 2, y + 3, e.kind === "boss" ? 7 : 4, e.kind === "boss" ? 8 : 5); });
   }
@@ -2272,7 +2278,7 @@ function bindUi() {
   $("#retry-run").addEventListener("click", () => { if(activeGame?.labRun){void activeGame.restartLab();return;} if (activeGame) startRealm(activeGame.realmKey, { practice: activeGame.practice, bossPractice: activeGame.bossPractice, labCompiled: activeGame.lab, state: activeGame.practice ? previewSocketState() : saveData }); });
   $("#quit-run").addEventListener("click", () => activeGame?.quit());
   $("#leave-run").addEventListener("click", () => activeGame?.quit());
-  $("#settings-run").addEventListener("click", () => { renderControls(); $("#settings-dialog").showModal(); });
+  $("#settings-run").addEventListener("click", () => { activeGame?.setPause(true); globalThis.DaoBladeVillage?.clearInput?.(); renderControls(); $("#settings-dialog").showModal(); });
   $("#shake-toggle").checked = feedback.shake;
   $("#sound-toggle").checked = feedback.sound;
   $("#combat-text-toggle").checked = feedback.combatText;
