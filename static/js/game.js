@@ -23,6 +23,8 @@ let activeGame = null;
 let toastTimer = 0;
 let pendingRebindListener = null;
 let villageReturnFocus = null;
+let entryMode = "loading";
+let entryBusy = false;
 const DEFAULT_CONTROLS = Object.freeze({ left: "KeyA", right: "KeyD", down: "KeyS", interact: "KeyF", jump: "Space", slash: "KeyJ", block: "KeyK", qi: "KeyL", dao: "KeyQ", dao2: "KeyE", dash: "ShiftLeft", pause: "Escape" });
 let controls = loadControls();
 let feedback = loadFeedback();
@@ -172,16 +174,98 @@ function writeBackup() {
 
 function backupKey() { return currentUser ? `daoblade-backup-user-${currentUser.id}` : "daoblade-backup"; }
 
+function entrySummary() { return globalThis.DaoBladeJourneyUI?.entrySummary?.() || null; }
+async function drawEntryPortrait() {
+  const canvas = $("#entry-character-canvas"), ctx = canvas?.getContext?.("2d");
+  if (!ctx) return;
+  ctx.imageSmoothingEnabled = false;
+  ctx.fillStyle = "#214949"; ctx.fillRect(0, 0, 256, 320);
+  ctx.fillStyle = "#42665c"; ctx.fillRect(0, 263, 256, 57);
+  const summary = entrySummary(), cosmetic = summary?.cosmetic || "plain", color = summary?.color || "#b6dbe6";
+  const renderer = globalThis.DaoBladeCharacterArt?.renderer;
+  let drawn = false;
+  try {
+    await renderer?.load?.();
+    ctx.save(); ctx.translate(128, 260); ctx.scale(2.45, 2.45); ctx.translate(-128, -260);
+    drawn = !!renderer?.draw?.(ctx, { x: 103, y: 79, w: 50, h: 177, face: 1, hp: 1, onGround: true, vx: 0, vy: 0, animTime: 0 }, color, cosmetic);
+    ctx.restore();
+  } catch (_) { try { ctx.restore(); } catch (_) { /* 没有可恢复的画布状态。 */ } }
+  if (!drawn) { ctx.fillStyle = "#e2d3a9"; ctx.fillRect(111, 86, 34, 35); ctx.fillStyle = "#244b50"; ctx.fillRect(101, 121, 54, 91); ctx.fillStyle = "#192c38"; ctx.fillRect(106, 212, 18, 48); ctx.fillRect(132, 212, 18, 48); ctx.fillStyle = color; ctx.fillRect(165, 98, 7, 115); }
+}
+function showEntry(mode, message = "") {
+  entryMode = mode;
+  const screen = $("#entry-screen"); if (!screen) return;
+  screen.hidden = false;
+  document.body?.classList?.add?.("entry-locked");
+  const shell = $(".shell"); if (shell) shell.inert = true;
+  const summary = entrySummary(), returning = mode === "return", form = mode === "login" || mode === "register";
+  $("#entry-return").hidden = !returning;
+  $("#entry-auth-form").hidden = !form;
+  $("#entry-guest").hidden = mode === "loading" || mode === "error";
+  $("#entry-retry").hidden = mode !== "error";
+  $("#entry-error").textContent = message;
+  $("#entry-title").textContent = returning ? `剑客 ${currentUser.username}` : mode === "loading" ? "读取身份中" : mode === "error" ? "暂时无法继续" : "登录剑客账号";
+  $("#entry-intro").textContent = returning ? "确认本次行旅，再进入青云新手村。" : mode === "loading" ? "正在核对当前剑修。" : mode === "error" ? "请重新读取；当前身份不会自动切换。" : "登录或注册后继续，也可选择本机游客征程。";
+  if (returning && summary) {
+    $("#entry-rank").textContent = summary.rank;
+    $("#entry-clears").textContent = `${summary.clears} / 5`;
+    $("#entry-trial").textContent = summary.trial ? `进行中：${{wood:"青木",fire:"离火",earth:"镇岳",metal:"庚金",water:"玄水"}[summary.trial.realm]}境${summary.trial.route === "hollow" ? "回廊" : "高径"} · ${summary.trial.checkpoint ? "剑碑恢复" : "入口恢复"}` : "暂无进行中的挑战";
+  }
+  $("#entry-tab-login").setAttribute?.("aria-pressed", String(mode !== "register"));
+  $("#entry-tab-register").setAttribute?.("aria-pressed", String(mode === "register"));
+  $("#entry-submit").textContent = mode === "register" ? "注册并进入村落" : "登录并进入村落";
+  void drawEntryPortrait();
+  $(returning ? "#entry-continue" : form ? "#entry-username" : "#entry-retry")?.focus?.({ preventScroll: true });
+}
+function enterVillage() {
+  const summary = entrySummary();
+  if (!summary || summary.blocked) { showEntry("error", "正式征程读取失败，请重新读取。"); return; }
+  $("#entry-screen").hidden = true;
+  document.body?.classList?.remove?.("entry-locked");
+  const shell = $(".shell"); if (shell) shell.inert = false;
+  showPanel("sanctuary");
+  $("#village-canvas")?.focus?.({ preventScroll: true });
+}
 async function initializeSession() {
+  showEntry("loading");
   try {
     const response = await fetch("/api/auth/me");
     if (!response.ok) throw new Error("无法检查登录状态");
     const payload = await response.json();
-    currentUser = payload.user;
-    csrfToken = payload.csrf_token;
-  } catch (_) { currentUser = null; }
-  renderAccount();
-  await globalThis.DaoBladeJourneyUI?.load();
+    currentUser = payload.user; csrfToken = payload.csrf_token;
+    renderAccount();
+    if (currentUser) {
+      await globalThis.DaoBladeJourneyUI?.load();
+      if (!entrySummary() || entrySummary().blocked) throw new Error("正式征程读取失败");
+    }
+    showEntry(currentUser ? "return" : "login");
+  } catch (error) { showEntry("error", error.message); }
+}
+async function leaveAccountForEntry() {
+  if (entrySummary()?.dirty && !window.confirm("未保存的八宫草稿将丢失。确定切换身份吗？")) return;
+  await saveQueue;
+  try {
+    if (currentUser) {
+      const response = await fetch("/api/auth/logout", { method: "POST", headers: { "X-CSRF-Token": csrfToken } });
+      if (!response.ok) throw new Error("退出失败，请重试");
+    }
+    if (activeGame) { activeGame.destroy(); activeGame = null; }
+    currentUser = null; csrfToken = ""; saveRevision = 0; saveBlocked = false;
+    selectedBeadId = null; pendingSocket = null;
+    renderAccount(); showEntry("login"); showPanel("sanctuary");
+  } catch (error) { if (document.body?.classList?.contains?.("entry-locked")) showEntry("error", error.message); else showToast(error.message, true); }
+}
+async function enterGuest() {
+  if (entryBusy || entryMode === "error") return;
+  entryBusy = true; $("#entry-guest").disabled = true;
+  try {
+    if (currentUser) await leaveAccountForEntry();
+    if (currentUser) return;
+    await globalThis.DaoBladeJourneyUI?.load();
+    if (!entrySummary() || entrySummary().blocked) throw new Error("游客征程读取失败");
+    enterVillage();
+  } catch (error) { showEntry("error", error.message); }
+  finally { entryBusy = false; $("#entry-guest").disabled = false; }
 }
 
 function renderAccount() {
@@ -195,11 +279,14 @@ function renderAccount() {
   $("#village-import-action").hidden = !currentUser;
 }
 
-async function submitAccount(action) {
+async function submitAccount(action, fromEntry = false) {
+  if (fromEntry && entryBusy) return;
   if (activeGame && !activeGame.finished) return showToast("请先退出当前闯关再切换账号", true);
   await saveQueue;
-  const username = $("#account-username").value.trim();
-  const password = $("#account-password").value;
+  if (entrySummary()?.dirty && !window.confirm("未保存的八宫草稿将丢失。确定切换账号吗？")) return;
+  const username = $(fromEntry ? "#entry-username" : "#account-username").value.trim();
+  const password = $(fromEntry ? "#entry-password" : "#account-password").value;
+  if (fromEntry) { entryBusy = true; $("#entry-submit").disabled = true; }
   try {
     const response = await fetch(`/api/auth/${action}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, password }) });
     const payload = await response.json();
@@ -209,13 +296,15 @@ async function submitAccount(action) {
     csrfToken = payload.csrf_token;
     selectedBeadId = null;
     pendingSocket = null;
-    $("#account-password").value = "";
-    $("#account-dialog").close();
+    $(fromEntry ? "#entry-password" : "#account-password").value = "";
+    if (!fromEntry) $("#account-dialog").close();
     renderAccount();
     await globalThis.DaoBladeJourneyUI?.load();
-    showPanel("sanctuary");
+    if (!entrySummary() || entrySummary().blocked) throw new Error("正式征程读取失败，请重试");
+    if (fromEntry) enterVillage(); else showPanel("sanctuary");
     showToast(`欢迎，${currentUser.username}`);
-  } catch (error) { showToast(error.message, true); }
+  } catch (error) { if (fromEntry) showEntry(currentUser ? "error" : action, error.message); else showToast(error.message, true); }
+  finally { if (fromEntry) { entryBusy = false; $("#entry-submit").disabled = false; } }
 }
 
 function closeVillageMenu() { const menu = $("#village-menu"), toggle = $("#village-menu-toggle"); if (menu) menu.hidden = true; toggle?.setAttribute?.("aria-expanded", "false"); }
@@ -248,7 +337,7 @@ function showPanel(name) {
   if (name === "inventory") renderInventory();
   if (name === "cultivation") renderCultivation();
   if (name === "realms") renderRealms();
-  if (["journey", "atlas", "bag", "sanctuary"].includes(name)) void globalThis.DaoBladeJourneyUI?.load();
+  if (!document.body?.classList?.contains?.("entry-locked") && ["journey", "atlas", "bag", "sanctuary"].includes(name)) void globalThis.DaoBladeJourneyUI?.load();
   if (name === "journey") globalThis.DaoBladeBagua?.openTab?.('board');
   if (name === "bag") globalThis.DaoBladeJourneyHome?.showBag?.();
   if (name === "arraylab") void globalThis.DaoBladeArrayLabUI?.load();
@@ -2134,6 +2223,14 @@ class BattleGame {
 function bindUi() {
   window.addEventListener("error",event=>{const notice=$("#runtime-error");if(notice){notice.hidden=false;notice.textContent="运行异常，请保留存档并反馈："+event.message;}});
 
+  $("#entry-auth-form").addEventListener("submit", event => { event.preventDefault(); void submitAccount(entryMode === "register" ? "register" : "login", true); });
+  $("#entry-tab-login").addEventListener("click", () => showEntry("login"));
+  $("#entry-tab-register").addEventListener("click", () => showEntry("register"));
+  $("#entry-continue").addEventListener("click", enterVillage);
+  $("#entry-switch").addEventListener("click", () => { void leaveAccountForEntry(); });
+  $("#entry-guest").addEventListener("click", () => { void enterGuest(); });
+  $("#entry-retry").addEventListener("click", () => { void initializeSession(); });
+
   $("#result-dialog").addEventListener("cancel", event => event.preventDefault());
   $("#restore-checkpoint").addEventListener("click", restoreCheckpoint);
   $("#account-login").addEventListener("click", () => $("#account-dialog").showModal());
@@ -2146,18 +2243,7 @@ function bindUi() {
   $("#close-account").addEventListener("click", () => $("#account-dialog").close());
   $("#submit-login").addEventListener("click", () => submitAccount("login"));
   $("#submit-register").addEventListener("click", () => submitAccount("register"));
-  $("#account-logout").addEventListener("click", async () => {
-    if (activeGame) { activeGame.destroy(); activeGame = null; }
-    await saveQueue;
-    try {
-      const response = await fetch("/api/auth/logout", { method: "POST", headers: { "X-CSRF-Token": csrfToken } });
-      if (!response.ok) throw new Error("退出失败，请重试");
-      currentUser = null; csrfToken = ""; saveRevision = 0; saveBlocked = false;
-      selectedBeadId = null; pendingSocket = null;
-      await initializeSession();
-      showPanel("sanctuary");
-    } catch (error) { showToast(error.message, true); }
-  });
+  $("#account-logout").addEventListener("click", () => { void leaveAccountForEntry(); });
   $("#account-import").addEventListener("click", async () => {
     if (!currentUser || !window.confirm("仅当账号没有存档时可以导入游客存档。确定导入吗？")) return;
     try {

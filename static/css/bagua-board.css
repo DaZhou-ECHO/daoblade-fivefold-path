@@ -38,6 +38,36 @@
 @media(max-width:700px){.bagua-tabs button{flex:1;padding:8px 3px;font-size:15px}.bagua-chart-wrap,.bagua-inspector,.bagua-record{padding:10px}.bagua-palace,.bagua-heart{min-height:83px;padding:3px}.bagua-palace b{font-size:16px}.bagua-element,.bagua-palace small{font-size:10px}.bagua-palace em{font-size:10px}.bagua-slot-chooser>div{grid-template-columns:repeat(2,minmax(0,1fr))}.bagua-node-map{grid-template-rows:repeat(3,79px);min-height:250px}.bagua-node small{font-size:9px}}
 @media(max-width:390px){.bagua-slot b{font-size:13px}.bagua-compass small{font-size:10px}.bagua-palace em{letter-spacing:-.03em}}
 @media(prefers-reduced-motion:reduce){.bagua-palace,.bagua-node,.bagua-slot{transition:none!important}}
+/* 045: eight fixed directions around the sword heart, with visible draft channels. */
+.bagua-chart-wrap{background:radial-gradient(circle at 50% 48%,#365b54 0,#183d42 38%,#102e39 77%)}
+.bagua-palaces{position:relative;aspect-ratio:1;max-width:540px;gap:0;background:radial-gradient(circle,#d7c3850d 0 26%,transparent 27% 48%,#bdb17b1c 49% 50%,transparent 51%)}
+.bagua-vein-map{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+.bagua-vein-map path{fill:none;stroke:#6e887e;stroke-width:2.5;stroke-dasharray:4 5;opacity:.65}
+.bagua-vein-map path.connected{stroke:#79b99a;stroke-dasharray:none}
+.bagua-vein-map path.connected.draft{stroke:#a4ddd0;stroke-dasharray:7 3}
+.bagua-vein-map path.selected{stroke:#ffda8b;stroke-width:4;stroke-dasharray:none;filter:drop-shadow(0 0 5px #ffd684)}
+.bagua-vein-map circle{fill:none;stroke:#d2bd7a;stroke-width:1;stroke-dasharray:2 5;opacity:.45}
+.bagua-vein-map text{fill:#fff0ba;stroke:#163a3e;stroke-width:2;paint-order:stroke;font:700 14px sans-serif;text-anchor:middle}
+.bagua-palace,.bagua-heart{z-index:1;min-height:0;margin:8px;clip-path:polygon(15% 0,85% 0,100% 15%,100% 85%,85% 100%,15% 100%,0 85%,0 15%);border:3px solid #87977b;box-shadow:inset 0 0 0 3px #264b49}
+.bagua-palace{background:#12363d}.bagua-palace[aria-pressed="true"]{background:#365d53;filter:drop-shadow(0 0 8px var(--bagua-color))}
+.bagua-palace:focus-visible{outline:4px solid #ffe2a1;outline-offset:1px;clip-path:none}
+.bagua-heart{position:relative;background:radial-gradient(circle,#726c48 0,#2a524e 55%,#173b40 80%)}
+.bagua-heart:before{content:"";position:absolute;inset:12%;border:1px solid #e3ce8c;transform:rotate(45deg);opacity:.7}
+.bagua-heart img{position:relative;z-index:1;width:39px;height:112px;object-fit:fill;image-rendering:pixelated;filter:drop-shadow(0 0 8px #f5dfaa)}
+.bagua-heart img[hidden]{display:none}.bagua-heart:has(img[hidden]):after{content:"剑";position:absolute;color:#ffdf9a;font:700 43px "STKaiti","KaiTi",serif}
+.bagua-heart small{position:relative;z-index:1;letter-spacing:.06em}
+.bagua-node-map{border:1px solid #6b897b;background:radial-gradient(circle at 45% 50%,#34575499,transparent 55%)}
+.bagua-node{border-width:3px;box-shadow:inset 0 0 0 2px #234b49}.bagua-node-core{border-color:#e2c47c;border-radius:4px}.bagua-node-trace{border-radius:14px 4px}.bagua-node-mind{border-radius:50%;border-color:#a4c4a1}.bagua-node-edge{border-radius:4px 22px 4px 22px;border-color:#d6a276}.bagua-node-flow{border-radius:22px 4px 22px 4px;border-color:#8ebdcc}
+.bagua-node[data-state="missing"]{opacity:.72;border-style:dotted}.bagua-node[data-state="unlinked"]{background:#4b3e3b}.bagua-node[data-state="effective"]{background:#37564e}
+.bagua-node .bagua-bead-mark{display:inline-grid;vertical-align:middle}.bagua-node-detail{background:linear-gradient(145deg,#193f42,#0e2d36);border-color:#aa9b6d}
+.bagua-bead-casket{margin-top:10px;padding:10px;border:2px solid #81947a;background:#0d3038}.bagua-bead-casket>strong{color:#f3dca5}.bagua-bead-casket>div{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;margin-top:8px}.bagua-bead-casket button{display:grid;justify-items:center;gap:3px;min-height:67px;min-width:0;padding:5px 2px;border:1px solid #9ba77b;background:#234b49;color:#f1e2b9;cursor:pointer}.bagua-bead-casket button:disabled{opacity:.5;cursor:default}.bagua-bead-casket button small{display:block;color:#c9d6c8;font-size:10px}.bagua-bead-casket .bagua-bead-mark{width:27px;height:27px;margin:0;background:radial-gradient(circle at 34% 29%,#fff4c1 0 8%,#a5c6a5 9% 25%,#487e72 26% 70%,#1d5156 71%)}
+.bagua-talismans{margin:16px 0 0;padding:12px 15px 1px;border:2px solid #9f9e72;background:#173b40}.bagua-talismans>.eyebrow{margin:0;color:#efdb9e}.bagua-talismans .bagua-slots{margin-top:10px}
+.bagua-slot{min-height:94px;border-width:3px;border-top-color:#e4ca86;clip-path:polygon(0 0,100% 0,100% 88%,88% 100%,12% 100%,0 88%)}
+.bagua-channel-pulse{animation:bagua-channel .42s steps(3,end)}
+@keyframes bagua-channel{0%{box-shadow:0 0 0 0 #ffe4a1}50%{box-shadow:0 0 0 10px #ffe4a188}100%{box-shadow:0 0 0 0 #ffe4a100}}
+@media(max-width:700px){.bagua-palace,.bagua-heart{margin:4px;padding:2px}.bagua-heart img{width:26px;height:76px}.bagua-palace b{font-size:16px}.bagua-palace em{font-size:9px}.bagua-talismans{padding:10px}}
+@media(prefers-reduced-motion:reduce){.bagua-channel-pulse{animation:none}.bagua-vein-map path.selected{filter:none}}
+@media(max-width:700px){#panel-journey>.section-heading{margin-bottom:6px}#panel-journey>.section-heading>p{display:none}.bagua-tabs{margin:8px 0}.bagua-summary{padding:8px 10px}.bagua-summary #journey-status,.bagua-summary #journey-draft{font-size:12px;margin:2px 0}.bagua-pills{gap:4px}.bagua-chart-wrap{padding:7px}}
 .village-menu-wrap{position:relative;z-index:9;margin-left:8px}.village-menu-wrap #village-menu-toggle{min-height:42px;border-color:#d3b878;background:#244a45;color:#f6e4b8}
 .village-menu{position:absolute;right:0;top:calc(100% + 7px);z-index:30;display:grid;gap:5px;min-width:200px;padding:9px;border:3px solid #d2b879;background:#173a3e;box-shadow:5px 5px 0 #0b252b}
 .village-menu[hidden],body.village-window-open .village-menu-wrap,body:has(#panel-game.active) .village-menu-wrap{display:none!important}

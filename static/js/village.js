@@ -33,7 +33,7 @@
     try {const saved=JSON.parse(localStorage.getItem("daoblade-controls")||"null");return {left:saved?.left||"KeyA",right:saved?.right||"KeyD",interact:saved?.interact||"KeyF"};}
     catch(_){return {left:"KeyA",right:"KeyD",interact:"KeyF"};}
   }
-  function inVillage(){return document.getElementById("panel-sanctuary").classList.contains("active")&&!document.body?.classList?.contains("village-window-open")&&!document.querySelector("dialog[open]");}
+  function inVillage(){return document.getElementById("panel-sanctuary").classList.contains("active")&&!document.body?.classList?.contains("entry-locked")&&!document.body?.classList?.contains("village-window-open")&&!document.querySelector("dialog[open]");}
   function active(){return inVillage()&&dialogue.hidden;}
   function nearest(){return targets.reduce((best,item)=>Math.abs(item.x-player.x)<Math.abs(best.x-player.x)?item:best,targets[0]);}
   function interact(){if(document.querySelector("dialog[open]"))return;if(!dialogue.hidden){document.getElementById("village-choices").querySelector("button")?.click();return;}if(!active())return;const target=nearest();if(Math.abs(target.x-player.x)<=90)converse(target);else prompt.textContent="靠近山河图、师父或商人后交互";}

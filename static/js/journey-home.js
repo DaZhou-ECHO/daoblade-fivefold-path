@@ -204,5 +204,4 @@
   $("bag-to-journey").onclick=()=>openBagDestination('journey',bagBead?.split('.')[0]);
   root.DaoBladeJourneyHome={update,reset,imagePath,showBag};
   update(null);
-  root.addEventListener?.('DOMContentLoaded',()=>void root.DaoBladeJourneyUI?.load());
 })(globalThis);

@@ -33,6 +33,13 @@
     root.DaoBladeVillageProgress?.update(snapshot);
     root.DaoBladeBagua?.update(snapshot?{...snapshot,draft}:null);
   }
+  function entrySummary(){
+    if(!data||!config)return null;
+    const state=data.state,trial=state.active_trial;
+    return {rank:config.ranks[state.rank].name,clears:config.realms.filter(realm=>state.progress.clears[realm]>0).length,
+      trial:trial?{realm:trial.realm_id,route:trial.map_id,checkpoint:!!trial.checkpoint}:null,
+      cosmetic:state.cosmetics?.equipped||'plain',color:config.cosmetics?.[state.cosmetics?.equipped]?.color||'#b6dbe6',blocked,dirty:dirty()};
+  }
   function recommendation(){return config.realms.find(r=>!data.state.progress.clears[r])||config.realms.reduce((a,b)=>data.state.progress.clears[a]<=data.state.progress.clears[b]?a:b);}
   function mindDescription(id,level=1){
     return ({qian:`基础攻击+${1+level}`,dui:`回气+${.5+.5*level}/秒`,xun:`速度+${8+4*level}`,li:`技能直击+${1+level}`,kan:`技能冷却×${(.95-.05*level).toFixed(2)}`,gen:`防御+${1+level}`,kun:`生命+${10+5*level}`,zhen:`基础劈砍击退${6+4*level}，首领${1+level}`})[id];
@@ -184,5 +191,5 @@
   $("journey-import-confirm").onclick=run(confirmImport);
   $("journey-import-cancel").onclick=()=>$("journey-import-dialog").close();
   $("journey-import-dialog").onclose=()=>{importPreview=null;$("journey-import-error").textContent='';};
-  root.DaoBladeJourneyUI={load,reset,trialAction:action,previewUnify:previewImport,resumeTrial,restartTrial,selectMap,focusPalace,editNode,assignSlot,startMap,startSelected:()=>startTrial(false),mapScenes};
+  root.DaoBladeJourneyUI={load,reset,entrySummary,trialAction:action,previewUnify:previewImport,resumeTrial,restartTrial,selectMap,focusPalace,editNode,assignSlot,startMap,startSelected:()=>startTrial(false),mapScenes};
 })(globalThis);

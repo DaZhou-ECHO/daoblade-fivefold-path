@@ -8,8 +8,21 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/journey-home.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/village.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/bagua-board.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/entry-screen.css') }}">
 </head>
-<body>
+<body class="entry-locked">
+  <section id="entry-screen" class="entry-screen" aria-label="行旅入口">
+    <div class="entry-landscape" aria-hidden="true"><span class="entry-mountain mountain-back"></span><span class="entry-mountain mountain-front"></span></div>
+    <div class="entry-shell">
+      <div class="entry-hero"><p class="eyebrow">八荒五行 · 剑起青云</p><h1>本命剑</h1><p>一剑入八荒，五行照归途。</p><div class="entry-portrait"><canvas id="entry-character-canvas" width="256" height="320" role="img" aria-label="持本命剑的剑修"></canvas></div><small>青云新手村 · 行旅起点</small></div>
+      <div class="entry-panel">
+        <p class="eyebrow">行旅簿</p><h2 id="entry-title">读取身份中</h2><p id="entry-intro">正在核对当前剑修。</p>
+        <div id="entry-return" hidden><div class="entry-progress"><span>当前境界<strong id="entry-rank">读取中</strong></span><span>五境首通<strong id="entry-clears">0 / 5</strong></span></div><p id="entry-trial">暂无进行中的挑战</p><button id="entry-continue" class="pixel-button primary" type="button">继续征程</button><button id="entry-switch" class="pixel-button" type="button">切换账号</button></div>
+        <form id="entry-auth-form" hidden><div class="entry-auth-tabs"><button id="entry-tab-login" type="button" aria-pressed="true">登录</button><button id="entry-tab-register" type="button" aria-pressed="false">注册</button></div><label>剑客账号<input id="entry-username" autocomplete="username" maxlength="24" required></label><label>密码<input id="entry-password" type="password" autocomplete="current-password" maxlength="128" required></label><button id="entry-submit" class="pixel-button primary" type="submit">登录并进入村落</button></form>
+        <button id="entry-guest" class="pixel-button entry-guest" type="button">游客继续</button><p id="entry-error" role="alert"></p><button id="entry-retry" class="pixel-button" type="button" hidden>重新读取身份</button>
+      </div>
+    </div>
+  </section>
   <div class="ink-cloud cloud-a"></div>
   <div class="ink-cloud cloud-b"></div>
   <header class="topbar">
@@ -117,12 +130,12 @@
       <nav id="bagua-tabs" class="bagua-tabs" aria-label="师门事务"><button type="button" data-bagua-tab="board">八宫阵盘</button><button type="button" data-bagua-tab="training">师门修习</button><button type="button" data-bagua-tab="breakthrough">筑基心劫</button></nav>
       <div id="bagua-board-pane" class="bagua-pane">
         <div id="bagua-summary" class="bagua-summary"></div>
-        <div id="bagua-tutorial" class="bagua-tutorial" hidden><p>师父指点：一、选宫看连线；二、装入核心与支路灵珠；三、设置 Q/E、心法并保存。</p><button id="bagua-tutorial-close" type="button">跳过指点</button></div>
-        <div id="bagua-slots" class="bagua-slots" aria-label="两主动与两心法出战栏"></div>
         <div class="bagua-workspace">
-          <div class="bagua-chart-wrap"><div class="bagua-compass"><span>南 · 离火</span><small>上南下北 · 左东右西</small></div><div id="bagua-palaces" class="bagua-palaces" aria-label="后天八宫阵盘"></div><div class="bagua-legend"><span>◇ 草稿装入</span><span>━ 已保存连通</span><span>✦ 出战生效</span><span>┄ 未连通</span></div></div>
+          <div class="bagua-chart-wrap"><div class="bagua-compass"><span>南 · 离火</span><small>上南下北 · 左东右西</small></div><div id="bagua-palaces" class="bagua-palaces" aria-label="后天八宫阵盘"></div><div class="bagua-legend"><span>◇ 草稿连通</span><span>━ 已保存生效</span><span>✦ 符牌出战</span><span>┄ 未连通</span></div></div>
           <section class="bagua-inspector" aria-label="所选宫位与灵珠节点"><h3 id="bagua-palace-title">选择宫位</h3><p id="bagua-palace-copy"></p><div id="bagua-nodes" class="bagua-nodes"></div><div id="bagua-node-detail" class="bagua-node-detail"></div></section>
         </div>
+        <div id="bagua-tutorial" class="bagua-tutorial" hidden><p>师父指点：一、选宫看连线；二、装入核心与支路灵珠；三、设置 Q/E、心法并保存。</p><button id="bagua-tutorial-close" type="button">跳过指点</button></div>
+        <div class="bagua-talismans"><p class="eyebrow">出战符牌 · 选择宫位后保存</p><div id="bagua-slots" class="bagua-slots" aria-label="两主动与两心法出战栏"></div></div>
         <section class="bagua-record"><h3>已保存 · 实际生效</h3><div id="bagua-saved"></div></section>
         <div id="bagua-actions" class="bagua-actions"></div>
       </div>

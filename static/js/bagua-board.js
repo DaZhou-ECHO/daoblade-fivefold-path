@@ -7,6 +7,7 @@
   const elements={wood:['木','#64c894'],fire:['火','#fa8665'],earth:['土','#dec083'],metal:['金','#ddd9b2'],water:['水','#80c8e8']};
   const roles={core:'核心',trace:'纹路',edge:'锐式',flow:'流式',mind:'心法'};
   const icons={core:'◆',trace:'▤',edge:'✦',flow:'〰',mind:'◎'};
+  const points={xun:[50,50],li:[150,50],kun:[250,50],zhen:[50,150],dui:[250,150],gen:[50,250],kan:[150,250],qian:[250,250]};
   let snapshot=null,tab='board',selectedPalace='li',selectedNode='li.core',selectedSlot=null,pending=null;
   const palace=id=>snapshot?.config?.palaces?.find(p=>p.id===id);
   const node=id=>snapshot?.config?.nodes?.find(n=>n.id===id);
@@ -24,7 +25,7 @@
     if(!owned(id))return ['missing','未获得'];
     if(!installed(id))return ['available','持有未装'];
     if(!connected(id))return ['unlinked','草稿未连通'];
-    if(!snapshot.dirty&&snapshot.compiled.effective_bead_ids.includes(id))return ['effective','出战生效'];
+    if(snapshot.state.nodes[id]===id&&snapshot.compiled.effective_bead_ids.includes(id))return ['effective','已保存生效'];
     return ['linked','草稿已连通'];
   }
   function focus(selector){root.requestAnimationFrame?.(()=>document.querySelector(selector)?.focus?.({preventScroll:true}));}
@@ -55,11 +56,18 @@
     }
   }
   function renderPalaces(){
-    $('bagua-palaces').innerHTML=order.map(id=>{
-      if(!id)return '<div class="bagua-heart" aria-label="本命剑心"><span>剑</span><small>本命剑心</small></div>';
+    const paths=Object.entries(points).map(([id,[x,y]])=>{
+      const core=id+'.core',status=connected(core)?`connected ${snapshot.state.nodes[core]===core?'saved':'draft'}`:'unlinked';
+      return `<path d="M150 150 L${x} ${y}" class="${id===selectedPalace?'selected':''} ${status}"/>`;
+    }).join('');
+    const assignments=[...snapshot.draft.loadout.active.map((id,i)=>[id,i?'E':'Q']),...snapshot.draft.loadout.passive.map((id,i)=>[id,i?'心二':'心一'])]
+      .filter(([id])=>points[id]).map(([id,label])=>{const [x,y]=points[id];return `<text x="${(x+150)/2}" y="${(y+150)/2-5}">${label}</text>`;}).join('');
+    $('bagua-palaces').innerHTML=`<svg class="bagua-vein-map" viewBox="0 0 300 300" preserveAspectRatio="none" aria-hidden="true">${paths}<circle cx="150" cy="150" r="97"/><circle cx="150" cy="150" r="138"/>${assignments}</svg>`+order.map(id=>{
+      if(!id)return '<div class="bagua-heart" aria-label="本命剑心"><img src="/static/sprites/weapons/base/jian.png" alt=""><small>本命剑心</small></div>';
       const p=palace(id),count=snapshot.config.nodes.filter(n=>n.palace===id&&installed(n.id)).length,[element,color]=elements[p.element];
       return `<button class="bagua-palace" type="button" data-bagua-palace="${id}" data-element="${p.element}" aria-pressed="${id===selectedPalace}" aria-label="${p.name}宫，${p.direction}，${element}行，草稿已装${count}颗，${marks(id)||'未出战'}" style="--bagua-color:${color}">${trigram(id)}<b>${esc(p.name)}宫</b><span class="bagua-element">${element}行 · ${esc(p.direction)}</span><small>${count}/5 珠</small><em>${marks(id)||'未出战'}</em></button>`;
     }).join('');
+    const sword=$('bagua-palaces').querySelector('.bagua-heart img');if(sword)sword.onerror=()=>{sword.hidden=true;};
     $('bagua-palaces').querySelectorAll('[data-bagua-palace]').forEach(button=>{
       button.onclick=()=>selectPalace(button.dataset.baguaPalace);
       button.onkeydown=event=>{
@@ -77,11 +85,20 @@
     $('bagua-nodes').innerHTML=`<div class="bagua-node-map"><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${links.map(([,target,path])=>`<path d="${path}" class="${connected(selectedPalace+'.'+target)?'linked':installed(selectedPalace+'.'+target)?'unlinked':'empty'}"/>`).join('')}</svg>${['core','trace','mind','edge','flow'].map(role=>{
       const id=selectedPalace+'.'+role,bead=owned(id),[status,label]=nodeState(id);
       return `<button type="button" class="bagua-node bagua-node-${role}" data-bagua-node="${id}" data-state="${status}" aria-pressed="${selectedNode===id}" aria-label="${p.name}宫${roles[role]}，${label}"><span><i class="bagua-bead-mark" aria-hidden="true">${icons[role]}</i>${roles[role]}</span><b>${bead?'Lv'+bead.level:'未得'}</b><small>${label}</small></button>`;
-    }).join('')}</div>`;
+    }).join('')}</div><div class="bagua-bead-casket" aria-label="${p.name}宫珠匣"><strong>本宫珠匣</strong><div>${['core','trace','mind','edge','flow'].map(role=>{
+      const id=selectedPalace+'.'+role,bead=owned(id);
+      return `<button type="button" data-bagua-bead="${id}" draggable="${Boolean(bead&&editable()&&!installed(id))}" ${bead?'':'disabled'} aria-label="${p.name}宫${roles[role]}，${bead?`持有${bead.name}等级${bead.level}`:'未获得'}"><i class="bagua-bead-mark" aria-hidden="true">${icons[role]}</i><span>${roles[role]}<small>${bead?`Lv${bead.level}${installed(id)?' · 已装':''}`:'未得'}</small></span></button>`;
+    }).join('')}</div></div>`;
     const nextNode={core:{ArrowUp:'mind',ArrowRight:'trace'},mind:{ArrowDown:'core',ArrowRight:'edge'},trace:{ArrowLeft:'core',ArrowUp:'edge',ArrowDown:'flow'},edge:{ArrowLeft:'mind',ArrowDown:'trace'},flow:{ArrowLeft:'trace',ArrowUp:'trace'}};
     $('bagua-nodes').querySelectorAll('[data-bagua-node]').forEach(button=>{
       button.onclick=()=>{selectedNode=button.dataset.baguaNode;pending=null;renderNodes();focus(`[data-bagua-node="${selectedNode}"]`);};
       button.onkeydown=event=>{const role=button.dataset.baguaNode.split('.')[1],next=nextNode[role]?.[event.key];if(next){event.preventDefault();selectedNode=selectedPalace+'.'+next;pending=null;renderNodes();focus(`[data-bagua-node="${selectedNode}"]`);}};
+      button.ondragover=event=>{if(editable()&&event.dataTransfer?.types.includes('text/plain'))event.preventDefault();};
+      button.ondrop=event=>{event.preventDefault();const id=event.dataTransfer?.getData('text/plain');if(id!==button.dataset.baguaNode||!owned(id)||installed(id)||!editable())return;selectedNode=id;const role=id.split('.')[1];const other=selectedPalace+'.'+(role==='edge'?'flow':'edge');if(['edge','flow'].includes(role)&&installed(other)){pending=id;renderNodes();return;}changeNode(id,true,false);};
+    });
+    $('bagua-nodes').querySelectorAll('[data-bagua-bead]').forEach(button=>{
+      button.onclick=()=>{selectedNode=button.dataset.baguaBead;pending=null;renderNodes();focus(`[data-bagua-node="${selectedNode}"]`);};
+      button.ondragstart=event=>{if(!editable()||!owned(button.dataset.baguaBead)||installed(button.dataset.baguaBead)){event.preventDefault();return;}event.dataTransfer.setData('text/plain',button.dataset.baguaBead);event.dataTransfer.effectAllowed='copy';};
     });
     if(node(selectedNode)?.palace!==selectedPalace)selectedNode=selectedPalace+'.core';
     const detailNode=node(selectedNode);
@@ -99,7 +116,7 @@
     $('bagua-node-detail').querySelector('[data-bagua-cancel]')?.addEventListener('click',()=>{pending=null;renderNodes();});
   }
   function changeNode(id,install,replace){
-    try{root.DaoBladeJourneyUI.editNode(id,install,replace);pending=null;render();focus(`[data-bagua-node="${id}"]`);}
+    try{root.DaoBladeJourneyUI.editNode(id,install,replace);pending=null;render();const targets=[document.querySelector(`[data-bagua-node="${id}"]`),document.querySelector('.bagua-vein-map path.selected')];targets.forEach(target=>target?.classList.add('bagua-channel-pulse'));root.setTimeout?.(()=>targets.forEach(target=>target?.classList.remove('bagua-channel-pulse')),450);focus(`[data-bagua-node="${id}"]`);}
     catch(error){$('journey-error').textContent=error.message;}
   }
   function render(){
