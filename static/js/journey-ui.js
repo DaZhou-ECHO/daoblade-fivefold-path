@@ -25,7 +25,7 @@
     notifyHome();
   }
   function notifyHome(){
-    const snapshot=data?{state:data.state,compiled:data.compiled,config,
+    const snapshot=data?{state:data.state,compiled:data.trial_compiled||data.compiled,guide:data.guide,revision:data.revision,config,
       realm:$("journey-realm").value,route:$("journey-map").value,
       busy,blocked,migrationRequired,dirty:dirty(),mapScenes}:null;
     root.DaoBladeJourneyHome?.update(snapshot);
@@ -104,11 +104,18 @@
     try{
       const res=await fetch('/api/journey',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},body:JSON.stringify({action,...extra,revision:data.revision,owner_id:owner})});
       const payload=await res.json();if(generation!==epoch)throw Error('账号已变化');
-      if(!res.ok)throw Error(payload.error||'保存失败');data=payload;draft=buildOf(payload.state);$("journey-error").textContent='';return payload;
+      if(!res.ok)throw Error(payload.error||'保存失败');if(action==='build')root.DaoBladeSkillGuide?.saved(data,payload);data=payload;draft=buildOf(payload.state);$("journey-error").textContent='';return payload;
     }catch(e){if(generation===epoch){blocked=true;$("journey-error").textContent=e.message+'；重读后核对，不自动覆盖';}throw e;}
     finally{if(generation===epoch){busy=false;render();}}
   }
   function launch(){const t=data.state.active_trial;if(!t)throw Error('没有未完成挑战');root.DaoBladeStartJourney(t,data.trial_compiled||t.compiled);}
+  async function previewBuild(build){
+    if(!data||busy||blocked||migrationRequired||data.state.active_trial)throw Error('当前无法预览改装');
+    const generation=epoch,revision=data.revision;
+    const res=await fetch('/api/journey/build-preview',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},body:JSON.stringify({...build,revision,owner_id:owner})});
+    const payload=await res.json();if(generation!==epoch||revision!==data?.revision)throw Error('账号或档案已变化，预览已失效');
+    if(!res.ok)throw Error(payload.error||'暂时无法预览');return payload;
+  }
   async function startTrial(breakthrough=false){await action('start',{realm_id:breakthrough?'fire':$("journey-realm").value,map_id:$("journey-map").value,breakthrough});launch();}
   async function startMap(realm,route){
     if(!data||!config?.realms.includes(realm)||!config.maps.some(map=>map.id===route))throw Error('路线无效，请重新打开山河图');
@@ -191,5 +198,5 @@
   $("journey-import-confirm").onclick=run(confirmImport);
   $("journey-import-cancel").onclick=()=>$("journey-import-dialog").close();
   $("journey-import-dialog").onclose=()=>{importPreview=null;$("journey-import-error").textContent='';};
-  root.DaoBladeJourneyUI={load,reset,entrySummary,trialAction:action,previewUnify:previewImport,resumeTrial,restartTrial,selectMap,focusPalace,editNode,assignSlot,startMap,startSelected:()=>startTrial(false),mapScenes};
+  root.DaoBladeJourneyUI={load,reset,entrySummary,previewBuild,trialAction:action,previewUnify:previewImport,resumeTrial,restartTrial,selectMap,focusPalace,editNode,assignSlot,startMap,startSelected:()=>startTrial(false),mapScenes};
 })(globalThis);

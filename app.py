@@ -260,6 +260,22 @@ def create_app(test_config: dict | None = None) -> Flask:
         except ValueError as exc:
             return jsonify(error=str(exc)), 400
 
+    @app.post("/api/journey/build-preview")
+    def journey_build_preview():
+        user = current_user()
+        if not csrf_ok(user):
+            return jsonify(error="会话校验失败"), 403
+        payload = request.get_json(silent=True)
+        owner = user["id"] if user else None
+        if not isinstance(payload, dict) or type(payload.get("revision")) is not int or payload["revision"] < 0:
+            return jsonify(error="缺少有效版本号"), 400
+        if "owner_id" not in payload or type(payload["owner_id"]) is not type(owner) or payload["owner_id"] != owner:
+            return jsonify(error="账号已变化，请重读征程"), 409
+        try:
+            return jsonify(journey.preview_build(save_slot(user), payload["revision"], payload.get("nodes"), payload.get("loadout")))
+        except (ValueError, TypeError, KeyError) as exc:
+            return jsonify(error=str(exc) if isinstance(exc, ValueError) else "构筑字段无效"), 409 if "其他窗口" in str(exc) else 400
+
     @app.get("/api/journey/unify-preview")
     def journey_import_preview():
         try:

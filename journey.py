@@ -7,6 +7,7 @@ from pathlib import Path
 from database import get_db, load_state_record
 from game_rules import validate_state as validate_legacy_state
 from array_lab import validate_lab_state
+from skill_guide import GUIDE, NODE_GUIDE, describe_build, mind_text
 
 MAPS_V2 = json.loads((Path(__file__).parent / "static/data/journey-maps-v2.json").read_text(encoding="utf-8"))
 
@@ -52,6 +53,8 @@ NODES = [{"id": p[0]+"."+role, "palace": p[0], "element": p[2], "role": role,
 CATALOG = {n["id"]: {"id": n["id"], "name": n["label"]+"珠", "element": n["element"], "role": n["role"], "palace": n["palace"]} for n in NODES}
 CONFIG["nodes"] = NODES
 CONFIG["catalog"] = list(CATALOG.values())
+CONFIG["skill_guide"] = GUIDE
+CONFIG["node_guide"] = NODE_GUIDE
 
 
 def new_bead(key):
@@ -194,7 +197,40 @@ def response(state, revision, receipt=None, replayed=False):
     if state["active_trial"]:
         trial_layout(state["active_trial"])
     return {"state": state, "revision": revision, "compiled": compile_journey(state), "receipt": receipt, "replayed": replayed,
-            "trial_compiled": state["active_trial"]["compiled"] if state["active_trial"] else None}
+            "trial_compiled": state["active_trial"]["compiled"] if state["active_trial"] else None,
+            "guide": guide_view(state)}
+
+
+def guide_view(state):
+    compiled = state["active_trial"]["compiled"] if state["active_trial"] else compile_journey(state)
+    catalog = {}
+    for p in GUIDE:
+        sample = deepcopy(state)
+        sample["active_trial"] = None
+        sample["loadout"] = {"active": [p, None], "passive": state["loadout"]["passive"]}
+        potential = describe_build(compile_journey(sample))["skills"][0]
+        base = default_journey()
+        base["beads"] = [new_bead(p+".core")]
+        base["nodes"] = {k: k if k == p+".core" else None for k in CATALOG}
+        base["loadout"] = {"active": [p, None], "passive": [None, None]}
+        base_skill = describe_build(compile_journey(base))["skills"][0]
+        level = next((b["level"] for b in state["beads"] if b["id"] == p+".mind"), 1)
+        catalog[p] = {"skill": potential, "base_skill": base_skill, "mind": mind_text(p, level), "mind_level": level}
+    return {"saved": describe_build(compiled), "catalog": catalog}
+
+
+def preview_build(slot, revision, nodes, loadout):
+    state, current = read_journey(slot)
+    if revision != current:
+        raise ValueError("其他窗口已更新，请保留草稿并重新核对")
+    if state["active_trial"]:
+        raise ValueError("挑战中构筑冻结")
+    if unification_required(slot):
+        raise ValueError("请先完成合档")
+    state = deepcopy(state)
+    state["nodes"], state["loadout"] = deepcopy(nodes), deepcopy(loadout)
+    compiled = compile_journey(state)
+    return {"revision": current, "compiled": compiled, "guide": guide_view(state)}
 
 
 def read_journey(slot):

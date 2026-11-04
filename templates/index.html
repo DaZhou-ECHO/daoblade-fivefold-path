@@ -132,11 +132,11 @@
         <div id="bagua-summary" class="bagua-summary"></div>
         <div class="bagua-workspace">
           <div class="bagua-chart-wrap"><div class="bagua-compass"><span>南 · 离火</span><small>上南下北 · 左东右西</small></div><div id="bagua-palaces" class="bagua-palaces" aria-label="后天八宫阵盘"></div><div class="bagua-legend"><span>◇ 草稿连通</span><span>━ 已保存生效</span><span>✦ 符牌出战</span><span>┄ 未连通</span></div></div>
-          <section class="bagua-inspector" aria-label="所选宫位与灵珠节点"><h3 id="bagua-palace-title">选择宫位</h3><p id="bagua-palace-copy"></p><div id="bagua-nodes" class="bagua-nodes"></div><div id="bagua-node-detail" class="bagua-node-detail"></div></section>
+          <section class="bagua-inspector" aria-label="所选宫位与灵珠节点"><h3 id="bagua-palace-title">选择宫位</h3><p id="bagua-palace-copy"></p><button id="skill-mobile-detail" type="button" class="pixel-button">查看本宫招式</button><div id="skill-guide"></div><div id="bagua-nodes" class="bagua-nodes"></div><div id="bagua-node-detail" class="bagua-node-detail"></div></section>
         </div>
         <div id="bagua-tutorial" class="bagua-tutorial" hidden><p>师父指点：一、选宫看连线；二、装入核心与支路灵珠；三、设置 Q/E、心法并保存。</p><button id="bagua-tutorial-close" type="button">跳过指点</button></div>
         <div class="bagua-talismans"><p class="eyebrow">出战符牌 · 选择宫位后保存</p><div id="bagua-slots" class="bagua-slots" aria-label="两主动与两心法出战栏"></div></div>
-        <section class="bagua-record"><h3>已保存 · 实际生效</h3><div id="bagua-saved"></div></section>
+        <section class="bagua-record"><h3>已保存 · 实际生效</h3><div id="bagua-saved"></div><div id="skill-comparison" role="status"></div><div id="skill-save-recap" hidden></div></section>
         <div id="bagua-actions" class="bagua-actions"></div>
       </div>
       <div id="bagua-training-pane" class="bagua-pane" hidden></div>
@@ -230,6 +230,7 @@
   <script src="{{ url_for('static', filename='js/rules.js') }}"></script>
   <script src="{{ url_for('static', filename='js/game.js') }}"></script>
   <script src="{{ url_for('static', filename='js/journey-ui.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/skill-guide.js') }}"></script>
   <script src="{{ url_for('static', filename='js/bagua-board.js') }}"></script>
   <script src="{{ url_for('static', filename='js/journey-home.js') }}"></script>
   <script src="{{ url_for('static', filename='js/village.js') }}"></script>

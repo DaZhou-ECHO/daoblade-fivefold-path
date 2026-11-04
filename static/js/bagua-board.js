@@ -26,7 +26,9 @@
     if(!installed(id))return ['available','持有未装'];
     if(!connected(id))return ['unlinked','草稿未连通'];
     if(snapshot.state.nodes[id]===id&&snapshot.compiled.effective_bead_ids.includes(id))return ['effective','已保存生效'];
-    return ['linked','草稿已连通'];
+    const p=id.split('.')[0],role=node(id).role,loadout=snapshot.draft.loadout;
+    const selected=role==='mind'?loadout.passive.includes(p):role==='core'?loadout.active.includes(p)||loadout.passive.includes(p):loadout.active.includes(p);
+    return ['linked',selected?'草稿已连通':'已连通，尚未出战'];
   }
   function focus(selector){root.requestAnimationFrame?.(()=>document.querySelector(selector)?.focus?.({preventScroll:true}));}
   function renderSlots(){
@@ -65,7 +67,7 @@
     $('bagua-palaces').innerHTML=`<svg class="bagua-vein-map" viewBox="0 0 300 300" preserveAspectRatio="none" aria-hidden="true">${paths}<circle cx="150" cy="150" r="97"/><circle cx="150" cy="150" r="138"/>${assignments}</svg>`+order.map(id=>{
       if(!id)return '<div class="bagua-heart" aria-label="本命剑心"><img src="/static/sprites/weapons/base/jian.png" alt=""><small>本命剑心</small></div>';
       const p=palace(id),count=snapshot.config.nodes.filter(n=>n.palace===id&&installed(n.id)).length,[element,color]=elements[p.element];
-      return `<button class="bagua-palace" type="button" data-bagua-palace="${id}" data-element="${p.element}" aria-pressed="${id===selectedPalace}" aria-label="${p.name}宫，${p.direction}，${element}行，草稿已装${count}颗，${marks(id)||'未出战'}" style="--bagua-color:${color}">${trigram(id)}<b>${esc(p.name)}宫</b><span class="bagua-element">${element}行 · ${esc(p.direction)}</span><small>${count}/5 珠</small><em>${marks(id)||'未出战'}</em></button>`;
+      return `<button class="bagua-palace" type="button" data-bagua-palace="${id}" data-element="${p.element}" aria-pressed="${id===selectedPalace}" aria-label="${p.name}宫，${p.direction}，${element}行，草稿已装${count}颗，${marks(id)||'未出战'}" style="--bagua-color:${color}">${trigram(id)}<b>${esc(p.name)}宫</b><span class="bagua-element">${element}行 · ${esc(p.direction)}</span><small>${count}/5 珠</small><span class="bagua-purpose">${esc(snapshot.config.skill_guide?.[id]?.purpose||'')}</span><em>${marks(id)||'未出战'}</em></button>`;
     }).join('');
     const sword=$('bagua-palaces').querySelector('.bagua-heart img');if(sword)sword.onerror=()=>{sword.hidden=true;};
     $('bagua-palaces').querySelectorAll('[data-bagua-palace]').forEach(button=>{
@@ -108,6 +110,9 @@
     const full=bead&&!installed(id)&&!replacement&&Object.values(snapshot.draft.nodes).filter(Boolean).length>=snapshot.config.ranks[snapshot.state.rank].capacity;
     const children=detailNode.role==='core'&&snapshot.config.nodes.some(n=>n.parent===id&&installed(n.id));
     $('bagua-node-detail').innerHTML=`<h4><i class="bagua-bead-mark" aria-hidden="true">${icons[detailNode.role]}</i>${esc(detailNode.label)}</h4><p>${bead?`${esc(bead.name)} · Lv${bead.level} / XP${bead.xp}`:'尚未获得对应灵珠'}</p><p>草稿：${label}；已保存：${saved?(snapshot.compiled.inactive[id]?'未连通':snapshot.compiled.effective_bead_ids.includes(id)?'出战生效':'已装'):'未装'}。</p>${full?'<p>容量已满，请先取下一颗灵珠。</p>':''}${children&&installed(id)?'<p>取下核心后，已装子珠将保留但暂时失去连通。</p>':''}<button type="button" data-bagua-node-action ${!bead||!editable()||full?'disabled':''}>${installed(id)?'取下灵珠':replacement?'替换当前变式':'装入灵珠'}</button>${pending===id?`<div class="bagua-confirm"><p>${replacement?'锐式与流式互斥，确认取下另一变式并装入此珠？':'确认取下核心？子珠将保留为未连通。'}</p><button type="button" data-bagua-confirm>确认</button><button type="button" data-bagua-cancel>取消</button></div>`:''}`;
+    const guide=snapshot.config.node_guide?.[detailNode.role];
+    if(guide){const info=document.createElement('div');info.className='skill-node-explanation';info.innerHTML=`<p>${esc(guide.effect)}</p><p>${esc(guide.growth)}</p><p>${detailNode.parent?'前置：'+esc(node(detailNode.parent).label)+(connected(detailNode.parent)?'（已连通）':'（尚未连通）'):'根节点，无连接前置'}；${bead?'Lv'+bead.level+' / '+bead.xp+'经验'+(bead.level===3?'（满级）':'，下一级需20经验'):'本宫对应元素路线胜利可获得'}。</p>`;$('bagua-node-detail').append(info);}
+    if(pending===id&&snapshot.guide){const compare=document.createElement('div');compare.className='skill-candidate';$('bagua-node-detail').querySelector('.bagua-confirm').append(compare);void root.DaoBladeSkillGuide?.candidate(id,compare);}
     $('bagua-node-detail').querySelector('[data-bagua-node-action]').onclick=()=>{
       if(replacement||children&&installed(id)){pending=id;renderNodes();return;}
       changeNode(id,!installed(id),false);
@@ -120,15 +125,16 @@
     catch(error){$('journey-error').textContent=error.message;}
   }
   function render(){
-    if(!snapshot){$('bagua-palaces').textContent='读取八宫中';$('bagua-slots').textContent='';$('bagua-nodes').textContent='';$('bagua-node-detail').textContent='';return;}
+    if(!snapshot){root.DaoBladeSkillGuide?.update(null);$('bagua-palaces').textContent='读取八宫中';$('bagua-slots').textContent='';$('bagua-nodes').textContent='';$('bagua-node-detail').textContent='';return;}
     if(!palace(selectedPalace))selectedPalace=snapshot.config.palaces[0].id;
     const used=Object.values(snapshot.draft.nodes).filter(Boolean).length;
     $('bagua-capacity').textContent=`草稿已装 ${used}/${snapshot.config.ranks[snapshot.state.rank].capacity}`;
     $('bagua-freeze').textContent=snapshot.state.active_trial?'挑战进行中：本局构筑冻结，只可查看。':snapshot.dirty?'草稿尚未保存；地图进入将受阻。':'已保存构筑可用于下一局。';
-    renderSlots();renderPalaces();renderNodes();
+    renderSlots();renderPalaces();renderNodes();root.DaoBladeSkillGuide?.update(snapshot,selectedPalace);
   }
   function update(next){snapshot=next;if(!next){selectedSlot=null;pending=null;}render();}
   function openTab(name='board'){
+    root.DaoBladeSkillGuide?.stop();
     if(!['board','training','breakthrough'].includes(name))name='board';tab=name;selectedSlot=null;pending=null;
     for(const key of ['board','training','breakthrough']){$(`bagua-${key}-pane`).hidden=key!==name;const button=document.querySelector(`[data-bagua-tab="${key}"]`);button?.setAttribute('aria-current',key===name?'page':'false');}
     if(snapshot)render();
