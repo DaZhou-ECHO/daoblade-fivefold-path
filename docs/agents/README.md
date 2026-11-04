@@ -4,6 +4,7 @@
 
 | 任务ID | 任务目标 | 状态 | 当前接续Agent | 分支/基线 | 最新交接链接 | 依赖或阻塞 |
 |---|---|---|---|---|---|---|
+| 044-village-bagua | 村内十境直达与图形化八宫阵盘 | 待验收 | agent-20261103-1840-k8d | codex/044-village-bagua / 006a541 | [交接](044-village-bagua/agents/agent-20261103-1840-k8d/HANDOFF.md) | Python129/Node285/十路线Chrome通过；实体触控与完整手工通关待验，分支仅本地 |
 | 043-character-bag | 角色全貌与灵珠/剑饰行囊 | 待验收 | agent-20261103-1807-b6q | codex/043-character-bag / 起点4403f9c | [交接](043-character-bag/agents/agent-20261103-1807-b6q/HANDOFF.md) | 本地自检与Chrome桌面/窄屏通过；远端本次不可达；实体触控未验 |
 | 042-shanhe-hud | 国风像素村落、边缘操作栏与画卷选关 | 待验收 | agent-20261102-2322-v4p | codex/042-shanhe-hud / 80372a6 | [交接](042-shanhe-hud/agents/agent-20261102-2322-v4p/HANDOFF.md) | Python129/Node280/50 PNG；Chrome桌面窄屏、两路线入口与恢复通过；完整人工通关及实体触控待验 |
 | 041-village-scene | 新手村主场景与 NPC 窗口交互 | 待验收 | agent-20261102-2226-v1a | codex/041-village-scene / e476707 | [交接](041-village-scene/agents/agent-20261102-2226-v1a/HANDOFF.md) | Python129/Node277/50 PNG；Chrome桌面窄屏、窗口、进图回村与师门一级验证；完整实玩及真实触控待验 |
