@@ -1,6 +1,7 @@
 """正式八宫征程，独立版本/槽；可信本地客户端，事务账本防重复奖励。"""
 import json
 import uuid
+import shanhe_story
 from copy import deepcopy
 from pathlib import Path
 
@@ -55,6 +56,7 @@ CONFIG["nodes"] = NODES
 CONFIG["catalog"] = list(CATALOG.values())
 CONFIG["skill_guide"] = GUIDE
 CONFIG["node_guide"] = NODE_GUIDE
+CONFIG["world"] = shanhe_story.WORLD
 
 
 def new_bead(key):
@@ -69,7 +71,8 @@ def default_journey():
             "progress": {"runs": 0, "victories": 0, "spirit": 0, "clears": {r: 0 for r in CONFIG["realms"]},
                          "route_clears": {r+":"+m["id"]: 0 for r in CONFIG["realms"] for m in CONFIG["maps"]}},
             "training": {key: 0 for key in TRAINING},
-            "cosmetics": {"tickets": 0, "owned": ["plain"], "equipped": "plain"}, "active_trial": None}
+            "cosmetics": {"tickets": 0, "owned": ["plain"], "equipped": "plain"}, "active_trial": None,
+            "story": shanhe_story.initial()}
 
 
 def normalize_journey(raw):
@@ -81,7 +84,7 @@ def normalize_journey(raw):
     for key in ("training", "cosmetics"):
         state.setdefault(key, deepcopy(defaults[key]))
     state["progress"].setdefault("route_clears", deepcopy(defaults["progress"]["route_clears"]))
-    return state
+    return shanhe_story.normalize(state)
 
 
 def validate_village(state):
@@ -491,11 +494,14 @@ def transition(slot, revision, payload):
     db = get_db()
     db.execute("BEGIN IMMEDIATE")
     try:
+        if slot.startswith("save:") and not db.execute("SELECT 1 FROM save_directory WHERE storage=?", (slot,)).fetchone():
+            raise ValueError("征程已被删除，请重新选档")
         if unification_required(slot):
             raise ValueError("请先预览并确认单档合并")
         state, current = read_journey(slot)
         action = payload.get("action")
-        if action not in {"build", "start", "checkpoint", "altar", "shortcut", "settle", "abandon", "train", "reset_training", "purchase", "equip_cosmetic"}:
+        story_actions = {"story_read", "commission", "bounty_accept", "bounty_cancel", "bounty_claim"}
+        if action not in {"build", "start", "checkpoint", "altar", "shortcut", "settle", "abandon", "train", "reset_training", "purchase", "equip_cosmetic"} | story_actions:
             raise ValueError("征程操作无效")
         if action in {"settle", "abandon", "checkpoint", "altar", "shortcut"}:
             trial_id = payload.get("trial_id")
@@ -509,11 +515,16 @@ def transition(slot, revision, payload):
                     raise ValueError("试炼已结束，不能改写结果")
                 db.commit()
                 return response(state, current, receipt, True)
+        if action == "bounty_claim" and payload.get("bounty_id") in state["story"]["claimed"]:
+            db.commit()
+            return response(state, current, {"action": action, "spirit": 0}, True)
         if revision != current:
             raise ValueError("其他窗口已更新，请重新读取征程")
         receipt = None
         trial = state["active_trial"]
-        if action in {"train", "reset_training", "purchase", "equip_cosmetic"}:
+        if action in story_actions:
+            receipt = shanhe_story.act(state, action, payload)
+        elif action in {"train", "reset_training", "purchase", "equip_cosmetic"}:
             if trial:
                 raise ValueError("挑战中不能调整师门或外观")
             if action == "train":
@@ -569,6 +580,9 @@ def transition(slot, revision, payload):
                                      "breakthrough": breakthrough, "rules_version": 1, "combat_version": 2, "map_version": 2, "checkpoint": None, "claimed_altars": [], "opened_shortcuts": [],
                                      "compiled": compiled, "effective_bead_ids": compiled["effective_bead_ids"]}
             state["progress"]["runs"] += 1
+            if not breakthrough:
+                bounty = state["story"]["bounty"]
+                state["active_trial"]["bounty_id"] = bounty["id"] if bounty and not bounty["ready"] else None
         else:
             if not trial or trial["id"] != trial_id:
                 raise ValueError("试炼编号与当前档不匹配")
@@ -640,10 +654,12 @@ def transition(slot, revision, payload):
                     state["progress"]["route_clears"][realm+":"+trial["map_id"]] += 1
                     state["cosmetics"]["tickets"] += 1
                     receipt["tickets"] = 1
+                    shanhe_story.victory(state, trial)
                 state["active_trial"] = None
                 db.execute("INSERT INTO journey_results VALUES(?,?,?)", (slot, trial_id, json.dumps(receipt, ensure_ascii=False)))
         validate_build(state)
         db.execute("INSERT INTO journey_saves VALUES(?,?,?) ON CONFLICT(slot) DO UPDATE SET state_json=excluded.state_json,revision=excluded.revision", (slot, json.dumps(state, ensure_ascii=False), current+1))
+        db.execute("UPDATE save_directory SET updated_at=CURRENT_TIMESTAMP WHERE storage=?", (slot,))
         db.commit()
         return response(state, current+1, receipt)
     except Exception:

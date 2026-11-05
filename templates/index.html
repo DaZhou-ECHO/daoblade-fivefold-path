@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/bagua-board.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/entry-screen.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/scene-hud.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/shanhe.css') }}">
 </head>
 <body class="entry-locked">
   <section id="entry-screen" class="entry-screen" aria-label="行旅入口">
@@ -17,7 +18,7 @@
     <div class="entry-shell">
       <div class="entry-hero"><p class="eyebrow">八荒五行 · 剑起青云</p><h1>本命剑</h1><p>一剑入八荒，五行照归途。</p><div class="entry-portrait"><canvas id="entry-character-canvas" width="256" height="320" role="img" aria-label="持本命剑的剑修"></canvas></div><small>青云新手村 · 行旅起点</small></div>
       <div class="entry-panel">
-        <p class="eyebrow">行旅簿</p><h2 id="entry-title">读取身份中</h2><p id="entry-intro">正在核对当前剑修。</p>
+        <p class="eyebrow">行旅簿</p><h2 id="entry-title">读取身份中</h2><p id="entry-intro">正在核对当前剑修。</p><div id="save-selection" hidden></div>
         <div id="entry-return" hidden><div class="entry-progress"><span>当前境界<strong id="entry-rank">读取中</strong></span><span>五境首通<strong id="entry-clears">0 / 5</strong></span></div><p id="entry-trial">暂无进行中的挑战</p><button id="entry-continue" class="pixel-button primary" type="button">继续征程</button><button id="entry-switch" class="pixel-button" type="button">切换账号</button></div>
         <form id="entry-auth-form" hidden><div class="entry-auth-tabs"><button id="entry-tab-login" type="button" aria-pressed="true">登录</button><button id="entry-tab-register" type="button" aria-pressed="false">注册</button></div><label>剑客账号<input id="entry-username" autocomplete="username" maxlength="24" required></label><label>密码<input id="entry-password" type="password" autocomplete="current-password" maxlength="128" required></label><button id="entry-submit" class="pixel-button primary" type="submit">登录并进入村落</button></form>
         <button id="entry-guest" class="pixel-button entry-guest" type="button">游客继续</button><p id="entry-error" role="alert"></p><button id="entry-retry" class="pixel-button" type="button" hidden>重新读取身份</button>
@@ -78,9 +79,9 @@
     </section>
 
     <section id="panel-atlas" class="panel atlas-panel">
-      <div class="section-heading"><div><p class="eyebrow">可自由前往 · 五行双路</p><h2>十境山河图</h2></div><p>选择一境，再看高径与回廊。两条路通往同一境的首领；画面地标、登台方向与折返提示各有不同。</p></div>
+      <div class="section-heading"><div><p class="eyebrow">可自由前往 · 五行双路</p><h2>青岚山川图</h2></div><p>选择一境，再看高径与回廊。两条路通往同一境的首领；画面地标、登台方向与折返提示各有不同。</p></div>
       <div id="atlas-trial-banner" class="atlas-trial-banner" role="status"><span id="atlas-trial-copy">选择路线后即可进入关卡。</span><button id="atlas-reload" class="pixel-button" type="button" hidden>重读正式档</button><button id="atlas-unify" class="pixel-button" type="button" hidden>预览单档合并</button></div>
-      <div class="atlas-layout"><div class="atlas-scroll"><div class="atlas-scroll-head"><span>八荒山河 · 五境无先后</span><small>选择山中地标</small></div><div class="atlas-map-frame"><svg class="atlas-landscape" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><path fill="#91b8ad" d="M0 0h1000v600H0z"/><path fill="#6e9a90" d="M0 226 95 117 181 215 291 87 390 212 516 112 627 231 741 96 869 208 950 108 1000 164v436H0z"/><path fill="#476d65" d="M0 340 110 233 248 335 345 194 468 310 585 196 710 324 826 211 1000 333v267H0z"/><path fill="#315851" d="M0 468 162 354 284 454 429 336 574 450 693 355 839 450 1000 353v247H0z"/><path fill="#c6c198" d="M0 505q163-66 313 8t344-6 343-23v116H0z"/><path d="M55 522Q197 423 321 471T565 409 776 457 965 372" fill="none" stroke="#eee2ac" stroke-width="9" stroke-dasharray="4 19" opacity=".8"/><g fill="#1c594e"><path d="m123 313 20-102 20 102zm35 6 17-82 17 82zm65-12 17-94 18 94z"/><path d="M107 319h164v17H107z"/></g><g fill="#a65343"><path d="m460 211 49-144 50 144zm88 27 34-91 31 91z"/><path d="M451 229h175v15H451z"/></g><g fill="#887651"><path d="M683 382h151v17H683zm21-26h108v20H704zm22-25h64v21h-64z"/></g><g fill="#c6d1c6"><path d="M683 466h143v11H683zm37-26 10-90 10 90zm46 1 11-110 10 110z"/></g><g fill="none" stroke="#bfdcd8" stroke-width="11"><path d="M52 466q58-42 118 0t120 0m-212 31q71-31 139 0t134 0"/></g></svg><div id="atlas-realms" class="atlas-realms" aria-label="五行山河地图"></div></div><p class="atlas-note">五境可自由选择；路线推荐仅提示初次行旅方向。</p></div><div class="atlas-detail"><p class="eyebrow" id="atlas-region-label">选择五境</p><h3 id="atlas-region-title">正在读取</h3><p id="atlas-region-intro"></p><div id="atlas-routes" class="atlas-routes"></div><p id="atlas-current" role="status"></p><p id="atlas-error" role="alert"></p><div class="atlas-actions"><button id="atlas-start" class="pixel-button primary" type="button">进入所选路线</button><button id="atlas-resume" class="pixel-button" type="button">恢复当前挑战</button><button class="pixel-button" data-go="journey">调整出战构筑</button></div></div></div>
+      <div class="atlas-layout"><div class="atlas-scroll"><div class="atlas-scroll-head"><span>青岚山川 · 道路相通</span><small>选择山中地标</small></div><div class="atlas-map-frame"><img class="atlas-landscape" src="/static/sprites/shanhe-atlas.svg" alt="青岚山川地理画卷：村落、商道、河流与五处调查地标"><div id="atlas-realms" class="atlas-realms" aria-label="青岚山川地区"></div></div><p class="atlas-note">五境可自由选择；路线推荐仅提示初次行旅方向。</p></div><div class="atlas-detail"><p class="eyebrow" id="atlas-region-label">选择五境</p><h3 id="atlas-region-title">正在读取</h3><p id="atlas-region-intro"></p><div id="atlas-routes" class="atlas-routes"></div><p id="atlas-current" role="status"></p><p id="atlas-error" role="alert"></p><div class="atlas-actions"><button id="atlas-start" class="pixel-button primary" type="button">进入所选路线</button><button id="atlas-resume" class="pixel-button" type="button">恢复当前挑战</button><button class="pixel-button" data-go="journey">调整出战构筑</button></div></div></div>
     </section>
 
     <section id="panel-bag" class="panel bag-panel" aria-label="角色与背包">
@@ -229,6 +230,8 @@
 
   <script>globalThis.DaoBladeRuleset = {{ ruleset | tojson }};</script>
   <script src="{{ url_for('static', filename='js/rules.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/battle-viewport.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/save-slots.js') }}"></script>
   <script src="{{ url_for('static', filename='js/game.js') }}"></script>
   <script src="{{ url_for('static', filename='js/journey-ui.js') }}"></script>
   <script src="{{ url_for('static', filename='js/skill-guide.js') }}"></script>
@@ -237,5 +240,6 @@
   <script src="{{ url_for('static', filename='js/village.js') }}"></script>
   <script src="{{ url_for('static', filename='js/village-progress.js') }}"></script>
   <script src="{{ url_for('static', filename='js/scene-ui.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/shanhe-ui.js') }}"></script>
 </body>
 </html>

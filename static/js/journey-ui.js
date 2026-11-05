@@ -1,5 +1,6 @@
 "use strict";
 (function(root){
+  const fetch=(...args)=>root.DaoBladeSaves?root.DaoBladeSaves.fetch(...args):root.fetch(...args);
   const $=id=>document.getElementById(id), escape=value=>String(value).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   let draft=null;
   const buildOf=s=>JSON.parse(JSON.stringify({nodes:s.nodes,loadout:s.loadout}));
@@ -32,11 +33,12 @@
     root.DaoBladeVillage?.update(snapshot);
     root.DaoBladeVillageProgress?.update(snapshot);
     root.DaoBladeBagua?.update(snapshot?{...snapshot,draft}:null);
+    root.DaoBladeShanhe?.update(snapshot);
   }
   function entrySummary(){
     if(!data||!config)return null;
     const state=data.state,trial=state.active_trial;
-    return {rank:config.ranks[state.rank].name,clears:config.realms.filter(realm=>state.progress.clears[realm]>0).length,
+    return {busy,rank:config.ranks[state.rank].name,clears:config.realms.filter(realm=>state.progress.clears[realm]>0).length,
       trial:trial?{realm:trial.realm_id,route:trial.map_id,checkpoint:!!trial.checkpoint}:null,
       cosmetic:state.cosmetics?.equipped||'plain',color:config.cosmetics?.[state.cosmetics?.equipped]?.color||'#b6dbe6',blocked,dirty:dirty()};
   }
@@ -50,7 +52,7 @@
       $("journey-reload").disabled=busy;notifyHome();return;
     }
     const s=data.state,c=data.compiled,active=s.active_trial,edit=draft||s;
-    $("journey-status").textContent=`${config.ranks[s.rank].name} · 已装${c.used}/${c.capacity} · 修为${s.progress.spirit} · 通关${s.progress.victories} · 版本${data.revision}${busy?" · 保存中":blocked?" · 未同步，请重读":dirty()?" · 未保存草稿":" · 已保存"}`;
+    $("journey-status").textContent=`${config.ranks[s.rank].name} · 已装${c.used}/${c.capacity} · 修为${s.progress.spirit} · 通关${s.progress.victories}${busy?" · 保存中":blocked?" · 未同步，请重读":dirty()?" · 未保存草稿":" · 已保存"}`;
     $("journey-draft").textContent=dirty()?"有未保存改动：切宫时保留。保存将一次提交所有宫位与出战栏；下方实际效果仍为已保存构筑。":"装配与出战栏已同步，可编辑后一次保存全部改动。";
     const cleared=config.realms.filter(r=>s.progress.clears[r]>0).length;
     $("journey-goal").textContent=`征程进度：五境首通${cleared}/5 · 八宫藏珠${s.beads.length}/40 · ${s.rank?'筑基容量已解锁':'练气突破修为'+Math.min(s.progress.spirit,24)+'/24'}。下一步：`+(active?'恢复当前挑战，或明确放弃后再改装。':!c.skills.some(Boolean)?'先为Q/E选择已连接核心的宫位并保存出战栏。':s.rank===0&&s.progress.spirit>=24?'可挑战筑基心劫；也可以继续五境收集。':cleared<5?`挑战${realmNames[recommendation()]}境，首通获得该元素各宫核心、纹路与心法。`:'已完成五境首通，可换地图找支路、收集变式，尝试不同两主动两心法构筑。');
@@ -198,5 +200,5 @@
   $("journey-import-confirm").onclick=run(confirmImport);
   $("journey-import-cancel").onclick=()=>$("journey-import-dialog").close();
   $("journey-import-dialog").onclose=()=>{importPreview=null;$("journey-import-error").textContent='';};
-  root.DaoBladeJourneyUI={load,reset,entrySummary,previewBuild,trialAction:action,previewUnify:previewImport,resumeTrial,abandonTrial,restartTrial,selectMap,focusPalace,editNode,assignSlot,startMap,startSelected:()=>startTrial(false),mapScenes};
+  root.DaoBladeJourneyUI={load,reset,entrySummary,saveDraft:()=>action('build',buildOf(draft)),previewBuild,trialAction:action,previewUnify:previewImport,resumeTrial,abandonTrial,restartTrial,selectMap,focusPalace,editNode,assignSlot,startMap,startSelected:()=>startTrial(false),mapScenes};
 })(globalThis);

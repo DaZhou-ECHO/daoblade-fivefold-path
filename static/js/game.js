@@ -203,7 +203,8 @@ function showEntry(mode, message = "") {
   const summary = entrySummary(), returning = mode === "return", form = mode === "login" || mode === "register";
   $("#entry-return").hidden = !returning;
   $("#entry-auth-form").hidden = !form;
-  $("#entry-guest").hidden = mode === "loading" || mode === "error";
+  $("#entry-guest").hidden = mode === "loading" || mode === "error" || mode === "slots";
+  if(mode!=="slots"&&globalThis.DaoBladeSaves)globalThis.DaoBladeSaves.reset();
   $("#entry-retry").hidden = mode !== "error";
   $("#entry-error").textContent = message;
   $("#entry-title").textContent = returning ? `剑客 ${currentUser.username}` : mode === "loading" ? "读取身份中" : mode === "error" ? "暂时无法继续" : "登录剑客账号";
@@ -215,7 +216,8 @@ function showEntry(mode, message = "") {
   }
   $("#entry-tab-login").setAttribute?.("aria-pressed", String(mode !== "register"));
   $("#entry-tab-register").setAttribute?.("aria-pressed", String(mode === "register"));
-  $("#entry-submit").textContent = mode === "register" ? "注册并进入村落" : "登录并进入村落";
+  $("#entry-submit").textContent = mode === "register" ? "注册并选择征程" : "登录并选择征程";
+  if(mode==='slots'){$("#entry-title").textContent='选择征程';$("#entry-intro").textContent='每个征程独立保存成长、调查与挑战。';}
   void drawEntryPortrait();
   $(returning ? "#entry-continue" : form ? "#entry-username" : "#entry-retry")?.focus?.({ preventScroll: true });
 }
@@ -236,6 +238,7 @@ async function initializeSession() {
     const payload = await response.json();
     currentUser = payload.user; csrfToken = payload.csrf_token;
     renderAccount();
+    if(currentUser&&globalThis.DaoBladeSaves){await globalThis.DaoBladeSaves.open(currentUser,csrfToken);return;}
     if (currentUser) {
       await globalThis.DaoBladeJourneyUI?.load();
       if (!entrySummary() || entrySummary().blocked) throw new Error("正式征程读取失败");
@@ -263,6 +266,7 @@ async function enterGuest() {
   try {
     if (currentUser) await leaveAccountForEntry();
     if (currentUser) return;
+    if(globalThis.DaoBladeSaves){await globalThis.DaoBladeSaves.open(null,csrfToken);return;}
     await globalThis.DaoBladeJourneyUI?.load();
     if (!entrySummary() || entrySummary().blocked) throw new Error("游客征程读取失败");
     enterVillage();
@@ -301,6 +305,7 @@ async function submitAccount(action, fromEntry = false) {
     $(fromEntry ? "#entry-password" : "#account-password").value = "";
     if (!fromEntry) $("#account-dialog").close();
     renderAccount();
+    if(globalThis.DaoBladeSaves){await globalThis.DaoBladeSaves.open(currentUser,csrfToken);return;}
     await globalThis.DaoBladeJourneyUI?.load();
     if (!entrySummary() || entrySummary().blocked) throw new Error("正式征程读取失败，请重试");
     if (fromEntry) enterVillage(); else showPanel("sanctuary");
@@ -331,7 +336,7 @@ function showPanel(name) {
   if (village) village.inert = villageWindow;
   if (header) header.inert = villageWindow;
   if (villageWindow) {
-    const titles = { atlas: "十境山河图", bag: "角色与背包", journey: "师门修行", shop: "剑坊商店", manual: "剑诀" };
+    const titles = { atlas: "青岚山川图", bag: "角色与背包", journey: "师门修行", shop: "剑坊商店", manual: "剑诀" };
     const title = $("#village-window-title"); if (title) title.textContent = titles[name];
     $("#village-window-close")?.focus?.({ preventScroll: true });
   } else if (wasWindow && name === "sanctuary") {
@@ -678,8 +683,8 @@ class BattleGame {
     this.canvas = $("#game-canvas");
     this.ctx = this.canvas.getContext("2d");
     this.ctx.imageSmoothingEnabled = false;
-    this.width = this.canvas.width;
-    this.height = this.canvas.height;
+    this.width = 960;
+    this.height = 540;
     this.worldWidth = this.level.world.width;
     this.floorY = this.level.world.floor_y;
     this.cameraX = 0;
@@ -1953,8 +1958,18 @@ class BattleGame {
 
   draw() {
     this.enemyArt?.sync(this.enemies, this.elapsed);
-    const ctx = this.ctx; const camera = this.cameraX; const [dark, light] = this.realm.bg;
+    const ctx = this.ctx;
+    const rect=this.canvas.getBoundingClientRect?.();
+    const view=globalThis.DaoBladeViewport?.calculate(rect?.width||960,rect?.height||540,this.cameraX,this.worldWidth,globalThis.devicePixelRatio||1);
+    if(view){
+      const w=Math.round(view.width*view.pixels),h=Math.round(view.height*view.pixels);
+      if(this.canvas.width!==w||this.canvas.height!==h){this.canvas.width=w;this.canvas.height=h;}
+      ctx.save();ctx.setTransform(view.scale*view.pixels,0,0,view.scale*view.pixels,0,0);ctx.imageSmoothingEnabled=false;
+    }
+    this.renderView=view;
+    const camera = view?.camera??this.cameraX; const [dark, light] = this.realm.bg;
     const gradient = ctx.createLinearGradient(0, 0, 0, this.height); gradient.addColorStop(0, dark); gradient.addColorStop(1, light); ctx.fillStyle = gradient; ctx.fillRect(0, 0, this.width, this.height);
+    if(view){ctx.fillRect(0,0,view.w,view.h);ctx.translate(0,view.y);ctx.fillStyle=dark;ctx.fillRect(0,this.floorY,view.w,view.h);}
     this.drawBackground(ctx, camera);
     ctx.save(); ctx.translate(-camera + (feedback.shake && this.screenShake > 0 ? (Math.random() - .5) * 6 : 0), feedback.shake && this.screenShake > 0 ? (Math.random() - .5) * 4 : 0);
     for (const platform of this.platforms) this.drawPlatform(ctx, platform);
@@ -2018,11 +2033,12 @@ class BattleGame {
     this.drawPlayer(ctx, this.player);
     this.feedbackLayer?.draw(ctx);
     ctx.restore();
-    this.drawMinimap(ctx);
+    if(!this.journey)this.drawMinimap(ctx);
+    if(view)ctx.restore();
   }
 
   drawBackground(ctx, camera) {
-    if(this.sceneArt?.background(ctx,this.realmKey,camera,this.width,this.height,this.elapsed,this.level.id,this.level.world.width))return;
+    if(this.sceneArt?.background(ctx,this.realmKey,camera,this.renderView?.w||this.width,this.renderView?.h||this.height,this.elapsed,this.level.id,this.level.world.width))return;
     ctx.fillStyle = "rgba(5,10,18,.36)";
     for (let i = -1; i < 8; i++) { const x = i * 310 - (camera * .18 % 310); ctx.beginPath(); ctx.moveTo(x, 420); ctx.lineTo(x + 130, 190 - (i % 2) * 55); ctx.lineTo(x + 285, 420); ctx.fill(); }
     ctx.save();
@@ -2053,7 +2069,7 @@ class BattleGame {
   }
 
   drawPlatform(ctx, platform) {
-    if(this.sceneArt?.platform(ctx,this.realmKey,platform,this.cameraX,this.width))return;
+    if(this.sceneArt?.platform(ctx,this.realmKey,platform,this.renderView?.camera??this.cameraX,this.renderView?.w||this.width))return;
     ctx.fillStyle = this.realmKey === "wood" ? "#183c2d" : this.realmKey === "water" ? "#183e55" : this.realmKey === "fire" ? "#3b1c1a" : this.realmKey === "earth" ? "#4a3926" : "#323d4b";
     ctx.fillRect(platform.x, platform.y, platform.w, platform.h); ctx.fillStyle = this.element.color; ctx.globalAlpha = .35; ctx.fillRect(platform.x, platform.y, platform.w, 6); ctx.globalAlpha = 1;
     for (let x = platform.x + 12; x < platform.x + platform.w; x += 32) { ctx.fillStyle = "rgba(0,0,0,.22)"; ctx.fillRect(x, platform.y + 18, 14, 6); }
@@ -2251,6 +2267,7 @@ function bindUi() {
   $("#submit-register").addEventListener("click", () => submitAccount("register"));
   $("#account-logout").addEventListener("click", () => { void leaveAccountForEntry(); });
   $("#account-import").addEventListener("click", async () => {
+    if(globalThis.DaoBladeSaves){try{await globalThis.DaoBladeSaves.reselect();}catch(e){showToast(e.message,true);}return;}
     if (!currentUser || !window.confirm("仅当账号没有存档时可以导入游客存档。确定导入吗？")) return;
     try {
       const response = await fetch("/api/auth/import-guest", { method: "POST", headers: { "X-CSRF-Token": csrfToken } });
@@ -2307,5 +2324,6 @@ function bindUi() {
   renderControls();
 }
 
+globalThis.DaoBladeEntry={show:showEntry,enter:enterVillage,logout:leaveAccountForEntry};
 bindUi();
 initializeSession();

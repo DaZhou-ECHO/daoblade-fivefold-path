@@ -126,7 +126,8 @@ def test_guest_import_carries_migrated_journey_without_overwriting(client, app):
     assert client.get("/api/journey").get_json()["migration_required"] is False
     assert client.get("/api/journey").get_json()["state"]["beads"] == unified.get_json()["state"]["beads"]
     again = client.post("/api/auth/import-guest", headers={"X-CSRF-Token": token})
-    assert again.status_code == 409
+    assert again.status_code == 200 and again.get_json()["replayed"] is True
+    assert client.get("/api/journey").get_json()["state"]["beads"] == unified.get_json()["state"]["beads"]
 
 
 def test_old_checkpoint_blocks_import_and_existing_account_journey_is_not_overwritten(client, app):

@@ -8,8 +8,10 @@
   const dialogue=document.getElementById("village-dialogue");
   const targets=[
     {x:173,panel:"atlas",label:"山河图传送台",speaker:"山河图",line:"五境皆可前往。想从哪条路开始？",choices:[["查看十境","atlas"]]},
-    {x:480,panel:"journey",label:"师父",speaker:"师父",line:"八宫承五行。先看剑心，再定今日的修行。",choices:[["调整八宫","journey","board"],["修习师门","journey","training"],["筑基心劫","journey","breakthrough"]]},
-    {x:780,panel:"shop",label:"剑坊商人",speaker:"商人",line:"本命剑形随心而变，剑锋的分寸仍由你掌握。",choices:[["浏览剑坊","shop"]]}
+    {x:360,panel:"quests",label:"悬赏栏",speaker:"村中告示",line:"井水断流，药队未归。这里记着村民的托付与山路悬赏。",choices:[["查看山河调查","quests","main"],["接取悬赏","quests","bounty"]]},
+    {x:590,panel:"journey",label:"师父",speaker:"师父",line:"剑法须护得住眼前的人。旧镇脉的事，待你带回五地记录再谈。",choices:[["修习师门","journey","training"],["筑基心劫","journey","breakthrough"],["复核调查记录","quests","main"]]},
+    {x:725,panel:"sword",label:"本命剑台",speaker:"剑台",line:"剑心连八方，先看连通，再定出战。",choices:[["照见八宫","journey","board"]]},
+    {x:850,panel:"shop",label:"剑坊商人",speaker:"商人",line:"故道断了，货物迟迟不来。若你路过镇岳，也请看看那边的驿院。",choices:[["浏览剑坊","shop"]]}
   ];
   const player={x:250,y:412,w:38,h:70,vx:0,vy:0,face:1,hp:1,onGround:true,animTime:0};
   const pressed=new Set();
@@ -18,7 +20,7 @@
   image.onload=()=>{background=image;};
   image.onerror=()=>{background=null;};
   image.src="/static/sprites/world-v1/wood-far.png";
-  const open=(panel,focusId)=>{closeDialogue(false);document.querySelector(`.nav-button[data-panel="${panel}"]`)?.click();if(panel==='journey'&&focusId)root.DaoBladeBagua?.openTab(focusId);};
+  const open=(panel,focusId)=>{closeDialogue(false);if(panel==='quests'){root.DaoBladeShanhe.open(focusId);return;}document.querySelector(`.nav-button[data-panel="${panel}"]`)?.click();if(panel==='journey'&&focusId)root.DaoBladeBagua?.openTab(focusId);root.DaoBladeShanhe?.visit(panel==='shop'?'merchant':focusId==='board'?'sword':'mentor');};
   function closeDialogue(restore=true){dialogue.hidden=true;if(restore)canvas.focus({preventScroll:true});}
   function converse(target){
     if(!active())return;
@@ -56,6 +58,9 @@
   });
   document.getElementById("village-interact").onclick=interact;
   document.querySelectorAll("[data-village]").forEach(button=>button.onclick=()=>converse(targets.find(target=>target.panel===button.dataset.village)));
+  for(const [panel,x,label] of [['quests',37.5,'悬赏栏'],['sword',75.5,'本命剑台']]){const b=document.createElement('button');b.type='button';b.className='village-hotspot';b.dataset.village=panel;b.style.setProperty('--target-x',x+'%');b.setAttribute('aria-label','与'+label+'交互');b.onclick=()=>converse(targets.find(t=>t.panel===panel));world.append(b);}
+  document.querySelector('[data-village=journey]').style.setProperty('--target-x','61.5%');
+  document.querySelector('[data-village=shop]').style.setProperty('--target-x','88.5%');
   function camera(){
     const width=stage?.clientWidth||960,height=stage?.clientHeight||540;
     const worldWidth=Math.max(width,height*960/540);
@@ -84,8 +89,8 @@
     ctx.fillStyle="#284b45";ctx.fillRect(0,272,960,98);ctx.fillStyle="#426552";ctx.fillRect(0,292,960,22);
     ctx.fillStyle="#766e54";ctx.fillRect(0,309,960,61);ctx.fillStyle="#a69668";for(let x=8;x<960;x+=52){ctx.fillRect(x,318+(x%3)*8,30,3);ctx.fillRect(x+19,349,23,2);}
     ctx.fillStyle="#3b5c4e";for(let x=0;x<960;x+=67){ctx.fillRect(x,300+(x%3)*3,18,7);ctx.fillRect(x+4,293,5,9);}
-    building(405,152,"#526b56","#69806a","修行");building(703,155,"#6e5e48","#8a7559","剑坊");
-    for(const [x,robe,trim] of [[480,"#e3e6d2","#4e9d91"],[780,"#e9c37f","#725139"]]){
+    building(515,145,"#526b56","#69806a","师门");building(780,150,"#6e5e48","#8a7559","剑坊");
+    for(const [x,robe,trim] of [[590,"#e3e6d2","#4e9d91"],[850,"#e9c37f","#725139"]]){
       ctx.save();ctx.translate(0,Math.sin(t*.002+x)*1.5);
       ctx.fillStyle="rgba(7,20,23,.5)";ctx.fillRect(x-22,307,44,5);
       ctx.fillStyle="#1d343b";ctx.fillRect(x-13,232,26,22);
@@ -102,6 +107,18 @@
     ctx.fillStyle="#488d92";ctx.fillRect(146,177,53,75);ctx.fillStyle="#b4cfc0";ctx.fillRect(151,182,43,65);ctx.fillStyle="#1e555d";ctx.fillRect(156,187,33,55);
     ctx.fillStyle="#f6df9e";ctx.font="bold 25px serif";ctx.fillText("五",172,213);ctx.fillText("境",172,242);
     ctx.fillStyle="#e1c681";for(let i=0;i<4;i++){const pulse=Math.sin(t*.002+i)*4;ctx.fillRect(122+i*34,153+pulse,4,4);}
+    // 民生区：可交互告示栏、井台；修行区的独立剑台。
+    ctx.fillStyle='#423e32';ctx.fillRect(322,227,8,84);ctx.fillRect(393,227,8,84);ctx.fillRect(316,220,91,53);
+    ctx.fillStyle='#b99b65';ctx.fillRect(322,226,79,40);ctx.fillStyle='#eee0b0';ctx.fillRect(329,231,25,28);ctx.fillRect(363,230,30,27);
+    ctx.fillStyle='#604f39';ctx.font='bold 15px serif';ctx.fillText('悬赏',361,214);
+    ctx.fillStyle='#4b6760';ctx.fillRect(425,291,57,22);ctx.fillStyle=snapshot?.state.story?.completed?'#68c4c3':'#243b42';ctx.fillRect(434,287,39,14);
+    if(snapshot?.state.story?.completed){ctx.fillStyle='#67b4b4';ctx.fillRect(451,309,7,26);ctx.fillRect(453,332,46,4);}
+    ctx.fillStyle='#42595b';ctx.fillRect(699,291,53,22);ctx.fillStyle='#b7b27f';ctx.fillRect(694,286,63,7);
+    ctx.fillStyle='#a8d3ce';ctx.fillRect(723,217,5,66);ctx.fillStyle='#dbb479';ctx.fillRect(711,265,29,5);
+    ctx.strokeStyle='#7aa39b';ctx.strokeRect(706,239,38,43);ctx.fillStyle='#e6d097';ctx.fillText('剑台',726,205);
+    if(snapshot?.state.story?.commissions?.includes('merchant')){ctx.fillStyle='#9b7750';ctx.fillRect(904,284,22,25);ctx.fillRect(929,293,19,16);}
+    if(snapshot?.state.story?.read_clues?.includes('wood')){ctx.fillStyle='#749b71';ctx.fillRect(494,270,7,40);ctx.fillRect(482,280,31,7);}
+    if(snapshot?.state.story?.completed){ctx.fillStyle='#f1cf7a';for(const x of [300,500,675])ctx.fillRect(x,242,6,10);}
     // 草、悬灯与光点使村落有生命力，亮度不压过交互标记。
     for(let x=25;x<950;x+=43){ctx.fillStyle=x%2?"#557d61":"#72946a";ctx.fillRect(x,289,2,10);ctx.fillRect(x-3,295,8,2);}
     for(let i=0;i<11;i++){const x=(i*89+30)%930,y=102+Math.sin(t*.0005+i*2)*8+i%3*27;ctx.fillStyle="rgba(240,218,151,.65)";ctx.fillRect(x,y,3,3);}

@@ -10,7 +10,7 @@
   const villageSkills=document.createElement('div');villageSkills.id='scene-village-skills';villageSkills.className='scene-skills';stage.append(villageSkills);
   const hud=document.querySelector('.village-hud');
   hud.querySelector('[data-go=journey]').lastElementChild.textContent='八宫';
-  hud.append(button('师门',()=>{go('journey');root.DaoBladeBagua.openTab('training');}),button('设置',()=>openSettings()));
+  hud.append(button('设置',()=>openSettings()));
   const settings=$('settings-dialog');
   const settingsBody=settings.querySelector('.dialog-body');
   const oldControls=[...settingsBody.children];
@@ -53,8 +53,12 @@
   $('quit-run').textContent='返回村落';$('settings-run').textContent='设置';
   const battleHud=document.createElement('aside');battleHud.className='scene-battle-stats';battleHud.innerHTML='<span>生命 <b id="scene-hp"></b><meter id="scene-hp-meter" min="0"></meter></span><span>剑意 <b id="scene-qi"></b><meter id="scene-qi-meter" min="0"></meter></span><small id="scene-shield"></small>';battleHud.append(button('暂停／设置',()=>$('pause-run').click()));
   const canvas=document.querySelector('.canvas-wrap');canvas.append(battleHud);canvas.append($('skill-hud'));
+  const bossHud=document.createElement('aside');bossHud.className='scene-boss';bossHud.hidden=true;bossHud.innerHTML='<strong></strong><meter min="0"></meter>';canvas.append(bossHud);
+  $('pause-overlay').querySelector('div').append(button('战况与目标',()=>{build.querySelector('h2').textContent='战况与路线';build.querySelector('div').textContent=[$('objective-text').textContent,$('enemy-readout').textContent,$('route-readout').textContent].join('。\n');build.showModal();}));
   function home(data){homeData=data;if(!data){card.textContent='角色读取中';villageSkills.textContent='';return;}const s=data.state,c=data.compiled;card.innerHTML=`<span>本命剑修</span><strong>${esc(data.config.ranks[s.rank].name)}</strong><small>修为 ${s.progress.spirit} · 查看角色</small>`;villageSkills.innerHTML='';c.skills.forEach((skill,i)=>villageSkills.append(button(`${root.DaoBladeKeyLabel(i)} · ${skill?.name||'未配置'}`,()=>{go('journey');document.querySelector(`[data-bagua-slot="active:${i}"]`)?.click();})));const minds=document.createElement('small');minds.textContent='心法 '+(c.minds.map(id=>data.config.palaces.find(p=>p.id===id)?.name||id).join('／')||'未配置');villageSkills.append(minds);}
   function battle(game){if(!game.journey)return;const p=game.player;for(const [key,value,max] of [['hp',p.hp,game.stats.hpMax],['qi',p.qi,game.stats.qiMax]]){$('scene-'+key).textContent=Math.ceil(Math.max(0,value))+' / '+max;const m=$('scene-'+key+'-meter');m.max=max;m.value=Math.max(0,value);} $('scene-shield').textContent=p.shield>0?'护盾 '+Math.ceil(p.shield):p.guardBreak>0?'破防中':'';
+    const boss=game.enemies.find(e=>e.kind==='boss'&&!e.dead&&Math.abs(e.x-p.x)<760);bossHud.hidden=!boss;
+    if(boss){bossHud.querySelector('strong').textContent=boss.name;const meter=bossHud.querySelector('meter');meter.max=boss.maxHp;meter.value=Math.max(0,boss.hp);}
     const skills=game.lab.skills;
     // updateHUD writes the legacy text afterwards; this microtask presents the same live values.
     queueMicrotask(()=>{if(!document.querySelector('#panel-game.active'))return;$('skill-hud').innerHTML=skills.map((s,i)=>{const cd=p.skillCooldowns[i],status=!s?'停用':cd>0?cd.toFixed(1)+'s':p.qi<s.cost?'剑意不足':'可用';return `<span class="scene-skill ${status==='可用'?'ready':'unready'}" style="--cool:${s?Math.min(100,cd/s.cooldown*100):0}%"><b>${esc(root.DaoBladeKeyLabel(i))}</b><strong>${esc(s?.name||'未配置')}</strong><small>${status}</small></span>`;}).join('')+`<small>心法 ${esc(game.lab.minds.map(id=>homeData?.config.palaces.find(p=>p.id===id)?.name||id).join('／')||'无')}</small>`;skills.forEach((s,i)=>{const b=document.querySelector(`[data-touch="${i?'dao2':'dao'}"]`);if(b)b.textContent=(s?.name||'停用')+(p.skillCooldowns[i]>0?' '+p.skillCooldowns[i].toFixed(1):'');});});}

@@ -72,6 +72,8 @@ def init_db() -> None:
     database.execute("""CREATE TABLE IF NOT EXISTS journey_unifications (
         slot TEXT PRIMARY KEY, revisions_json TEXT NOT NULL, receipt_json TEXT NOT NULL
     )""")
+    from save_slots import init_directory
+    init_directory(database)
     database.commit()
 
 
