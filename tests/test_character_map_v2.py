@@ -10,7 +10,8 @@ def action(client, name, **fields):
 def test_v2_freeze_optional_exit_shortcut_and_replay(client):
     data = action(client, "start", realm_id="fire").get_json()
     trial = data["state"]["active_trial"]
-    assert trial["combat_version"] == trial["map_version"] == 2
+    assert trial["combat_version"] == 3
+    assert trial["map_version"] == 2
     tid = trial["id"]
     assert action(client, "shortcut", trial_id=tid, shortcut_id="../bad").status_code == 400
     for _ in range(2):

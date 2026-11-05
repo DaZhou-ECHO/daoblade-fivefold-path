@@ -650,6 +650,17 @@ globalThis.DaoBladeStartJourney = (trial,compiled) => startRealm(trial.realm_id,
 
 globalThis.DaoBladeStartArrayTrial = (trial,compiled) => startRealm(trial.realm_id, {labTrial:trial,labCompiled:compiled});
 
+globalThis.DaoBladeCreateSwordPractice = (compiled,canvas,target="pounce") => {
+  const g=new BattleGame("fire",{swordPractice:true,practice:true,labCompiled:compiled,canvas});
+  g.level={...g.level,version:1,shortcuts:[],required_ids:[]};
+  g.floorY=480;g.worldWidth=960;g.cameraX=0;
+  g.platforms=[{id:"practice-floor",x:0,y:480,w:960,h:100,collision:"floor"}];
+  g.altars=[];g.hazards=[];g.player.x=350;g.player.y=410;
+  g.enemies=target==="boss"?[g.enemy("boss","抗性木偶",500,99999,"boss")]:[g.enemy("melee","扑击木偶",470,99999,"charger")];
+  if(target==="surround")g.enemies.push(g.enemy("melee","背后木偶",240,99999,"skirmisher"));
+  return g;
+};
+
 globalThis.DaoBladeStartArrayLab = compiled => startRealm("fire", { practice: true, labCompiled: compiled });
 globalThis.DaoBladeStartBossPractice = (realm, compiled) => startRealm(realm, { bossPractice: true, labCompiled: compiled });
 
@@ -658,7 +669,8 @@ class BattleGame {
     this.realmKey = realmKey;
     this.bossPractice = Boolean(options.bossPractice);
     if (this.bossPractice && options.labTrial) throw new Error("首领演练不能附带正式试炼");
-    this.practice = Boolean(options.practice || this.bossPractice);
+    this.swordPractice = Boolean(options.swordPractice);
+    this.practice = Boolean(options.practice || this.bossPractice || this.swordPractice);
     this.labRun=Boolean(options.labTrial);
     this.labTrial=options.labTrial||null;
     this.labTrialId=this.labTrial?.id||null;
@@ -667,20 +679,20 @@ class BattleGame {
     this.labMetrics = { direct: 0, burn: 0, burst: 0 };
     this.skillInput=null; this.guardInput=0;
     this.journey=Boolean(this.lab?.campaign);
-    this.combatVersion=this.journey?(this.labTrial?.combat_version??1):1;
-    if(![1,2].includes(this.combatVersion))throw new Error("未知战斗版本，请保留存档");
-    if(this.journey&&(this.labTrial.map_version??1)!==this.combatVersion)throw new Error("地图/战斗版本不匹配，请保留存档");
-    this.combatV2=this.combatVersion===2;
+    this.combatVersion=this.swordPractice?3:this.journey?(this.labTrial?.combat_version??1):1;
+    if(![1,2,3].includes(this.combatVersion))throw new Error("未知战斗版本，请保留存档");
+    if(this.journey&&!this.swordPractice&&![[1,1],[2,2],[2,3]].some(([map,combat])=>map===(this.labTrial.map_version??1)&&combat===this.combatVersion))throw new Error("地图/战斗版本不匹配，请保留存档");
+    this.combatV2=this.combatVersion>=2;
     this.intents={};this.lastActionResult=null;this.regenDelay=0;this.guardNotice="";
     this.openedShortcuts=new Set(this.labTrial?.opened_shortcuts||[]);
     this.breakthrough=this.journey&&Boolean(this.labTrial?.breakthrough);
     this.runUI=this.journey?globalThis.DaoBladeJourneyUI:globalThis.DaoBladeArrayLabUI;
-    this.level = this.journey ? LEVELS.getJourneyDefinition(realmKey,this.labTrial.map_id,this.breakthrough?1:this.labTrial.map_version??1) : LEVELS.getDefinition(realmKey);
+    this.level = this.swordPractice ? LEVELS.getJourneyDefinition("fire","ridge",2) : this.journey ? LEVELS.getJourneyDefinition(realmKey,this.labTrial.map_id,this.breakthrough?1:this.labTrial.map_version??1) : LEVELS.getDefinition(realmKey);
     this.checkpoint=this.labRun ? this.level.checkpoint||this.level.lab_checkpoint : this.level.checkpoint;
     if(this.labRun && (!this.checkpoint || this.labTrial.realm_id!==realmKey))throw new Error("试炼秘境与地图不匹配");
     this.realm = REALMS[realmKey];
     this.element = ELEMENTS[realmKey];
-    this.canvas = $("#game-canvas");
+    this.canvas = options.canvas || $("#game-canvas");
     this.ctx = this.canvas.getContext("2d");
     this.ctx.imageSmoothingEnabled = false;
     this.width = 960;
@@ -750,11 +762,12 @@ class BattleGame {
       for (const enemy of this.enemies) if (this.checkpoint.cleared_ids.includes(enemy.id)) { enemy.dead = true; enemy.hp = 0; }
       this.cameraX = clamp(this.player.x - this.width * .42, 0, this.worldWidth - this.width);
     }
+    if(this.combatVersion===3)globalThis.DaoBladeSword.clear(this);
     this.boundKeyDown = event => this.keyDown(event);
     this.boundKeyUp = event => this.keyUp(event);
     this.boundBlur = () => this.setPause(true);
     this.boundVisibility = () => { if (document.hidden) this.setPause(true); };
-    this.boundPointerEnd = event => this.endTouchPointer(event.pointerId);
+    this.boundPointerEnd = event => this.endTouchPointer(event.pointerId,event.type==="pointercancel");
   }
 
   syncShortcuts() {
@@ -869,6 +882,7 @@ class BattleGame {
   }
 
   clearInput() {
+    if(this.combatVersion===3)globalThis.DaoBladeSword.cancel(this);
     this.intents={};
     this.skillInput=null; this.guardInput=0;
     const pointers = [...this.touchPointers];
@@ -882,13 +896,14 @@ class BattleGame {
     catch (_) { /* 浏览器可能已自动释放；输入来源已先清理。 */ }
   }
 
-  endTouchPointer(id) {
+  endTouchPointer(id,cancelled=false) {
     const pointer = this.touchPointers.get(id);
     if (!pointer) return;
     this.touchPointers.delete(id);
     const { action, button } = pointer;
     if (!this.keyboardKeys.has(action) && ![...this.touchPointers.values()].some(item => item.action === action)) this.keys.delete(action);
     if (this.combatV2 && action === "jump" && !this.keys.has("jump")) CONTROLLER.releaseJump(this.player);
+    if(this.combatVersion===3&&action==="qi"&&!this.keys.has("qi")){if(cancelled)globalThis.DaoBladeSword.cancel(this);else globalThis.DaoBladeSword.release(this);}
     if (action === "block" && !this.keys.has("block")) { this.player.blocking = false; this.player.guardRecovery = false; this.guardInput = 0; }
     this.releaseTouchCapture(button, id);
   }
@@ -905,7 +920,7 @@ class BattleGame {
   }
 
   keyDown(event) {
-    if (document.querySelector("dialog[open]")?.open) return;
+    if (!this.swordPractice && document.querySelector("dialog[open]")?.open) return;
     const action = actionForCode(event.code);
     if (action) event.preventDefault();
     if (event.repeat) return;
@@ -923,13 +938,15 @@ class BattleGame {
       if (![...this.touchPointers.values()].some(pointer => pointer.action === action)) this.keys.delete(action);
     }
     if (this.combatV2 && action === "jump" && !this.keys.has("jump")) CONTROLLER.releaseJump(this.player);
+    if(this.combatVersion===3&&action==="qi"&&!this.keys.has("qi"))globalThis.DaoBladeSword.release(this);
     if (action === "block" && !this.keys.has("block")) { this.player.blocking = false; this.player.guardRecovery = false; this.guardInput = 0; }
   }
 
   performAction(action) {
     if (this.disposed || this.finished || this.pause || this.labPending || this.labError) return;
     if(this.combatV2){
-      if(action==="interact"){this.interactWorld();return;}
+      if(action==="interact"){if(!this.swordPractice)this.interactWorld();return;}
+      if(this.combatVersion===3&&action==="qi"){globalThis.DaoBladeSword.charge(this);return;}
       if(action==="jump"&&this.keys.has("down")&&CONTROLLER.drop(this.player,this.platforms))return;
       this.lastActionResult=CONTROLLER.enqueue(this,action);
       return;
@@ -951,14 +968,14 @@ class BattleGame {
         event.preventDefault();
         const action = button.dataset.touch;
         if (this.finished || this.disposed || this.pause || this.labPending || this.labError || (event.button !== undefined && event.button !== 0)) return;
-        this.endTouchPointer(event.pointerId);
+        this.endTouchPointer(event.pointerId,true);
         this.touchPointers.set(event.pointerId, { action, button });
         try { button.setPointerCapture?.(event.pointerId); }
         catch (_) { /* 显式捕获不可用时由窗口pointerup/cancel兜底。 */ }
         this.keys.add(action);
         this.performAction(action);
       };
-      button.onpointerup = button.onpointercancel = button.onlostpointercapture = event => this.endTouchPointer(event.pointerId);
+      button.onpointerup = button.onpointercancel = button.onlostpointercapture = event => this.endTouchPointer(event.pointerId,event.type!=="pointerup");
     });
   }
 
@@ -998,6 +1015,7 @@ class BattleGame {
     p.slash = p.slashDuration;
     p.slashCooldown = (this.combatV2?CONTROLLER.config.slash[p.combo-1].cooldown:p.combo === 3 ? .47 : .32) * this.stats.cooldown;
     p.queuedSlash = 0;
+    if(this.combatVersion===3)globalThis.DaoBladeSword.beginStrike(this);
     p.attackId += 1;
     this.emitBattleEvent("slash_started", { action_id: "slash", attack_id: p.attackId, combo: p.combo, phase: "windup" });
     p.vx += p.face * (p.combo === 3 ? 105 : 48);
@@ -1042,12 +1060,14 @@ class BattleGame {
   swordQi() {
     const p = this.player;
     if (p.qi < 20 || p.qiCooldown > 0 || p.dash > 0 || p.hurt > 0 || p.blocking || p.slash > 0) return;
-    p.qi -= 20; p.qiCooldown = .65 * this.stats.cooldown;
+    const charged=this.combatVersion===3&&this.swordRelease;this.swordRelease=false;
+    if(p.qi<(charged?28:20))return;
+    p.qi -= charged?28:20; p.qiCooldown = .65 * this.stats.cooldown;
     p.skillPose = null;
-    const damage = this.stats.attack * (.72 + this.stats.mastery.qian * .12) * (1 + (this.stats.affixes.qiPower || 0) / 100);
+    const damage = (charged?1.4:1)*this.stats.attack * (.72 + this.stats.mastery.qian * .12) * (1 + (this.stats.affixes.qiPower || 0) / 100);
     p.qiCast = .25; p.castDuration=.25;
     p.vx -= p.face * 35;
-    this.projectiles.push({ type: "swordQi", owner: "player", x: p.x + (p.face > 0 ? p.w : -38), y: p.y + 24, vx: p.face * (this.stats.primary === "earth" ? 430 : 640), vy: 0, w: this.stats.primary === "earth" ? 58 : 48, h: this.stats.primary === "earth" ? 26 : 20, damage, life: 1.8, maxLife: 1.8, pierce: (this.stats.primary === "metal" ? 2 : 0) + (this.stats.secondary === "metal" ? 1 : 0) + (this.stats.mastery.qian >= 1 ? 1 : 0), hitIds: new Set(), color: elementColor(this.stats.primary) });
+    this.projectiles.push({ type: "swordQi", owner: "player", x: p.x + (p.face > 0 ? p.w : -38), y: p.y + 24, vx: p.face * (this.stats.primary === "earth" ? 430 : 640), vy: 0, w: this.stats.primary === "earth" ? 58 : 48, h: this.stats.primary === "earth" ? 26 : 20, damage, life: 1.8, maxLife: 1.8, pierce: charged?1:(this.stats.primary === "metal" ? 2 : 0) + (this.stats.secondary === "metal" ? 1 : 0) + (this.stats.mastery.qian >= 1 ? 1 : 0), hitIds: new Set(), color: elementColor(this.stats.primary) });
     this.burst(p.x + p.w / 2 + p.face * 32, p.y + 33, "#dff6ff", 12);
   }
 
@@ -1079,6 +1099,7 @@ class BattleGame {
   journeyMindLevel(id){return this.lab.minds.includes(id)?(this.lab.mind_levels?.[id]||1):0;}
 
   journeySkill(slot){
+    if(this.combatVersion===3)return globalThis.DaoBladeSword.cast(this,slot);
     const skill=this.lab.skills[slot],p=this.player;
     if(!skill)return showToast("此出战宫未连接核心，技能停用",true);
     if(this.pause||this.finished||this.disposed||this.labPending||this.labError||this.skillInputBlocked(slot)||p.blocking||p.qi<skill.cost)return;
@@ -1243,6 +1264,7 @@ class BattleGame {
   }
 
   update(dt) {
+    if(this.combatVersion===3&&(!Number.isFinite(dt)||dt<=0))return;
     // New runs use bounded 120 Hz policy/physics slices, including direct test calls.
     if(this.combatV2&&dt>1/120+1e-9){
       let left=dt;while(left>1e-9&&!this.finished&&!this.pause&&!this.labPending&&!this.labError){
@@ -1285,7 +1307,7 @@ class BattleGame {
     if (p.hurt > 0) p.vx *= Math.pow(.02, dt);
     else if (p.dash > 0) p.vx = p.dashDirection * 570;
     else {
-      const speed = this.stats.speed * (p.slowTime > 0 ? .7 : 1);
+      const speed = this.stats.speed * (p.slowTime > 0 ? .7 : 1) * (this.swordCharge ? .5 : 1);
       const target = p.blocking || p.qiCast > 0 ? move * speed * .35 : move * speed;
       p.vx += (target - p.vx) * Math.min(1, dt * (this.combatV2?(p.onGround?CONTROLLER.config.groundAccel:CONTROLLER.config.airAccel):11));
       if (!move) p.vx *= Math.pow(this.combatV2?CONTROLLER.config.friction:.001, dt);
@@ -1335,7 +1357,8 @@ class BattleGame {
     if (this.finished) { this.updateHud(); return; }
     if (p.y > this.height + 80) { p.x = Math.max(40, p.x - 180); p.y = 280; p.vy = 0; }
 
-    if (p.slash > 0) {
+    if(this.combatVersion===3)globalThis.DaoBladeSword.tick(this,dt);
+    if (p.slash > 0 && !this.swordStrike) {
       const progress = 1 - p.slash / p.slashDuration;
       const active = this.combatV2?CONTROLLER.phase(p)==="active":progress > .18 && progress < .78;
       const range = this.combatV2?CONTROLLER.config.slash[p.combo-1].range:(p.combo === 3 ? (this.stats.primary === "metal" ? 132 : 104) : 82) + (this.stats.secondary === "metal" ? 10 : 0); const left = p.face > 0 ? p.x + p.w - 4 : p.x - range + 4;
@@ -1374,7 +1397,7 @@ class BattleGame {
   resolveEnemyTerrain(before,dt){
     const solids=this.platforms.filter(s=>s.collision==="solid");
     for(const e of this.enemies){
-      if(e.dead||e.kind==="dummy")continue;
+      if(e.dead||e.kind==="dummy"||e.swordLift)continue;
       const old=before.get(e.id);
       if(e.leash){e.x=clamp(e.x,e.leash.min,e.leash.max);e.y=e.homeY-e.h;continue;}
       // Basic ground pursuers can step onto low cover, never phase through walls.
@@ -1397,7 +1420,7 @@ class BattleGame {
       if (this.finished) break;
       if (enemy.dead) continue;
       if(this.level.version===2){
-        if(enemy.leash){enemy.x=clamp(enemy.x,enemy.leash.min,enemy.leash.max);enemy.y=enemy.homeY-enemy.h;}
+        if(enemy.leash){enemy.x=clamp(enemy.x,enemy.leash.min,enemy.leash.max);if(!enemy.swordLift)enemy.y=enemy.homeY-enemy.h;}
         const section=this.level.sections.find(s=>enemy.homeX>=s.x&&enemy.homeX<s.end);
         if(enemy.attackState==="idle"&&!enemy.engaged&&(p.x<(section?.x||0)||enemy.x+enemy.w<this.cameraX+30||enemy.x>this.cameraX+this.width-50))continue;
       }
@@ -1723,6 +1746,7 @@ class BattleGame {
     if (p.shield > 0) {
       const absorbed = Math.min(p.shield, amount);
       p.shield -= absorbed; amount -= absorbed;
+      if(this.combatVersion===3)globalThis.DaoBladeSword.shieldHit(this,absorbed,sourceX,sourceId);
       if (absorbed && p.skillShieldCounter) {
         this.enemies.filter(e => !e.dead && Math.abs(e.x - p.x) < 110).slice(0, 2).forEach(e => this.hitEnemy(e, this.stats.attack * .45, false, false, "counter"));
         p.skillShieldCounter = false;
@@ -1763,6 +1787,7 @@ class BattleGame {
   }
 
   updateCheckpoint() {
+    if(this.swordPractice)return;
     if(this.labPending||this.labError||this.finished)return;
     if(this.breakthrough)return;
     if(this.labRun ? this.labTrial.checkpoint : !this.trial || this.trial.activated)return;
@@ -1794,6 +1819,7 @@ class BattleGame {
   }
 
   async finish(win) {
+    if(this.swordPractice){this.finished=true;this.clearInput();return;}
     if (this.finished || this.trial?.settled) return;
     this.lastOutcome = win ? "victory" : "defeat";
     if (win && this.trial) this.trial.settled = true;
@@ -1931,6 +1957,7 @@ class BattleGame {
   }
 
   updateHud() {
+    if(this.swordPractice)return;
     if (!this.practice) {
       const objective = this.level.version===2
         ? (this.level.sections.find(s=>this.player.x>=s.x&&this.player.x<s.end)?.label||"秘境")
@@ -2030,6 +2057,7 @@ class BattleGame {
       ctx.restore();
     });
     this.particles.forEach(particle => { ctx.globalAlpha = clamp(particle.life * 2, 0, 1); ctx.fillStyle = particle.color; ctx.fillRect(Math.round(particle.x), Math.round(particle.y), 4, 4); }); ctx.globalAlpha = 1;
+    if(this.combatVersion===3)globalThis.DaoBladeSword.draw(this,ctx);
     this.drawPlayer(ctx, this.player);
     this.feedbackLayer?.draw(ctx);
     ctx.restore();

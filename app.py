@@ -307,6 +307,7 @@ def create_app(test_config: dict | None = None) -> Flask:
         except ValueError as exc:
             return jsonify(error=str(exc)), 400
 
+    @app.post("/api/journey/practice-preview")
     @app.post("/api/journey/build-preview")
     def journey_build_preview():
         user = current_user()
@@ -319,6 +320,8 @@ def create_app(test_config: dict | None = None) -> Flask:
         if "owner_id" not in payload or type(payload["owner_id"]) is not type(owner) or payload["owner_id"] != owner:
             return jsonify(error="账号已变化，请重读征程"), 409
         try:
+            if request.path.endswith("practice-preview"):
+                return jsonify(journey.preview_sword_practice(save_slot(user), payload["revision"], payload))
             return jsonify(journey.preview_build(save_slot(user), payload["revision"], payload.get("nodes"), payload.get("loadout")))
         except (ValueError, TypeError, KeyError) as exc:
             return jsonify(error=str(exc) if isinstance(exc, ValueError) else "构筑字段无效"), 409 if "其他窗口" in str(exc) else 400

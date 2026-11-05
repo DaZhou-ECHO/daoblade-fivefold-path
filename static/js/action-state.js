@@ -11,7 +11,7 @@
     if (player.dash > 0) return "dash";
     if (player.slash > 0) return "slash";
     if (player.blocking) return "block";
-    if (player.qiCast > 0) return "qi";
+    if (player.qiCast > 0 || player.swordCharging) return "qi";
     if (!player.onGround) return player.vy < 0 ? "jump" : "fall";
     return Math.abs(player.vx) > 35 ? "run" : "idle";
   }
@@ -20,7 +20,7 @@
     let progress = 0, phase = "visual";
     if (action === "slash") {
       progress = clamp01(1 - number(player.slash) / (number(player.slashDuration) || .28));
-      phase = player.combatVersion===2&&root.DaoBladeController?root.DaoBladeController.phase(player):progress <= .18 ? "windup" : progress < .78 ? "active" : "recovery";
+      phase = player.combatVersion>=2&&root.DaoBladeController?root.DaoBladeController.phase(player):progress <= .18 ? "windup" : progress < .78 ? "active" : "recovery";
     } else if (action === "death") {
       progress = clamp01(number(player.deathTime) / DEFEAT_DURATION);
       phase = progress >= 1 ? "complete" : "visual";
@@ -41,6 +41,7 @@
       ]) }),
       motion: Object.freeze({ vx: number(player.vx), vy: number(player.vy), on_ground: Boolean(player.onGround) }),
       animation_time: Math.max(0, number(player.animTime)),
+      sword_pose: player.swordPose || null, charging: Boolean(player.swordCharging),
       combo: number(player.combo), skill_id: typeof player.skillPose === "string" ? player.skillPose : null,
       feedback: Object.freeze({ alive: player.hp > 0,
         flicker: player.hp > 0 && player.invuln > 0 && Boolean(Math.floor(player.invuln * 20) % 2),

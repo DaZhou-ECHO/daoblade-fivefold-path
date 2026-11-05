@@ -102,6 +102,16 @@
         rootAngle, rootX: 8 * progress,
         rootY: state.feedback.death_drop - 20 * Math.abs(Math.sin(rootAngle)) };
     }
+    const pose=state.sword_pose;
+    if(pose){
+      const t=state.progress,pulse=Math.sin(Math.PI*t);
+      const angles={li:1.7,gen:.15,zhen:2.2,kun:3.5,xun:-.5,qian:1.55,kan:.8,dui:2.7,
+        "li-gen":.15,"gen-zhen":1.55,"zhen-kun":3.5,"kun-xun":1.5,"xun-qian":-1.4,"qian-kan":1.3,"kan-dui":-.8,"dui-li":2.7};
+      if(pose==="lift"){angle=keyframe(t,[[0,3.4],[.2,3.7],[.5,.1],[1,base.weaponAngle]]);lean=-.12*pulse;}
+      else if(pose==="dive"){angle=3.15;lean=.12;}
+      else if(pose==="charge"){angle=-.65;lean=-.12;}
+      else {angle=keyframe(t,[[0,base.weaponAngle],[.32,angles[pose]??1.5],[.7,angles[pose]??1.5],[1,base.weaponAngle]]);lean=(pose.includes("gen")?-.08:.16)*pulse;}
+    }
     return { ...base, action, imageKey: "idle", index: 0, lean, weaponAngle: angle, rig: true };
   }
 

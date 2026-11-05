@@ -34,6 +34,7 @@
     root.DaoBladeVillageProgress?.update(snapshot);
     root.DaoBladeBagua?.update(snapshot?{...snapshot,draft}:null);
     root.DaoBladeShanhe?.update(snapshot);
+    root.DaoBladeSwordUI?.update(snapshot?{...snapshot,draft}:null);
   }
   function entrySummary(){
     if(!data||!config)return null;
@@ -111,10 +112,10 @@
     finally{if(generation===epoch){busy=false;render();}}
   }
   function launch(){const t=data.state.active_trial;if(!t)throw Error('没有未完成挑战');root.DaoBladeStartJourney(t,data.trial_compiled||t.compiled);}
-  async function previewBuild(build){
+  async function previewBuild(build,practice=false,recipeId=null){
     if(!data||busy||blocked||migrationRequired||data.state.active_trial)throw Error('当前无法预览改装');
     const generation=epoch,revision=data.revision;
-    const res=await fetch('/api/journey/build-preview',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},body:JSON.stringify({...build,revision,owner_id:owner})});
+    const res=await fetch(practice?'/api/journey/practice-preview':'/api/journey/build-preview',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},body:JSON.stringify({...build,revision,owner_id:owner,...(recipeId?{recipe_id:recipeId}:{})})});
     const payload=await res.json();if(generation!==epoch||revision!==data?.revision)throw Error('账号或档案已变化，预览已失效');
     if(!res.ok)throw Error(payload.error||'暂时无法预览');return payload;
   }

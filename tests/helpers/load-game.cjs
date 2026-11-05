@@ -19,6 +19,7 @@ function gameContext(touchButtons = [], savedFeedback = null, randomSeed = null,
   });
   if(randomSeed!==null)vm.runInContext("(function(){let seed="+Number(randomSeed)+";Math.random=function(){seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};})();",context);
   require("./load-rules.cjs")(context);
+  vm.runInContext(fs.readFileSync("static/js/sword-combat.js","utf8"),context);
   if (worldArt) for (const file of ["world-art-assets.js","enemy-art.js","scene-art.js"])
     vm.runInContext(fs.readFileSync(path.join(__dirname,"..","..","static","js",file),"utf8"),context);
   const source = fs.readFileSync(path.join(__dirname, "..", "..", "static", "js", "game.js"), "utf8").replace(/\nbindUi\(\);\s*initializeSession\(\);\s*$/, "");

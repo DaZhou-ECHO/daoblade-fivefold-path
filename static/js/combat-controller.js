@@ -28,6 +28,7 @@
     if(state.reason==="dead")return state;
     const key=action.startsWith("dao")?"skill":action;
     g.intents[key]={action,time:g.elapsed,remaining:action==="slash"?.2:.18,ordinary:action==="block"&&state.status!=="accepted"};
+    if(g.combatVersion===3&&action==="dao2"&&g.swordWindow)g.intents[key].remaining=Math.max(.18,g.player.qiCast+.03);
     if(action!=="block"){g.player.guardRecovery=false;g.guardInput=0;if(g.intents.block?.time<g.elapsed-1e-8)delete g.intents.block;}
     return state;
   }
@@ -51,7 +52,9 @@
         if(p.skillCooldowns[slot]>0)continue;
       }
       delete g.intents[key];
+      if(g.combatVersion===3&&action.startsWith("dao"))g.swordIntentAt=request.time;
       if(p.slash>0){p.slash=0;p.queuedSlash=0;g.emitBattleEvent("action_cancelled",{action_id:"slash",phase:"recovery"});}
+      if(g.combatVersion===3&&["block","dash","slash"].includes(action))root.DaoBladeSword.cancel(g);
       if(action==="block"){g.beginBlock(request.ordinary);delete g.intents.slash;delete g.intents.skill;return;}
       p.blocking=false;p.parryArmed=0;
       // Only one combat action is accepted per simulation tick. Discard lower-priority

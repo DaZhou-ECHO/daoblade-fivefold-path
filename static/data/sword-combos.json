@@ -1,0 +1,10 @@
+[
+  {"id":"li-gen","main":"li","sub":"gen","hexagram":"山火贲","name":"山灯护身","use":"护身","trigger":"离火直击命中","finish":"收剑成盾，首次承击释放近身火环","stance":"立剑于胸前，火光沿剑格收束"},
+  {"id":"gen-zhen","main":"gen","sub":"zhen","hexagram":"雷山小过","name":"听雷出鞘","use":"反击","trigger":"本次艮盾实际吸收敌方攻击","finish":"向来袭方向短刺，打断普通敌人","stance":"侧身承击，再沿剑身送出短刺"},
+  {"id":"zhen-kun","main":"zhen","sub":"kun","hexagram":"地雷复","name":"伏雷回震","use":"解围","trigger":"震招直击命中","finish":"地波先前行，再折回身后","stance":"压腕点地，回波从脚边折返"},
+  {"id":"kun-xun","main":"kun","sub":"xun","hexagram":"风地观","name":"拂尘退步","use":"退守","trigger":"坤招直击命中","finish":"面对前方退步，原处留一道风痕","stance":"身体后移，剑尖仍指向原处"},
+  {"id":"xun-qian","main":"xun","sub":"qian","hexagram":"天风姤","name":"过隙回锋","use":"穿行","trigger":"巽招实际越过敌人","finish":"从落点回身，沿穿行路线平刺","stance":"先穿身，再回腕折剑"},
+  {"id":"qian-kan","main":"qian","sub":"kan","hexagram":"水天需","name":"候潮一线","use":"预判","trigger":"乾招直击命中","finish":"命中处留潮痕，稍后合拢并减速","stance":"平举剑尖，潮线先张后合"},
+  {"id":"kan-dui","main":"kan","sub":"dui","hexagram":"泽水困","name":"收澜归剑","use":"回气","trigger":"寒流直击命中","finish":"水光回到当前站位，命中回气一次","stance":"收肘引剑，水光沿回线归来"},
+  {"id":"dui-li","main":"dui","sub":"li","hexagram":"火泽睽","name":"分灯照影","use":"分击","trigger":"回锋直击命中","finish":"主灯照命中者，副灯照其后最近敌人","stance":"转腕分光，两点灯火依次亮起"}
+]

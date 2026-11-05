@@ -11,6 +11,7 @@ from array_lab import validate_lab_state
 from skill_guide import GUIDE, NODE_GUIDE, describe_build, mind_text
 
 MAPS_V2 = json.loads((Path(__file__).parent / "static/data/journey-maps-v2.json").read_text(encoding="utf-8"))
+COMBOS = json.loads((Path(__file__).parent / "static/data/sword-combos.json").read_text(encoding="utf-8"))
 
 def trial_layout(trial):
     """缺字段按v1，拒绝未知版本，保留旧局。"""
@@ -18,7 +19,7 @@ def trial_layout(trial):
     if (
         type(version) is not int
         or type(combat) is not int
-        or (version, combat) not in {(1, 1), (2, 2)}
+        or (version, combat) not in {(1, 1), (2, 2), (2, 3)}
     ):
         raise ValueError("未知试炼版本，请保留存档并联系维护者")
     return MAPS_V2[trial["realm_id"]+":"+trial["map_id"]] if version == 2 else None
@@ -57,6 +58,7 @@ CONFIG["catalog"] = list(CATALOG.values())
 CONFIG["skill_guide"] = GUIDE
 CONFIG["node_guide"] = NODE_GUIDE
 CONFIG["world"] = shanhe_story.WORLD
+CONFIG["combos"] = COMBOS
 
 
 def new_bead(key):
@@ -178,7 +180,9 @@ def compile_journey(state):
             selected.update([p+".core", p+".mind"])
             minds.append(p)
             mind_levels[p] = levels[p+".mind"]
-    return {"campaign": True, "ruleset_id": "journey-v1", "used": sum(x is not None for x in state["nodes"].values()),
+    pair = [s["id"] if s else None for s in skills]
+    combo = next((deepcopy(c) for c in COMBOS if [c["main"], c["sub"]] == pair), None)
+    return {"campaign": True, "combat_version": 3, "combo": combo, "ruleset_id": "journey-v1", "used": sum(x is not None for x in state["nodes"].values()),
             "capacity": CONFIG["ranks"][state["rank"]]["capacity"], "rank": state["rank"], "connected": connected,
             "inactive": inactive, "skills": skills, "minds": minds, "mind_levels": mind_levels, "effective_bead_ids": sorted(selected),
             "training": deepcopy(state["training"]), "cosmetic": state["cosmetics"]["equipped"],
@@ -239,6 +243,29 @@ def preview_build(slot, revision, nodes, loadout):
 def read_journey(slot):
     row = get_db().execute("SELECT * FROM journey_saves WHERE slot=?", (slot,)).fetchone()
     return (normalize_journey(json.loads(row["state_json"])), row["revision"]) if row else (default_journey(), 0)
+
+
+def preview_sword_practice(slot, revision, payload):
+    """Only compiles a transient practice build, never creates a save or trial."""
+    state, current = read_journey(slot)
+    if revision != current:
+        raise ValueError("其他窗口已更新，请保留草稿并重新核对")
+    if state["active_trial"] or unification_required(slot):
+        raise ValueError("请先结束挑战并完成合档")
+    recipe_id = payload.get("recipe_id")
+    if recipe_id is None:
+        compiled = preview_build(slot, revision, payload.get("nodes"), payload.get("loadout"))["compiled"]
+    else:
+        recipe = next((c for c in COMBOS if c["id"] == recipe_id), None)
+        if recipe is None:
+            raise ValueError("合招配方无效")
+        state = default_journey()
+        keys = [recipe["main"]+".core", recipe["sub"]+".core"]
+        state["beads"] = [new_bead(k) for k in keys]
+        state["nodes"] = {k: k if k in keys else None for k in CATALOG}
+        state["loadout"] = {"active": [recipe["main"], recipe["sub"]], "passive": [None, None]}
+        compiled = compile_journey(state)
+    return {"revision": current, "compiled": compiled, "borrowed": recipe_id is not None}
 
 
 def _legacy_level(level):
@@ -577,7 +604,7 @@ def transition(slot, revision, payload):
             if not any(compiled["skills"]):
                 raise ValueError("请先连接并选入至少一个主动宫")
             state["active_trial"] = {"id": "journey-"+uuid.uuid4().hex, "realm_id": realm, "map_id": map_id,
-                                     "breakthrough": breakthrough, "rules_version": 1, "combat_version": 2, "map_version": 2, "checkpoint": None, "claimed_altars": [], "opened_shortcuts": [],
+                                     "breakthrough": breakthrough, "rules_version": 1, "combat_version": 3, "map_version": 2, "checkpoint": None, "claimed_altars": [], "opened_shortcuts": [],
                                      "compiled": compiled, "effective_bead_ids": compiled["effective_bead_ids"]}
             state["progress"]["runs"] += 1
             if not breakthrough:

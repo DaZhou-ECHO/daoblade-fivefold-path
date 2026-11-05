@@ -1,0 +1,1611 @@
+TAP version 13
+# Subtest: 动作视图只包含独立冻结数据，不泄漏实体/冷却/HP且后续实体变化不污染旧视图
+ok 1 - 动作视图只包含独立冻结数据，不泄漏实体/冷却/HP且后续实体变化不污染旧视图
+  ---
+  duration_ms: 3.2847
+  ...
+# Subtest: 动作优先级和三段剑有效窗口沿用现有判定，不创建第二个战斗时钟
+ok 2 - 动作优先级和三段剑有效窗口沿用现有判定，不创建第二个战斗时钟
+  ---
+  duration_ms: 0.6167
+  ...
+# Subtest: 动作模块缺失时人物安全返回false，不能重新猜测战斗计时
+ok 3 - 动作模块缺失时人物安全返回false，不能重新猜测战斗计时
+  ---
+  duration_ms: 2.8779
+  ...
+# Subtest: 游戏/预览脚本先加载动作适配器，实际绘制使用显式只读视图
+ok 4 - 游戏/预览脚本先加载动作适配器，实际绘制使用显式只读视图
+  ---
+  duration_ms: 4.3005
+  ...
+# Subtest: 016 共享编译样例 empty
+ok 5 - 016 共享编译样例 empty
+  ---
+  duration_ms: 2.7381
+  ...
+# Subtest: 016 共享编译样例 focus
+ok 6 - 016 共享编译样例 focus
+  ---
+  duration_ms: 0.6165
+  ...
+# Subtest: 016 共享编译样例 burst
+ok 7 - 016 共享编译样例 burst
+  ---
+  duration_ms: 1.2376
+  ...
+# Subtest: 016 共享编译样例 detached
+ok 8 - 016 共享编译样例 detached
+  ---
+  duration_ms: 0.441
+  ...
+# Subtest: 016 共享编译样例 grown-focus
+ok 9 - 016 共享编译样例 grown-focus
+  ---
+  duration_ms: 0.2423
+  ...
+# Subtest: 016 共享编译样例 grown-burst
+ok 10 - 016 共享编译样例 grown-burst
+  ---
+  duration_ms: 0.3223
+  ...
+# Subtest: 016 可拆换不复制资源，错误元素/功能/锁定/互斥/容量严格拒绝
+ok 11 - 016 可拆换不复制资源，错误元素/功能/锁定/互斥/容量严格拒绝
+  ---
+  duration_ms: 1.5141
+  ...
+# Subtest: 016 真实UI状态机：保存成功才可试招，冲突保留草稿并禁止覆盖
+ok 12 - 016 真实UI状态机：保存成功才可试招，冲突保留草稿并禁止覆盖
+  ---
+  duration_ms: 13.2148
+  ...
+# Subtest: 016 换账号后忽略迟到读取，不把旧草稿带进新作用域
+ok 13 - 016 换账号后忽略迟到读取，不把旧草稿带进新作用域
+  ---
+  duration_ms: 1.7776
+  ...
+# Subtest: 018 真实UI动作队列逐次使用ACK版本，冻结配珠并在放弃后解锁
+ok 14 - 018 真实UI动作队列逐次使用ACK版本，冻结配珠并在放弃后解锁
+  ---
+  duration_ms: 7.2127
+  ...
+# Subtest: 018 冲突阻止队列后续写入，保留服务试炼供重读恢复
+ok 15 - 018 冲突阻止队列后续写入，保留服务试炼供重读恢复
+  ---
+  duration_ms: 5.4796
+  ...
+# Subtest: 021 真实选关UI发送木境，恢复继续使用服务realm，活动中不能换境
+ok 16 - 021 真实选关UI发送木境，恢复继续使用服务realm，活动中不能换境
+  ---
+  duration_ms: 4.2766
+  ...
+# Subtest: 029 五境演练只读已保存配珠，草稿/冲突禁入，有正式试炼也不改它
+ok 17 - 029 五境演练只读已保存配珠，草稿/冲突禁入，有正式试炼也不改它
+  ---
+  duration_ms: 5.188
+  ...
+# Subtest: 五类战斗音色短促有别，无声音资源和DOM依赖
+ok 18 - 五类战斗音色短促有别，无声音资源和DOM依赖
+  ---
+  duration_ms: 2.6326
+  ...
+# Subtest: 事件去重、同类限频、持续伤害和未知类型不制造重复声音
+ok 19 - 事件去重、同类限频、持续伤害和未知类型不制造重复声音
+  ---
+  duration_ms: 0.4384
+  ...
+# Subtest: 最多4声并发，完美格挡优先于挥空，停止会取消排程并断开节点
+ok 20 - 最多4声并发，完美格挡优先于挥空，停止会取消排程并断开节点
+  ---
+  duration_ms: 0.5695
+  ...
+# Subtest: 静音不创建上下文且不补播旧事件；结束释放资源、历史有界
+ok 21 - 静音不创建上下文且不补播旧事件；结束释放资源、历史有界
+  ---
+  duration_ms: 0.4079
+  ...
+# Subtest: 浏览器禁音、恢复拒绝或节点创建失败不会抛入战斗主链
+ok 22 - 浏览器禁音、恢复拒绝或节点创建失败不会抛入战斗主链
+  ---
+  duration_ms: 0.615
+  ...
+# Subtest: 事件唯一、有序且复制冻结载荷，不能泄漏可变实体
+ok 23 - 事件唯一、有序且复制冻结载荷，不能泄漏可变实体
+  ---
+  duration_ms: 2.2513
+  ...
+# Subtest: 失败监听隔离，解除订阅和关闭后不调用，历史有界
+ok 24 - 失败监听隔离，解除订阅和关闭后不调用，历史有界
+  ---
+  duration_ms: 1.5384
+  ...
+# Subtest: 048 viewport 1920x1080 preserves reference field and aspect
+ok 25 - 048 viewport 1920x1080 preserves reference field and aspect
+  ---
+  duration_ms: 2.2983
+  ...
+# Subtest: 048 viewport 1366x768 preserves reference field and aspect
+ok 26 - 048 viewport 1366x768 preserves reference field and aspect
+  ---
+  duration_ms: 0.2
+  ...
+# Subtest: 048 viewport 2560x1080 preserves reference field and aspect
+ok 27 - 048 viewport 2560x1080 preserves reference field and aspect
+  ---
+  duration_ms: 0.1499
+  ...
+# Subtest: 048 viewport 1280x1024 preserves reference field and aspect
+ok 28 - 048 viewport 1280x1024 preserves reference field and aspect
+  ---
+  duration_ms: 0.2236
+  ...
+# Subtest: 004提取动作视图后86个已提交003姿态基线保持一致
+ok 29 - 004提取动作视图后86个已提交003姿态基线保持一致
+  ---
+  duration_ms: 11.6424
+  ...
+# Subtest: 真实游戏入口向渲染器传入冻结动作视图，后续战斗变化不改旧视图
+ok 30 - 真实游戏入口向渲染器传入冻结动作视图，后续战斗变化不改旧视图
+  ---
+  duration_ms: 24.0539
+  ...
+# Subtest: 三段剑双向逐相位握点对齐、脚底固定、收招回位且渲染不写入战斗数据
+ok 31 - 三段剑双向逐相位握点对齐、脚底固定、收招回位且渲染不写入战斗数据
+  ---
+  duration_ms: 4.5653
+  ...
+# Subtest: 真实三连击、格挡反击、跳跃、闪避、剑气与受击结束后恢复新人物
+ok 32 - 真实三连击、格挡反击、跳跃、闪避、剑气与受击结束后恢复新人物
+  ---
+  duration_ms: 31.1486
+  ...
+# Subtest: 五境重建与序列化存档恢复保留五行快照，复用同一美术与38×70碰撞箱
+ok 33 - 五境重建与序列化存档恢复保留五行快照，复用同一美术与38×70碰撞箱
+  ---
+  duration_ms: 69.1108
+  ...
+# Subtest: 无 Image 或 fetch 时保留可用的未加载回退状态
+ok 34 - 无 Image 或 fetch 时保留可用的未加载回退状态
+  ---
+  duration_ms: 0.2748
+  ...
+# Subtest: 素材加载只请求一次，校验精灵表与独立剑的尺寸
+ok 35 - 素材加载只请求一次，校验精灵表与独立剑的尺寸
+  ---
+  duration_ms: 0.6718
+  ...
+# Subtest: 清单拒绝外部路径、越界锚点及不合法帧数据
+ok 36 - 清单拒绝外部路径、越界锚点及不合法帧数据
+  ---
+  duration_ms: 0.59
+  ...
+# Subtest: 网络、JSON、图像下载和图像尺寸失败不会使加载 Promise 抛错
+    # Subtest: 网络错误
+    ok 1 - 网络错误
+      ---
+      duration_ms: 0.6419
+      ...
+    # Subtest: HTTP错误
+    ok 2 - HTTP错误
+      ---
+      duration_ms: 0.3045
+      ...
+    # Subtest: 非法JSON
+    ok 3 - 非法JSON
+      ---
+      duration_ms: 0.3496
+      ...
+    # Subtest: 非法字段
+    ok 4 - 非法字段
+      ---
+      duration_ms: 0.2386
+      ...
+    # Subtest: 图像错误
+    ok 5 - 图像错误
+      ---
+      duration_ms: 0.5351
+      ...
+    # Subtest: 精灵表尺寸不符
+    ok 6 - 精灵表尺寸不符
+      ---
+      duration_ms: 0.3602
+      ...
+    # Subtest: 剑素材尺寸不符
+    ok 7 - 剑素材尺寸不符
+      ---
+      duration_ms: 0.3389
+      ...
+    1..7
+ok 37 - 网络、JSON、图像下载和图像尺寸失败不会使加载 Promise 抛错
+  ---
+  duration_ms: 3.8954
+  ...
+# Subtest: 待机跑动按动画时间选帧，帧循环和异常时间均不越界
+ok 38 - 待机跑动按动画时间选帧，帧循环和异常时间均不越界
+  ---
+  duration_ms: 0.5082
+  ...
+# Subtest: 全部战斗状态使用同一人物和独立剑，优先级覆盖空中攻击与受击打断
+ok 39 - 全部战斗状态使用同一人物和独立剑，优先级覆盖空中攻击与受击打断
+  ---
+  duration_ms: 1.523
+  ...
+# Subtest: U02 空中腿部连续、双向镜像，攻击受击覆盖后保留腿姿且落地恢复
+ok 40 - U02 空中腿部连续、双向镜像，攻击受击覆盖后保留腿姿且落地恢复
+  ---
+  duration_ms: 6.2548
+  ...
+# Subtest: 左右全部动画帧脚底固定，旋转后的剑柄与每帧握点重合
+ok 41 - 左右全部动画帧脚底固定，旋转后的剑柄与每帧握点重合
+  ---
+  duration_ms: 1.2743
+  ...
+# Subtest: 渲染不改变玩家数据，并恢复透明度和图像平滑状态
+ok 42 - 渲染不改变玩家数据，并恢复透明度和图像平滑状态
+  ---
+  duration_ms: 0.6396
+  ...
+# Subtest: 剑图绘制异常关闭 PNG 渲染并完整恢复嵌套 Canvas 状态
+ok 43 - 剑图绘制异常关闭 PNG 渲染并完整恢复嵌套 Canvas 状态
+  ---
+  duration_ms: 0.6691
+  ...
+# Subtest: 真实游戏入口在模块缺省和资源未就绪时使用完整 Canvas 角色
+ok 44 - 真实游戏入口在模块缺省和资源未就绪时使用完整 Canvas 角色
+  ---
+  duration_ms: 24.9617
+  ...
+# Subtest: 真实游戏入口攻击保持新人物和独立剑，不回到旧角色且不改变战斗状态
+ok 45 - 真实游戏入口攻击保持新人物和独立剑，不回到旧角色且不改变战斗状态
+  ---
+  duration_ms: 14.4285
+  ...
+# Subtest: 真实游戏入口遇到剑图绘制异常立即回退，下一次绘制仍能继续
+ok 46 - 真实游戏入口遇到剑图绘制异常立即回退，下一次绘制仍能继续
+  ---
+  duration_ms: 15.0891
+  ...
+# Subtest: 倒地逐阶段双向旋转整个人与同一把剑，握点重合且不改实体状态
+ok 47 - 倒地逐阶段双向旋转整个人与同一把剑，握点重合且不改实体状态
+  ---
+  duration_ms: 1.6974
+  ...
+# Subtest: 模块缺省时倒地也能安全绘制且不会改动碰撞箱
+ok 48 - 模块缺省时倒地也能安全绘制且不会改动碰撞箱
+  ---
+  duration_ms: 24.1637
+  ...
+# Subtest: 036 old trials omit versions and retain v1; unknown versions fail visibly
+ok 49 - 036 old trials omit versions and retain v1; unknown versions fail visibly
+  ---
+  duration_ms: 25.6766
+  ...
+# Subtest: 036 policy shares slash phases and respects third-hit commitment
+ok 50 - 036 policy shares slash phases and respects third-hit commitment
+  ---
+  duration_ms: 0.2651
+  ...
+# Subtest: 036 variable jump and buffered landing at 30 fps
+ok 51 - 036 variable jump and buffered landing at 30 fps
+  ---
+  duration_ms: 68.9494
+  ...
+# Subtest: 036 one attack hits once at 30 fps
+ok 52 - 036 one attack hits once at 30 fps
+  ---
+  duration_ms: 21.6498
+  ...
+# Subtest: 036 variable jump and buffered landing at 60 fps
+ok 53 - 036 variable jump and buffered landing at 60 fps
+  ---
+  duration_ms: 57.7556
+  ...
+# Subtest: 036 one attack hits once at 60 fps
+ok 54 - 036 one attack hits once at 60 fps
+  ---
+  duration_ms: 15.6104
+  ...
+# Subtest: 036 variable jump and buffered landing at 120 fps
+ok 55 - 036 variable jump and buffered landing at 120 fps
+  ---
+  duration_ms: 66.8983
+  ...
+# Subtest: 036 one attack hits once at 120 fps
+ok 56 - 036 one attack hits once at 120 fps
+  ---
+  duration_ms: 19.2292
+  ...
+# Subtest: 036 simultaneous priority, bounded buffering, pause and release cleanup
+ok 57 - 036 simultaneous priority, bounded buffering, pause and release cleanup
+  ---
+  duration_ms: 27.2782
+  ...
+# Subtest: 036 guard turns, waits as ordinary only, and is released without ghost actions
+ok 58 - 036 guard turns, waits as ordinary only, and is released without ghost actions
+  ---
+  duration_ms: 22.3101
+  ...
+# Subtest: 036 normal guard exact cost, heavy guard, break and perfect guard
+ok 59 - 036 normal guard exact cost, heavy guard, break and perfect guard
+  ---
+  duration_ms: 62.2037
+  ...
+# Subtest: 036 guard pauses regeneration; back hits and hazards cannot parry
+ok 60 - 036 guard pauses regeneration; back hits and hazards cannot parry
+  ---
+  duration_ms: 56.1327
+  ...
+# Subtest: 036 collision sides, ceiling and one-way dropping never pass the floor
+ok 61 - 036 collision sides, ceiling and one-way dropping never pass the floor
+  ---
+  duration_ms: 21.3476
+  ...
+# Subtest: 036 active slash facing stays locked, next slash uses new direction
+ok 62 - 036 active slash facing stays locked, next slash uses new direction
+  ---
+  duration_ms: 22.25
+  ...
+# Subtest: 036 versioned map and optional guards metal/ridge
+ok 63 - 036 versioned map and optional guards metal/ridge
+  ---
+  duration_ms: 16.703
+  ...
+# Subtest: 036 versioned map and optional guards metal/hollow
+ok 64 - 036 versioned map and optional guards metal/hollow
+  ---
+  duration_ms: 14.9204
+  ...
+# Subtest: 036 versioned map and optional guards wood/ridge
+ok 65 - 036 versioned map and optional guards wood/ridge
+  ---
+  duration_ms: 17.1845
+  ...
+# Subtest: 036 versioned map and optional guards wood/hollow
+ok 66 - 036 versioned map and optional guards wood/hollow
+  ---
+  duration_ms: 15.3523
+  ...
+# Subtest: 036 versioned map and optional guards water/ridge
+ok 67 - 036 versioned map and optional guards water/ridge
+  ---
+  duration_ms: 17.4404
+  ...
+# Subtest: 036 versioned map and optional guards water/hollow
+ok 68 - 036 versioned map and optional guards water/hollow
+  ---
+  duration_ms: 15.2662
+  ...
+# Subtest: 036 versioned map and optional guards fire/ridge
+ok 69 - 036 versioned map and optional guards fire/ridge
+  ---
+  duration_ms: 16.7522
+  ...
+# Subtest: 036 versioned map and optional guards fire/hollow
+ok 70 - 036 versioned map and optional guards fire/hollow
+  ---
+  duration_ms: 18.1214
+  ...
+# Subtest: 036 versioned map and optional guards earth/ridge
+ok 71 - 036 versioned map and optional guards earth/ridge
+  ---
+  duration_ms: 14.9513
+  ...
+# Subtest: 036 versioned map and optional guards earth/hollow
+ok 72 - 036 versioned map and optional guards earth/hollow
+  ---
+  duration_ms: 17.2551
+  ...
+# Subtest: 036 shortcut restore is isolated and deduplicated
+ok 73 - 036 shortcut restore is isolated and deduplicated
+  ---
+  duration_ms: 27.8383
+  ...
+# Subtest: 036 basic single-jump branch return metal/ridge 30
+ok 74 - 036 basic single-jump branch return metal/ridge 30
+  ---
+  duration_ms: 98.4707
+  ...
+# Subtest: 036 basic single-jump branch return metal/hollow 30
+ok 75 - 036 basic single-jump branch return metal/hollow 30
+  ---
+  duration_ms: 132.5448
+  ...
+# Subtest: 036 basic single-jump branch return wood/ridge 30
+ok 76 - 036 basic single-jump branch return wood/ridge 30
+  ---
+  duration_ms: 93.5244
+  ...
+# Subtest: 036 basic single-jump branch return wood/hollow 30
+ok 77 - 036 basic single-jump branch return wood/hollow 30
+  ---
+  duration_ms: 115.8202
+  ...
+# Subtest: 036 basic single-jump branch return water/ridge 30
+ok 78 - 036 basic single-jump branch return water/ridge 30
+  ---
+  duration_ms: 76.9998
+  ...
+# Subtest: 036 basic single-jump branch return water/hollow 30
+ok 79 - 036 basic single-jump branch return water/hollow 30
+  ---
+  duration_ms: 92.4927
+  ...
+# Subtest: 036 basic single-jump branch return fire/ridge 30
+ok 80 - 036 basic single-jump branch return fire/ridge 30
+  ---
+  duration_ms: 64.9863
+  ...
+# Subtest: 036 basic single-jump branch return fire/hollow 30
+ok 81 - 036 basic single-jump branch return fire/hollow 30
+  ---
+  duration_ms: 96.1844
+  ...
+# Subtest: 036 basic single-jump branch return earth/ridge 30
+ok 82 - 036 basic single-jump branch return earth/ridge 30
+  ---
+  duration_ms: 80.4043
+  ...
+# Subtest: 036 basic single-jump branch return earth/hollow 30
+ok 83 - 036 basic single-jump branch return earth/hollow 30
+  ---
+  duration_ms: 82.7716
+  ...
+# Subtest: 036 basic single-jump branch return metal/ridge 60
+ok 84 - 036 basic single-jump branch return metal/ridge 60
+  ---
+  duration_ms: 71.0201
+  ...
+# Subtest: 036 basic single-jump branch return metal/hollow 60
+ok 85 - 036 basic single-jump branch return metal/hollow 60
+  ---
+  duration_ms: 91.6922
+  ...
+# Subtest: 036 basic single-jump branch return wood/ridge 60
+ok 86 - 036 basic single-jump branch return wood/ridge 60
+  ---
+  duration_ms: 62.6474
+  ...
+# Subtest: 036 basic single-jump branch return wood/hollow 60
+ok 87 - 036 basic single-jump branch return wood/hollow 60
+  ---
+  duration_ms: 91.862
+  ...
+# Subtest: 036 basic single-jump branch return water/ridge 60
+ok 88 - 036 basic single-jump branch return water/ridge 60
+  ---
+  duration_ms: 65.799
+  ...
+# Subtest: 036 basic single-jump branch return water/hollow 60
+ok 89 - 036 basic single-jump branch return water/hollow 60
+  ---
+  duration_ms: 79.5025
+  ...
+# Subtest: 036 basic single-jump branch return fire/ridge 60
+ok 90 - 036 basic single-jump branch return fire/ridge 60
+  ---
+  duration_ms: 68.528
+  ...
+# Subtest: 036 basic single-jump branch return fire/hollow 60
+ok 91 - 036 basic single-jump branch return fire/hollow 60
+  ---
+  duration_ms: 87.3182
+  ...
+# Subtest: 036 basic single-jump branch return earth/ridge 60
+ok 92 - 036 basic single-jump branch return earth/ridge 60
+  ---
+  duration_ms: 74.1628
+  ...
+# Subtest: 036 basic single-jump branch return earth/hollow 60
+ok 93 - 036 basic single-jump branch return earth/hollow 60
+  ---
+  duration_ms: 76.9836
+  ...
+# Subtest: 036 basic single-jump branch return metal/ridge 120
+ok 94 - 036 basic single-jump branch return metal/ridge 120
+  ---
+  duration_ms: 67.391
+  ...
+# Subtest: 036 basic single-jump branch return metal/hollow 120
+ok 95 - 036 basic single-jump branch return metal/hollow 120
+  ---
+  duration_ms: 79.6738
+  ...
+# Subtest: 036 basic single-jump branch return wood/ridge 120
+ok 96 - 036 basic single-jump branch return wood/ridge 120
+  ---
+  duration_ms: 58.4443
+  ...
+# Subtest: 036 basic single-jump branch return wood/hollow 120
+ok 97 - 036 basic single-jump branch return wood/hollow 120
+  ---
+  duration_ms: 77.1037
+  ...
+# Subtest: 036 basic single-jump branch return water/ridge 120
+ok 98 - 036 basic single-jump branch return water/ridge 120
+  ---
+  duration_ms: 59.5171
+  ...
+# Subtest: 036 basic single-jump branch return water/hollow 120
+ok 99 - 036 basic single-jump branch return water/hollow 120
+  ---
+  duration_ms: 77.5341
+  ...
+# Subtest: 036 basic single-jump branch return fire/ridge 120
+ok 100 - 036 basic single-jump branch return fire/ridge 120
+  ---
+  duration_ms: 61.6034
+  ...
+# Subtest: 036 basic single-jump branch return fire/hollow 120
+ok 101 - 036 basic single-jump branch return fire/hollow 120
+  ---
+  duration_ms: 85.6135
+  ...
+# Subtest: 036 basic single-jump branch return earth/ridge 120
+ok 102 - 036 basic single-jump branch return earth/ridge 120
+  ---
+  duration_ms: 80.4102
+  ...
+# Subtest: 036 basic single-jump branch return earth/hollow 120
+ok 103 - 036 basic single-jump branch return earth/hollow 120
+  ---
+  duration_ms: 109.6924
+  ...
+# Subtest: 036 engine combat to exit metal/ridge
+ok 104 - 036 engine combat to exit metal/ridge
+  ---
+  duration_ms: 277.8794
+  ...
+# Subtest: 036 engine combat to exit metal/hollow
+ok 105 - 036 engine combat to exit metal/hollow
+  ---
+  duration_ms: 248.5994
+  ...
+# Subtest: 036 engine combat to exit wood/ridge
+ok 106 - 036 engine combat to exit wood/ridge
+  ---
+  duration_ms: 247.5405
+  ...
+# Subtest: 036 engine combat to exit wood/hollow
+ok 107 - 036 engine combat to exit wood/hollow
+  ---
+  duration_ms: 245.0764
+  ...
+# Subtest: 036 engine combat to exit water/ridge
+ok 108 - 036 engine combat to exit water/ridge
+  ---
+  duration_ms: 198.2028
+  ...
+# Subtest: 036 engine combat to exit water/hollow
+ok 109 - 036 engine combat to exit water/hollow
+  ---
+  duration_ms: 228.6986
+  ...
+# Subtest: 036 engine combat to exit fire/ridge
+ok 110 - 036 engine combat to exit fire/ridge
+  ---
+  duration_ms: 237.3403
+  ...
+# Subtest: 036 engine combat to exit fire/hollow
+ok 111 - 036 engine combat to exit fire/hollow
+  ---
+  duration_ms: 228.4453
+  ...
+# Subtest: 036 engine combat to exit earth/ridge
+ok 112 - 036 engine combat to exit earth/ridge
+  ---
+  duration_ms: 241.953
+  ...
+# Subtest: 036 engine combat to exit earth/hollow
+ok 113 - 036 engine combat to exit earth/hollow
+  ---
+  duration_ms: 220.0197
+  ...
+# Subtest: 036 same-tick priority is independent of key event ordering
+ok 114 - 036 same-tick priority is independent of key event ordering
+  ---
+  duration_ms: 61.6013
+  ...
+# Subtest: 036 partial shielding cannot cancel a guard-break stagger and unknown API versions are handled separately
+ok 115 - 036 partial shielding cannot cancel a guard-break stagger and unknown API versions are handled separately
+  ---
+  duration_ms: 13.7067
+  ...
+# Subtest: 只有真实命中/防守有反馈，挥空与持续伤害不刷屏，同一事件不重复
+ok 116 - 只有真实命中/防守有反馈，挥空与持续伤害不刷屏，同一事件不重复
+  ---
+  duration_ms: 3.3746
+  ...
+# Subtest: 格挡穿透伤害合并显示，完美格挡独立可辨，不混入下一次攻击
+ok 117 - 格挡穿透伤害合并显示，完美格挡独立可辨，不混入下一次攻击
+  ---
+  duration_ms: 0.3942
+  ...
+# Subtest: 数量与寿命有界，绘制不推进时间或制造新反馈，恢复Canvas状态
+ok 118 - 数量与寿命有界，绘制不推进时间或制造新反馈，恢复Canvas状态
+  ---
+  duration_ms: 1.9828
+  ...
+# Subtest: 关闭不补播，清空后旧事件也不会重新出现
+ok 119 - 关闭不补播，清空后旧事件也不会重新出现
+  ---
+  duration_ms: 0.4278
+  ...
+# Subtest: 005 滑出按钮后窗口松手清方向，指针捕获失败时也不遗留
+ok 120 - 005 滑出按钮后窗口松手清方向，指针捕获失败时也不遗留
+  ---
+  duration_ms: 39.8308
+  ...
+# Subtest: 005 同动作的多指和键盘独立释放，不误清仍按住的方向和格挡
+ok 121 - 005 同动作的多指和键盘独立释放，不误清仍按住的方向和格挡
+  ---
+  duration_ms: 28.0789
+  ...
+# Subtest: 005 捕获丢失、暂停、销毁清理指针和输入，旧按钮不会唤醒已销毁局
+ok 122 - 005 捕获丢失、暂停、销毁清理指针和输入，旧按钮不会唤醒已销毁局
+  ---
+  duration_ms: 13.5827
+  ...
+# Subtest: 012 五境实际构造与已提交a0ee0b1的物理/敌人布局基线一致
+ok 123 - 012 五境实际构造与已提交a0ee0b1的物理/敌人布局基线一致
+  ---
+  duration_ms: 19.9781
+  ...
+# Subtest: 012 当局地图/敌人与冻结定义隔离，重试和另一局不继承旧局修改
+ok 124 - 012 当局地图/敌人与冻结定义隔离，重试和另一局不继承旧局修改
+  ---
+  duration_ms: 13.2379
+  ...
+# Subtest: 010 失同步拒绝正式开战且保留原局与计数，练功允许，恢复后正式入场
+ok 125 - 010 失同步拒绝正式开战且保留原局与计数，练功允许，恢复后正式入场
+  ---
+  duration_ms: 16.7508
+  ...
+# Subtest: 009 五境敌人燃烧致死后不再完成同帧攻击
+ok 126 - 009 五境敌人燃烧致死后不再完成同帧攻击
+  ---
+  duration_ms: 63.2179
+  ...
+# Subtest: 009 非致死燃烧不冻结活敌人，继续正常攻击并标记燃烧事件
+ok 127 - 009 非致死燃烧不冻结活敌人，继续正常攻击并标记燃烧事件
+  ---
+  duration_ms: 28.5578
+  ...
+# Subtest: 008 旧设置默认开启视觉提示，显式关闭可保留且不改声音默认值
+ok 128 - 008 旧设置默认开启视觉提示，显式关闭可保留且不改声音默认值
+  ---
+  duration_ms: 25.2403
+  ...
+# Subtest: 008 实际命中生成视觉，暂停冻结、倒地阶段消退、销毁清空
+ok 129 - 008 实际命中生成视觉，暂停冻结、倒地阶段消退、销毁清空
+  ---
+  duration_ms: 15.0393
+  ...
+# Subtest: 008 视觉反馈故障独立隔离，仍能播放事件声音且不改变伤害
+ok 130 - 008 视觉反馈故障独立隔离，仍能播放事件声音且不改变伤害
+  ---
+  duration_ms: 14.2501
+  ...
+# Subtest: 007 实际事件音效消费者在暂停和结束时停止，销毁后的输入不补播
+ok 131 - 007 实际事件音效消费者在暂停和结束时停止，销毁后的输入不补播
+  ---
+  duration_ms: 12.9764
+  ...
+# Subtest: 006 挥空只有起手，命中按真实判定发一次事件，持续伤害独立标记
+ok 132 - 006 挥空只有起手，命中按真实判定发一次事件，持续伤害独立标记
+  ---
+  duration_ms: 16.1199
+  ...
+# Subtest: 006 普通格挡、完美格挡和真实受伤分类，不把无敌闪避当命中
+ok 133 - 006 普通格挡、完美格挡和真实受伤分类，不把无敌闪避当命中
+  ---
+  duration_ms: 10.3665
+  ...
+# Subtest: 006 监听故障不改伤害，暂停不发攻击，销毁/结算只结束一次且新局隔离
+ok 134 - 006 监听故障不改伤害，暂停不发攻击，销毁/结算只结束一次且新局隔离
+  ---
+  duration_ms: 13.3198
+  ...
+# Subtest: 未镶珠时主副五行都未定，战斗仍可创建
+ok 135 - 未镶珠时主副五行都未定，战斗仍可创建
+  ---
+  duration_ms: 12.1235
+  ...
+# Subtest: 实际战斗读取开战快照，关外对象修改不会改变本局或另一局
+ok 136 - 实际战斗读取开战快照，关外对象修改不会改变本局或另一局
+  ---
+  duration_ms: 12.5904
+  ...
+# Subtest: 短输入缓冲只接下一剑，不堆积多次攻击
+ok 137 - 短输入缓冲只接下一剑，不堆积多次攻击
+  ---
+  duration_ms: 16.2347
+  ...
+# Subtest: 完美格挡仅开启由玩家按 J 发动的反击
+ok 138 - 完美格挡仅开启由玩家按 J 发动的反击
+  ---
+  duration_ms: 13.3411
+  ...
+# Subtest: 短闪避不消耗剑意，离开平台后短时间仍可起跳
+ok 139 - 短闪避不消耗剑意，离开平台后短时间仍可起跳
+  ---
+  duration_ms: 13.3218
+  ...
+# Subtest: 穿透剑气同一投射物只命中同一敌人一次
+ok 140 - 穿透剑气同一投射物只命中同一敌人一次
+  ---
+  duration_ms: 13.5435
+  ...
+# Subtest: 临时试镶不修改正式灵珠与修行图
+ok 141 - 临时试镶不修改正式灵珠与修行图
+  ---
+  duration_ms: 19.7881
+  ...
+# Subtest: 五种主修分别影响穿透、续航、控制、爆发与守御
+ok 142 - 五种主修分别影响穿透、续航、控制、爆发与守御
+  ---
+  duration_ms: 16.3728
+  ...
+# Subtest: 暂停清除按键，火关突进锁定起手方向
+ok 143 - 暂停清除按键，火关突进锁定起手方向
+  ---
+  duration_ms: 15.0662
+  ...
+# Subtest: 八条卦路均可装备并施展，第三层加强同一技能
+ok 144 - 八条卦路均可装备并施展，第三层加强同一技能
+  ---
+  duration_ms: 24.449
+  ...
+# Subtest: 两项技能独立冷却，受击期间不能施法
+ok 145 - 两项技能独立冷却，受击期间不能施法
+  ---
+  duration_ms: 14.4537
+  ...
+# Subtest: 已学但未装备的心法不会暗中提供被动效果
+ok 146 - 已学但未装备的心法不会暗中提供被动效果
+  ---
+  duration_ms: 12.7707
+  ...
+# Subtest: 五境布局各异且支路祭坛位置可达，非火关敌人有攻击前摇
+ok 147 - 五境布局各异且支路祭坛位置可达，非火关敌人有攻击前摇
+  ---
+  duration_ms: 17.1587
+  ...
+# Subtest: 014 剑碑仅前段清场且在附近地面激活一次
+ok 148 - 014 剑碑仅前段清场且在附近地面激活一次
+  ---
+  duration_ms: 13.5422
+  ...
+# Subtest: 014 续关保持构筑和祭坛，前三敌不复活，后段敌人重置；完整重开独立
+ok 149 - 014 续关保持构筑和祭坛，前三敌不复活，后段敌人重置；完整重开独立
+  ---
+  duration_ms: 13.1306
+  ...
+# Subtest: 016 聚焰与引爆真实伤害链不同，不把试验珠叠到基础面板
+ok 150 - 016 聚焰与引爆真实伤害链不同，不把试验珠叠到基础面板
+  ---
+  duration_ms: 25.2641
+  ...
+# Subtest: 016 拆核心停技、远距/背后不命中，试验不改旧档与奖励
+ok 151 - 016 拆核心停技、远距/背后不命中，试验不改旧档与奖励
+  ---
+  duration_ms: 15.8712
+  ...
+# Subtest: 019 真实远距剑气命中后首领追击，警戒外未受击敌人不跟随且不隔空出招
+ok 152 - 019 真实远距剑气命中后首领追击，警戒外未受击敌人不跟随且不隔空出招
+  ---
+  duration_ms: 74.1545
+  ...
+# Subtest: 019 实际受击的远程与近战也追近原射程，空挥与零伤害不拉怪
+ok 153 - 019 实际受击的远程与近战也追近原射程，空挥与零伤害不拉怪
+  ---
+  duration_ms: 16.5595
+  ...
+# Subtest: 019 交战敌人进入原范围仍先前摇，剑碑续关不继承上次仇恨
+ok 154 - 019 交战敌人进入原范围仍先前摇，剑碑续关不继承上次仇恨
+  ---
+  duration_ms: 13.1793
+  ...
+# Subtest: 020 回火低伤害留痕，E单次有界回气护体且不伤敌、不叠护盾
+ok 155 - 020 回火低伤害留痕，E单次有界回气护体且不伤敌、不叠护盾
+  ---
+  duration_ms: 12.0258
+  ...
+# Subtest: 020 回火珠成长只改本分支护盾，时间到失效且停用连线
+ok 156 - 020 回火珠成长只改本分支护盾，时间到失效且停用连线
+  ---
+  duration_ms: 17.0505
+  ...
+# Subtest: 023 挥剑收招前短按Q在窗口内施放一次，不提前扣费
+ok 157 - 023 挥剑收招前短按Q在窗口内施放一次，不提前扣费
+  ---
+  duration_ms: 14.706
+  ...
+# Subtest: 023 缓冲有时限，短冷却可接上、长动作不会延迟自动施放
+ok 158 - 023 缓冲有时限，短冷却可接上、长动作不会延迟自动施放
+  ---
+  duration_ms: 88.8205
+  ...
+# Subtest: 023 单槽最新Q/E覆盖，后按J/L/防守/闪避取消旧技能
+ok 159 - 023 单槽最新Q/E覆盖，后按J/L/防守/闪避取消旧技能
+  ---
+  duration_ms: 78.8216
+  ...
+# Subtest: 023 真正施放时重验剑意、前方火痕和当前朝向，不预付费不追踪离场目标
+ok 160 - 023 真正施放时重验剑意、前方火痕和当前朝向，不预付费不追踪离场目标
+  ---
+  duration_ms: 36.5945
+  ...
+# Subtest: 023 暂停、清理、销毁、致命/非致命伤与服务等待不遗留幽灵施法
+ok 161 - 023 暂停、清理、销毁、致命/非致命伤与服务等待不遗留幽灵施法
+  ---
+  duration_ms: 76.9814
+  ...
+# Subtest: 023 键盘短按和触屏松手共用同一缓冲，松手不取消一次技能意图
+ok 162 - 023 键盘短按和触屏松手共用同一缓冲，松手不取消一次技能意图
+  ---
+  duration_ms: 22.1065
+  ...
+# Subtest: 023 旧永久档主动技能同样经过缓冲，不提前扣30剑意
+ok 163 - 023 旧永久档主动技能同样经过缓冲，不提前扣30剑意
+  ---
+  duration_ms: 9.5924
+  ...
+# Subtest: 024 近敌战况只读真实方位/气血/预警，转身后取消身后提示
+ok 164 - 024 近敌战况只读真实方位/气血/预警，转身后取消身后提示
+  ---
+  duration_ms: 9.2149
+  ...
+# Subtest: 024 死敌不抢信息，远处只提示方向，清场与贴身无虚构左右
+ok 165 - 024 死敌不抢信息，远处只提示方向，清场与贴身无虚构左右
+  ---
+  duration_ms: 9.9082
+  ...
+# Subtest: 025 实际贴身近战中心在前，五境普通挡与弹反有效，不按敌人左边缘错判
+ok 166 - 025 实际贴身近战中心在前，五境普通挡与弹反有效，不按敌人左边缘错判
+  ---
+  duration_ms: 208.8444
+  ...
+# Subtest: 025 中心在后不能格挡，受伤后向远离攻击来源的方向击退
+ok 167 - 025 中心在后不能格挡，受伤后向远离攻击来源的方向击退
+  ---
+  duration_ms: 47.6851
+  ...
+# Subtest: 025 敌方投射物中心在前可挡，中心在后不可挡且击退一致
+ok 168 - 025 敌方投射物中心在前可挡，中心在后不可挡且击退一致
+  ---
+  duration_ms: 20.6295
+  ...
+# Subtest: 025 旧金行弹反反击也按中心识别贴身前敌
+ok 169 - 025 旧金行弹反反击也按中心识别贴身前敌
+  ---
+  duration_ms: 9.6832
+  ...
+# Subtest: 026 按住K格挡受击后恢复普通挡，不自动重开弹反
+ok 170 - 026 按住K格挡受击后恢复普通挡，不自动重开弹反
+  ---
+  duration_ms: 10.9392
+  ...
+# Subtest: 026 松手、暂停、销毁与新攻击意图取消受击后的防守恢复
+ok 171 - 026 松手、暂停、销毁与新攻击意图取消受击后的防守恢复
+  ---
+  duration_ms: 86.6605
+  ...
+# Subtest: 026 混合持有来源独立释放，最后一个松开才取消恢复
+ok 172 - 026 混合持有来源独立释放，最后一个松开才取消恢复
+  ---
+  duration_ms: 19.8677
+  ...
+# Subtest: 026 未持有输入的技能格挡不延续，背击只恢复普通挡且死亡不残留
+ok 173 - 026 未持有输入的技能格挡不延续，背击只恢复普通挡且死亡不残留
+  ---
+  duration_ms: 28.9239
+  ...
+# Subtest: 028 收招末尾持有K在窗口内恢复普通挡，不提前打断且不弹反
+ok 174 - 028 收招末尾持有K在窗口内恢复普通挡，不提前打断且不弹反
+  ---
+  duration_ms: 43.3926
+  ...
+# Subtest: 030 持有普通挡不因等待过期而丢失，新攻击/暂停仍取消
+ok 175 - 030 持有普通挡不因等待过期而丢失，新攻击/暂停仍取消
+  ---
+  duration_ms: 91.7469
+  ...
+# Subtest: 028 触控与键盘持有共用缓冲，最后来源松开取消，短按不遗留
+ok 176 - 028 触控与键盘持有共用缓冲，最后来源松开取消，短按不遗留
+  ---
+  duration_ms: 33.9681
+  ...
+# Subtest: 028 立即合法的K保留原弹反，第三段未结束不可提前取消，帧率不改普通挡语义
+ok 177 - 028 立即合法的K保留原弹反，第三段未结束不可提前取消，帧率不改普通挡语义
+  ---
+  duration_ms: 40.4954
+  ...
+# Subtest: 029 四境各两招共享循环，预警期间不命中，收招有空当且有效段只打一次
+ok 178 - 029 四境各两招共享循环，预警期间不命中，收招有空当且有效段只打一次
+  ---
+  duration_ms: 107.9652
+  ...
+# Subtest: 029 木境缠根阵起手锁落点、有预警，可跳起/离开，源敌死亡取消
+ok 179 - 029 木境缠根阵起手锁落点、有预警，可跳起/离开，源敌死亡取消
+  ---
+  duration_ms: 40.2804
+  ...
+# Subtest: 029 土境正面守势仅闲置/蓄力减伤，背击/收招/持续燃烧不被减免
+ok 180 - 029 土境正面守势仅闲置/蓄力减伤，背击/收招/持续燃烧不被减免
+  ---
+  duration_ms: 60.2321
+  ...
+# Subtest: 029 金境突刺锁方向，远程招式锁起手目标，死敌不再出招
+ok 181 - 029 金境突刺锁方向，远程招式锁起手目标，死敌不再出招
+  ---
+  duration_ms: 65.8835
+  ...
+# Subtest: 029 水境实际受伤才减速，弹反/闪避/无敌不被慢弹附带命中
+ok 182 - 029 水境实际受伤才减速，弹反/闪避/无敌不被慢弹附带命中
+  ---
+  duration_ms: 56.6055
+  ...
+# Subtest: 029 四境首领远距主动使用第二招并追击，高台目标记录高度且不追踪转向
+ok 183 - 029 四境首领远距主动使用第二招并追击，高台目标记录高度且不追踪转向
+  ---
+  duration_ms: 35.996
+  ...
+# Subtest: 030 近敌水平距离为只读中心距离，帮助判断短射程与绕背
+ok 184 - 030 近敌水平距离为只读中心距离，帮助判断短射程与绕背
+  ---
+  duration_ms: 9.1726
+  ...
+# Subtest: 030 持续K跨长动作/新受击仍待普通防守，松开后绝不自动举盾
+ok 185 - 030 持续K跨长动作/新受击仍待普通防守，松开后绝不自动举盾
+  ---
+  duration_ms: 64.9422
+  ...
+# Subtest: 031 地面机关仅在生效且足底接地时伤害，上方平台/空中/预警安全
+ok 186 - 031 地面机关仅在生效且足底接地时伤害，上方平台/空中/预警安全
+  ---
+  duration_ms: 241.1106
+  ...
+# Subtest: 031 五境基础单跳通过危险段后落地，不需要巽卦或技能
+ok 187 - 031 五境基础单跳通过危险段后落地，不需要巽卦或技能
+  ---
+  duration_ms: 165.105
+  ...
+# Subtest: 032 八宫选中技能进入真实引擎，各自元素/机制，拆核心停用
+ok 188 - 032 八宫选中技能进入真实引擎，各自元素/机制，拆核心停用
+  ---
+  duration_ms: 77.1951
+  ...
+# Subtest: 040 师门被动只强化基础劈砍、移动和生命，挑战快照固定等级
+ok 189 - 040 师门被动只强化基础劈砍、移动和生命，挑战快照固定等级
+  ---
+  duration_ms: 13.8755
+  ...
+# Subtest: 032 十张地图两条支路基础单跳到达并双向返回主路
+ok 190 - 032 十张地图两条支路基础单跳到达并双向返回主路
+  ---
+  duration_ms: 2480.1054
+  ...
+# Subtest: 032 低帧率小步补算保留可玩速度，长停顿有上限，暂停不追赶
+ok 191 - 032 低帧率小步补算保留可玩速度，长停顿有上限，暂停不追赶
+  ---
+  duration_ms: 53.6277
+  ...
+# Subtest: 032 震心法实际改变中性基础劈砍击退，未选与非劈砍无效
+ok 192 - 032 震心法实际改变中性基础劈砍击退，未选与非劈砍无效
+  ---
+  duration_ms: 80.0638
+  ...
+# Subtest: 032 支路导航只读位置与领取，说明方向/高度/奖励，不改变世界
+ok 193 - 032 支路导航只读位置与领取，说明方向/高度/奖励，不改变世界
+  ---
+  duration_ms: 10.5314
+  ...
+# Subtest: 033 心法等级进入真实属性/伤害/冷却/击退，旧冻结快照仍按一级
+ok 194 - 033 心法等级进入真实属性/伤害/冷却/击退，旧冻结快照仍按一级
+  ---
+  duration_ms: 287.5655
+  ...
+# Subtest: U01 致命伤立即结束判定，完整倒地后才打开一次结果窗口
+ok 195 - U01 致命伤立即结束判定，完整倒地后才打开一次结果窗口
+  ---
+  duration_ms: 45.1512
+  ...
+# Subtest: U01 隐藏页面冻结视觉，大掉帧被截断，暂停标记不会卡住战败结算
+ok 196 - U01 隐藏页面冻结视觉，大掉帧被截断，暂停标记不会卡住战败结算
+  ---
+  duration_ms: 13.0367
+  ...
+# Subtest: U01 空中死亡仅移动美术落点，不更改实体坐标或38×70碰撞箱
+ok 197 - U01 空中死亡仅移动美术落点，不更改实体坐标或38×70碰撞箱
+  ---
+  duration_ms: 12.768
+  ...
+# Subtest: U01 动画中退出会取消旧结果窗口且不会重复经验和存档
+ok 198 - U01 动画中退出会取消旧结果窗口且不会重复经验和存档
+  ---
+  duration_ms: 16.5991
+  ...
+# Subtest: U01 动画中通过导航离开关卡也会取消旧弹窗
+ok 199 - U01 动画中通过导航离开关卡也会取消旧弹窗
+  ---
+  duration_ms: 13.845
+  ...
+# Subtest: U01 保存较慢时等待保存；重试销毁旧局后不出现迟到弹窗
+ok 200 - U01 保存较慢时等待保存；重试销毁旧局后不出现迟到弹窗
+  ---
+  duration_ms: 17.6932
+  ...
+# Subtest: U01 练功场死亡不奖励不保存，胜利仍即时结算一次
+ok 201 - U01 练功场死亡不奖励不保存，胜利仍即时结算一次
+  ---
+  duration_ms: 28.7514
+  ...
+# Subtest: U01 结算页重新挑战启动干净的新局，返回洞府正常清理
+ok 202 - U01 结算页重新挑战启动干净的新局，返回洞府正常清理
+  ---
+  duration_ms: 14.3702
+  ...
+# Subtest: 014 仅检查点失败可续，胜利或已销毁不可续且同试炼不重复结算
+ok 203 - 014 仅检查点失败可续，胜利或已销毁不可续且同试炼不重复结算
+  ---
+  duration_ms: 17.5199
+  ...
+# Subtest: 014 结果按钮续关只消费一次入口且不新增闯关次数
+ok 204 - 014 结果按钮续关只消费一次入口且不新增闯关次数
+  ---
+  duration_ms: 14.8382
+  ...
+# Subtest: 014 保存失同步时续关入口保留结果和原试炼，不假装开战
+ok 205 - 014 保存失同步时续关入口保留结果和原试炼，不假装开战
+  ---
+  duration_ms: 14.3683
+  ...
+# Subtest: 015 刷新式JSON重载由洞府按钮恢复原试炼，放弃删除记录
+ok 206 - 015 刷新式JSON重载由洞府按钮恢复原试炼，放弃删除记录
+  ---
+  duration_ms: 17.2906
+  ...
+# Subtest: 015 胜利奖励和试炼清除一起保存，失同步时不恢复旧局
+ok 207 - 015 胜利奖励和试炼清除一起保存，失同步时不恢复旧局
+  ---
+  duration_ms: 14.1212
+  ...
+# Subtest: 015 Esc不能静默关掉结果并把玩家困在死亡画面
+ok 208 - 015 Esc不能静默关掉结果并把玩家困在死亡画面
+  ---
+  duration_ms: 13.262
+  ...
+# Subtest: 015 失败后返回洞府保留剑碑，明确放弃或重开才清除
+ok 209 - 015 失败后返回洞府保留剑碑，明确放弃或重开才清除
+  ---
+  duration_ms: 14.077
+  ...
+# Subtest: 016 暂停重新挑战保持试验快照，退出返回阵盘且不增加旧档runs
+ok 210 - 016 暂停重新挑战保持试验快照，退出返回阵盘且不增加旧档runs
+  ---
+  duration_ms: 14.2127
+  ...
+# Subtest: 018 新阵盘正式战六敌、剑碑恢复与冻结技能，不写旧永久档
+ok 211 - 018 新阵盘正式战六敌、剑碑恢复与冻结技能，不写旧永久档
+  ---
+  duration_ms: 19.2236
+  ...
+# Subtest: 018 剑碑必须实际清场到地面，等待保存时冻结且ACK后只回血一次
+ok 212 - 018 剑碑必须实际清场到地面，等待保存时冻结且ACK后只回血一次
+  ---
+  duration_ms: 19.8144
+  ...
+# Subtest: 018 网络错误不发奖，重读重试同ID；销毁后迟到ACK不弹结算
+ok 213 - 018 网络错误不发奖，重读重试同ID；销毁后迟到ACK不弹结算
+  ---
+  duration_ms: 33.3041
+  ...
+# Subtest: 018 检查点失败保留同ID，无检查点失败关闭；都不发旧档经验
+ok 214 - 018 检查点失败保留同ID，无检查点失败关闭；都不发旧档经验
+  ---
+  duration_ms: 24.8183
+  ...
+# Subtest: 021 木境使用木敌人与专属检查点，结果不串火且不写旧档
+ok 215 - 021 木境使用木敌人与专属检查点，结果不串火且不写旧档
+  ---
+  duration_ms: 16.823
+  ...
+# Subtest: 022 土金水新阵盘恢复原构筑与各自地图，胜利仅独立回执，旧档无检查点
+ok 216 - 022 土金水新阵盘恢复原构筑与各自地图，胜利仅独立回执，旧档无检查点
+  ---
+  duration_ms: 45.1992
+  ...
+# Subtest: 029 全五境真实引擎输入驱动从入口至结算，不改血量位置或敌人死亡
+ok 217 - 029 全五境真实引擎输入驱动从入口至结算，不改血量位置或敌人死亡
+  ---
+  duration_ms: 1718.8424
+  ...
+# {"realm":"wood","fps":30,"seed":2901,"seconds":23,"outcome":"victory","hp":89,"checkpoint":true,"living":[],"x":2755,"actions":[{"action":"checkpoint","trial_id":"test-array","defeated_ids":["enemy-1","enemy-2","enemy-3"]},{"action":"settle","trial_id":"test-array","win":true,"defeated_ids":["enemy-1","enemy-2","enemy-3","enemy-4","enemy-5","enemy-6"]}]}
+# {"realm":"fire","fps":30,"seed":2901,"seconds":29,"outcome":"victory","hp":53,"checkpoint":true,"living":[],"x":2531,"actions":[{"action":"checkpoint","trial_id":"test-array","defeated_ids":["enemy-1","enemy-2","enemy-3"]},{"action":"settle","trial_id":"test-array","win":true,"defeated_ids":["enemy-1","enemy-2","enemy-3","enemy-4","enemy-5","enemy-6"]}]}
+# {"realm":"earth","fps":30,"seed":2901,"seconds":25,"outcome":"victory","hp":91,"checkpoint":true,"living":[],"x":2743,"actions":[{"action":"checkpoint","trial_id":"test-array","defeated_ids":["enemy-1","enemy-2","enemy-3"]},{"action":"settle","trial_id":"test-array","win":true,"defeated_ids":["enemy-1","enemy-2","enemy-3","enemy-4","enemy-5","enemy-6"]}]}
+# {"realm":"metal","fps":30,"seed":2901,"seconds":26,"outcome":"victory","hp":62,"checkpoint":true,"living":[],"x":2772,"actions":[{"action":"checkpoint","trial_id":"test-array","defeated_ids":["enemy-1","enemy-2","enemy-3"]},{"action":"settle","trial_id":"test-array","win":true,"defeated_ids":["enemy-1","enemy-2","enemy-3","enemy-4","enemy-5","enemy-6"]}]}
+# {"realm":"water","fps":30,"seed":2901,"seconds":23,"outcome":"victory","hp":91,"checkpoint":true,"living":[],"x":2738,"actions":[{"action":"checkpoint","trial_id":"test-array","defeated_ids":["enemy-1","enemy-2","enemy-3"]},{"action":"settle","trial_id":"test-array","win":true,"defeated_ids":["enemy-1","enemy-2","enemy-3","enemy-4","enemy-5","enemy-6"]}]}
+# {"realm":"wood","fps":60,"seed":2902,"seconds":23,"outcome":"victory","hp":89,"checkpoint":true,"living":[],"x":2753,"actions":[{"action":"checkpoint","trial_id":"test-array","defeated_ids":["enemy-1","enemy-2","enemy-3"]},{"action":"settle","trial_id":"test-array","win":true,"defeated_ids":["enemy-1","enemy-2","enemy-3","enemy-4","enemy-5","enemy-6"]}]}
+# {"realm":"fire","fps":60,"seed":2902,"seconds":29,"outcome":"victory","hp":43,"checkpoint":true,"living":[],"x":2561,"actions":[{"action":"checkpoint","trial_id":"test-array","defeated_ids":["enemy-1","enemy-2","enemy-3"]},{"action":"settle","trial_id":"test-array","win":true,"defeated_ids":["enemy-1","enemy-2","enemy-3","enemy-4","enemy-5","enemy-6"]}]}
+# {"realm":"earth","fps":60,"seed":2902,"seconds":25,"outcome":"victory","hp":74,"checkpoint":true,"living":[],"x":2745,"actions":[{"action":"checkpoint","trial_id":"test-array","defeated_ids":["enemy-1","enemy-2","enemy-3"]},{"action":"settle","trial_id":"test-array","win":true,"defeated_ids":["enemy-1","enemy-2","enemy-3","enemy-4","enemy-5","enemy-6"]}]}
+# {"realm":"metal","fps":60,"seed":2902,"seconds":25,"outcome":"victory","hp":53,"checkpoint":true,"living":[],"x":2789,"actions":[{"action":"checkpoint","trial_id":"test-array","defeated_ids":["enemy-1","enemy-2","enemy-3"]},{"action":"settle","trial_id":"test-array","win":true,"defeated_ids":["enemy-1","enemy-2","enemy-3","enemy-4","enemy-5","enemy-6"]}]}
+# {"realm":"water","fps":60,"seed":2902,"seconds":23,"outcome":"victory","hp":82,"checkpoint":true,"living":[],"x":2741,"actions":[{"action":"checkpoint","trial_id":"test-array","defeated_ids":["enemy-1","enemy-2","enemy-3"]},{"action":"settle","trial_id":"test-array","win":true,"defeated_ids":["enemy-1","enemy-2","enemy-3","enemy-4","enemy-5","enemy-6"]}]}
+# {"realm":"wood","fps":120,"seed":2903,"seconds":23,"outcome":"victory","hp":89,"checkpoint":true,"living":[],"x":2758,"actions":[{"action":"checkpoint","trial_id":"test-array","defeated_ids":["enemy-1","enemy-2","enemy-3"]},{"action":"settle","trial_id":"test-array","win":true,"defeated_ids":["enemy-1","enemy-2","enemy-3","enemy-4","enemy-5","enemy-6"]}]}
+# {"realm":"fire","fps":120,"seed":2903,"seconds":28,"outcome":"victory","hp":48,"checkpoint":true,"living":[],"x":2551,"actions":[{"action":"checkpoint","trial_id":"test-array","defeated_ids":["enemy-1","enemy-2","enemy-3"]},{"action":"settle","trial_id":"test-array","win":true,"defeated_ids":["enemy-1","enemy-2","enemy-3","enemy-4","enemy-5","enemy-6"]}]}
+# {"realm":"earth","fps":120,"seed":2903,"seconds":25,"outcome":"victory","hp":74,"checkpoint":true,"living":[],"x":2748,"actions":[{"action":"checkpoint","trial_id":"test-array","defeated_ids":["enemy-1","enemy-2","enemy-3"]},{"action":"settle","trial_id":"test-array","win":true,"defeated_ids":["enemy-1","enemy-2","enemy-3","enemy-4","enemy-5","enemy-6"]}]}
+# {"realm":"metal","fps":120,"seed":2903,"seconds":26,"outcome":"victory","hp":62,"checkpoint":true,"living":[],"x":2790,"actions":[{"action":"checkpoint","trial_id":"test-array","defeated_ids":["enemy-1","enemy-2","enemy-3"]},{"action":"settle","trial_id":"test-array","win":true,"defeated_ids":["enemy-1","enemy-2","enemy-3","enemy-4","enemy-5","enemy-6"]}]}
+# {"realm":"water","fps":120,"seed":2903,"seconds":23,"outcome":"victory","hp":82,"checkpoint":true,"living":[],"x":2748,"actions":[{"action":"checkpoint","trial_id":"test-array","defeated_ids":["enemy-1","enemy-2","enemy-3"]},{"action":"settle","trial_id":"test-array","win":true,"defeated_ids":["enemy-1","enemy-2","enemy-3","enemy-4","enemy-5","enemy-6"]}]}
+# Subtest: 029 五境首领演练实际输入击败首领，无保存奖励，结果/暂停重试不转正式战
+ok 218 - 029 五境首领演练实际输入击败首领，无保存奖励，结果/暂停重试不转正式战
+  ---
+  duration_ms: 121.6313
+  ...
+# Subtest: 032 突破成功不再邀请重复突破，结算未确认时仍可重试确认
+ok 219 - 032 突破成功不再邀请重复突破，结算未确认时仍可重试确认
+  ---
+  duration_ms: 23.3001
+  ...
+# Subtest: 034 暂停按钮幂等：自动暂停后再点暂停不能恢复战斗，继续和Esc才恢复
+ok 220 - 034 暂停按钮幂等：自动暂停后再点暂停不能恢复战斗，继续和Esc才恢复
+  ---
+  duration_ms: 9.0875
+  ...
+# Subtest: 047 模态设置拦截战斗Esc与动作，关闭后由明确操作恢复
+ok 221 - 047 模态设置拦截战斗Esc与动作，关闭后由明确操作恢复
+  ---
+  duration_ms: 9.1981
+  ...
+# Subtest: 039 山河图展示五境双路线，十图缩图有不同路径并在坏图时回退
+ok 222 - 039 山河图展示五境双路线，十图缩图有不同路径并在坏图时回退
+  ---
+  duration_ms: 12.9136
+  ...
+# Subtest: 039 首页展示正式档和未完成挑战，锁住新局但保留恢复入口
+ok 223 - 039 首页展示正式档和未完成挑战，锁住新局但保留恢复入口
+  ---
+  duration_ms: 5.091
+  ...
+# Subtest: 043 背包从正式档展示四类灵珠状态、真实出战及持有剑饰
+ok 224 - 043 背包从正式档展示四类灵珠状态、真实出战及持有剑饰
+  ---
+  duration_ms: 7.0537
+  ...
+# Subtest: 043 灵珠筛选只改变视图，账号重置清除上一个角色物品
+ok 225 - 043 灵珠筛选只改变视图，账号重置清除上一个角色物品
+  ---
+  duration_ms: 5.2199
+  ...
+# Subtest: 043 空珠匣仍可查看基础剑，未同步档案不会伪造物品
+ok 226 - 043 空珠匣仍可查看基础剑，未同步档案不会伪造物品
+  ---
+  duration_ms: 4.6748
+  ...
+# Subtest: 044 十境路线卡分别直达对应正式地图，挑战中只提供恢复
+ok 227 - 044 十境路线卡分别直达对应正式地图，挑战中只提供恢复
+  ---
+  duration_ms: 9.1669
+  ...
+# Subtest: 032 保存期间锁住下拉框，ACK后恢复；旧账号延迟回复不能重建已清空界面
+ok 228 - 032 保存期间锁住下拉框，ACK后恢复；旧账号延迟回复不能重建已清空界面
+  ---
+  duration_ms: 18.5446
+  ...
+# Subtest: 033 重读开始立即锁定操作，防止返回阵盘后快速点击被静默忽略
+ok 229 - 033 重读开始立即锁定操作，防止返回阵盘后快速点击被静默忽略
+  ---
+  duration_ms: 7.3047
+  ...
+# Subtest: 033 下一步按真实首通与进行中状态推荐，选择不自动开战，换号清空旧目标
+ok 230 - 033 下一步按真实首通与进行中状态推荐，选择不自动开战，换号清空旧目标
+  ---
+  duration_ms: 8.4448
+  ...
+# Subtest: 032 突破失败关闭试炼后，重新挑战保持原境/地图/突破类型
+ok 231 - 032 突破失败关闭试炼后，重新挑战保持原境/地图/突破类型
+  ---
+  duration_ms: 9.8646
+  ...
+# Subtest: 034 草稿切宫保留且阻止误开战，节点与出战栏一次提交
+ok 232 - 034 草稿切宫保留且阻止误开战，节点与出战栏一次提交
+  ---
+  duration_ms: 10.3707
+  ...
+# Subtest: 034 拆全盘仅草稿，放弃可还原；失败保存保留编辑并要求重读
+ok 233 - 034 拆全盘仅草稿，放弃可还原；失败保存保留编辑并要求重读
+  ---
+  duration_ms: 9.7218
+  ...
+# Subtest: 034 换号后旧保存按钮的延迟错误不能污染新账号界面
+ok 234 - 034 换号后旧保存按钮的延迟错误不能污染新账号界面
+  ---
+  duration_ms: 6.7462
+  ...
+# Subtest: 034 恢复试炼读档期间换号，旧恢复操作不能启动新账号试炼
+ok 235 - 034 恢复试炼读档期间换号，旧恢复操作不能启动新账号试炼
+  ---
+  duration_ms: 5.7592
+  ...
+# Subtest: 034 首次读档失败仍能重新读取恢复，不能无档开战
+ok 236 - 034 首次读档失败仍能重新读取恢复，不能无档开战
+  ---
+  duration_ms: 6.1371
+  ...
+# Subtest: 040 单档预览列出两种珠和清除挑战，确认校验三个修订号并重读
+ok 237 - 040 单档预览列出两种珠和清除挑战，确认校验三个修订号并重读
+  ---
+  duration_ms: 8.0522
+  ...
+# Subtest: 044 十境路线从村内画卷直接使用正式开局，进行中不能重复启动
+ok 238 - 044 十境路线从村内画卷直接使用正式开局，进行中不能重复启动
+  ---
+  duration_ms: 7.6812
+  ...
+# Subtest: 044 图形阵盘草稿沿用容量、互斥和出战栏事务
+ok 239 - 044 图形阵盘草稿沿用容量、互斥和出战栏事务
+  ---
+  duration_ms: 7.2008
+  ...
+# Subtest: 五境定义冻结且位置引用完整，平台/危险区在原世界范围内
+ok 240 - 五境定义冻结且位置引用完整，平台/危险区在原世界范围内
+  ---
+  duration_ms: 2.4128
+  ...
+# Subtest: 未知秘境明确拒绝，不返回对象原型或另一张地图
+ok 241 - 未知秘境明确拒绝，不返回对象原型或另一张地图
+  ---
+  duration_ms: 0.5531
+  ...
+# Subtest: 029 四境首领配置各两招且深冻结，火境沿用既有行为
+ok 242 - 029 四境首领配置各两招且深冻结，火境沿用既有行为
+  ---
+  duration_ms: 0.2259
+  ...
+# Subtest: 031 五境机关安全/预警/生效边界及错峰循环一致
+ok 243 - 031 五境机关安全/预警/生效边界及错峰循环一致
+  ---
+  duration_ms: 0.6978
+  ...
+# Subtest: 火境目标依据稳定敌人ID，绕过守卫不跳过教学清场
+ok 244 - 火境目标依据稳定敌人ID，绕过守卫不跳过教学清场
+  ---
+  duration_ms: 2.5964
+  ...
+# Subtest: 目标投影不修改敌人且其他秘境保持原提示
+ok 245 - 目标投影不修改敌人且其他秘境保持原提示
+  ---
+  duration_ms: 0.3474
+  ...
+# Subtest: 021 木境目标从入境到药王，不继承火焰提示
+ok 246 - 021 木境目标从入境到药王，不继承火焰提示
+  ---
+  duration_ms: 0.4432
+  ...
+# Subtest: 022 土金水各自目标、守境者和清场提示，不投影成火境
+ok 247 - 022 土金水各自目标、守境者和清场提示，不投影成火境
+  ---
+  duration_ms: 0.7063
+  ...
+# Subtest: 共享基线样例 default：五行/配装/完整数值与提取前相同
+ok 248 - 共享基线样例 default：五行/配装/完整数值与提取前相同
+  ---
+  duration_ms: 5.2236
+  ...
+# Subtest: 共享基线样例 equipped：五行/配装/完整数值与提取前相同
+ok 249 - 共享基线样例 equipped：五行/配装/完整数值与提取前相同
+  ---
+  duration_ms: 1.5323
+  ...
+# Subtest: 共享基线样例 tied-primary：五行/配装/完整数值与提取前相同
+ok 250 - 共享基线样例 tied-primary：五行/配装/完整数值与提取前相同
+  ---
+  duration_ms: 0.9765
+  ...
+# Subtest: 共享基线样例 old-no-loadout：五行/配装/完整数值与提取前相同
+ok 251 - 共享基线样例 old-no-loadout：五行/配装/完整数值与提取前相同
+  ---
+  duration_ms: 0.7822
+  ...
+# Subtest: 共享非法配装 unlearned-active：拒绝创建战斗快照
+ok 252 - 共享非法配装 unlearned-active：拒绝创建战斗快照
+  ---
+  duration_ms: 1.147
+  ...
+# Subtest: 配置/默认存档/战斗快照均不引用调用方可变数据
+ok 253 - 配置/默认存档/战斗快照均不引用调用方可变数据
+  ---
+  duration_ms: 1.3329
+  ...
+# Subtest: 快照明确标记旧适配器，未把全局旧元素伪装成新阵盘独立元素
+ok 254 - 快照明确标记旧适配器，未把全局旧元素伪装成新阵盘独立元素
+  ---
+  duration_ms: 1.6668
+  ...
+# Subtest: 错误规则集/结构/规则版本失败，不自动降级旧规则
+ok 255 - 错误规则集/结构/规则版本失败，不自动降级旧规则
+  ---
+  duration_ms: 1.0426
+  ...
+# Subtest: 服务端JSON按字母重排键后，元素/卦路展示和默认状态顺序不变
+ok 256 - 服务端JSON按字母重排键后，元素/卦路展示和默认状态顺序不变
+  ---
+  duration_ms: 0.7318
+  ...
+# Subtest: 015 实际保存队列失败返回false，游客也阻止继续正式开战
+ok 257 - 015 实际保存队列失败返回false，游客也阻止继续正式开战
+  ---
+  duration_ms: 34.7592
+  ...
+# Subtest: 045 退出已结束试炼回到登录入口，不暗中读取游客征程
+ok 258 - 045 退出已结束试炼回到登录入口，不暗中读取游客征程
+  ---
+  duration_ms: 24.4324
+  ...
+# Subtest: 045 未登录只显示入口，明确游客继续后才读正式征程
+ok 259 - 045 未登录只显示入口，明确游客继续后才读正式征程
+  ---
+  duration_ms: 15.3904
+  ...
+# Subtest: 045 身份读取失败停在入口，重试前不进入游客档
+ok 260 - 045 身份读取失败停在入口，重试前不进入游客档
+  ---
+  duration_ms: 13.5655
+  ...
+# Subtest: 045 已登录角色先展示征程摘要，点击继续才进入村落
+ok 261 - 045 已登录角色先展示征程摘要，点击继续才进入村落
+  ---
+  duration_ms: 15.9878
+  ...
+# Subtest: 045 注册从入口进入对应账号，失败留在入口可重试
+ok 262 - 045 注册从入口进入对应账号，失败留在入口可重试
+  ---
+  duration_ms: 11.8239
+  ...
+# Subtest: 015 浏览器备份空间耗尽仍能保存SQLite主存档
+ok 263 - 015 浏览器备份空间耗尽仍能保存SQLite主存档
+  ---
+  duration_ms: 15.142
+  ...
+# Subtest: 046 newer draft wins over a late preview; account reset ignores in-flight results
+ok 264 - 046 newer draft wins over a late preview; account reset ignores in-flight results
+  ---
+  duration_ms: 13.7664
+  ...
+# Subtest: 046 failed preview never presents a previous result as current
+ok 265 - 046 failed preview never presents a previous result as current
+  ---
+  duration_ms: 6.1176
+  ...
+# Subtest: li-gen executes conditional follow-up once
+ok 266 - li-gen executes conditional follow-up once
+  ---
+  duration_ms: 52.849
+  ...
+# Subtest: gen-zhen executes conditional follow-up once
+ok 267 - gen-zhen executes conditional follow-up once
+  ---
+  duration_ms: 23.8065
+  ...
+# Subtest: zhen-kun executes conditional follow-up once
+ok 268 - zhen-kun executes conditional follow-up once
+  ---
+  duration_ms: 23.3194
+  ...
+# Subtest: kun-xun executes conditional follow-up once
+ok 269 - kun-xun executes conditional follow-up once
+  ---
+  duration_ms: 21.8391
+  ...
+# Subtest: xun-qian executes conditional follow-up once
+ok 270 - xun-qian executes conditional follow-up once
+  ---
+  duration_ms: 20.8741
+  ...
+# Subtest: qian-kan executes conditional follow-up once
+ok 271 - qian-kan executes conditional follow-up once
+  ---
+  duration_ms: 22.6243
+  ...
+# Subtest: kan-dui executes conditional follow-up once
+ok 272 - kan-dui executes conditional follow-up once
+  ---
+  duration_ms: 18.9845
+  ...
+# Subtest: dui-li executes conditional follow-up once
+ok 273 - dui-li executes conditional follow-up once
+  ---
+  duration_ms: 23.2393
+  ...
+# Subtest: miss, backward movement, cooldown and pause do not fabricate combo
+ok 274 - miss, backward movement, cooldown and pause do not fabricate combo
+  ---
+  duration_ms: 17.6002
+  ...
+# Subtest: shield environment damage never opens follow-up
+ok 275 - shield environment damage never opens follow-up
+  ---
+  duration_ms: 14.2621
+  ...
+# Subtest: lift and dive each hit a target at most once
+ok 276 - lift and dive each hit a target at most once
+  ---
+  duration_ms: 20.5551
+  ...
+# Subtest: tap/charged release deduct once; blur cancels held charge
+ok 277 - tap/charged release deduct once; blur cancels held charge
+  ---
+  duration_ms: 23.4451
+  ...
+# Subtest: window duration uses simulation time at 30, 60 and 120 fps
+ok 278 - window duration uses simulation time at 30, 60 and 120 fps
+  ---
+  duration_ms: 63.8059
+  ...
+# Subtest: new E at hit time buffers through recovery, early E stays ordinary
+ok 279 - new E at hit time buffers through recovery, early E stays ordinary
+  ---
+  duration_ms: 36.0446
+  ...
+# Subtest: cancelled dive never becomes a second normal slash after resume
+ok 280 - cancelled dive never becomes a second normal slash after resume
+  ---
+  duration_ms: 14.5565
+  ...
+# Subtest: wall blocks crossing and cliff-safe retreat preserves support
+ok 281 - wall blocks crossing and cliff-safe retreat preserves support
+  ---
+  duration_ms: 34.55
+  ...
+# Subtest: resource failure and paused direct cast cannot spend or arm
+ok 282 - resource failure and paused direct cast cannot spend or arm
+  ---
+  duration_ms: 20.7878
+  ...
+# Subtest: nonpositive first-frame delta cannot create a phantom attack
+ok 283 - nonpositive first-frame delta cannot create a phantom attack
+  ---
+  duration_ms: 14.2544
+  ...
+# Subtest: cancelled pointer releases held charge without firing
+ok 284 - cancelled pointer releases held charge without firing
+  ---
+  duration_ms: 19.6639
+  ...
+# Subtest: tide settles once and boss slow retains resistance
+ok 285 - tide settles once and boss slow retains resistance
+  ---
+  duration_ms: 17.9576
+  ...
+# Subtest: lift survives version-two terrain resolution and boss stays grounded
+ok 286 - lift survives version-two terrain resolution and boss stays grounded
+  ---
+  duration_ms: 29.4874
+  ...
+# Subtest: 015 序列化只保存检查点与原构筑，JSON重载后战斗属性不漂移
+ok 287 - 015 序列化只保存检查点与原构筑，JSON重载后战斗属性不漂移
+  ---
+  duration_ms: 6.7696
+  ...
+# Subtest: 015 不支持或损坏记录拒绝，禁止重解释成新试炼
+ok 288 - 015 不支持或损坏记录拒绝，禁止重解释成新试炼
+  ---
+  duration_ms: 1.382
+  ...
+# Subtest: 041 村中行走、对话选择与 Esc 返回保留原位置
+ok 289 - 041 村中行走、对话选择与 Esc 返回保留原位置
+  ---
+  duration_ms: 19.8561
+  ...
+# Subtest: 041 点击 NPC 打开对话，手机取景跟随玩家
+ok 290 - 041 点击 NPC 打开对话，手机取景跟随玩家
+  ---
+  duration_ms: 8.5796
+  ...
+# Subtest: 042 窄屏村落按画布比例取景，角色与建筑不横向压缩
+ok 291 - 042 窄屏村落按画布比例取景，角色与建筑不横向压缩
+  ---
+  duration_ms: 2.3146
+  ...
+# Subtest: 042 触控移动到师父并交互，松开后停止移动
+ok 292 - 042 触控移动到师父并交互，松开后停止移动
+  ---
+  duration_ms: 8.4451
+  ...
+# Subtest: 037 strict local manifest rejects traversal, invalid frame and anchor
+ok 293 - 037 strict local manifest rejects traversal, invalid frame and anchor
+  ---
+  duration_ms: 6.8164
+  ...
+# Subtest: 037 resources load once, partial failure remains isolated and is never retried
+ok 294 - 037 resources load once, partial failure remains isolated and is never retried
+  ---
+  duration_ms: 4.1441
+  ...
+# Subtest: 037 malformed or missing manifest safely returns false
+ok 295 - 037 malformed or missing manifest safely returns false
+  ---
+  duration_ms: 1.3942
+  ...
+# Subtest: 037 wrong PNG dimensions are rejected without breaking other resources
+ok 296 - 037 wrong PNG dimensions are rejected without breaking other resources
+  ---
+  duration_ms: 1.7303
+  ...
+# Subtest: 037 state snapshot is immutable, reads real timer and locks attacking facing
+ok 297 - 037 state snapshot is immutable, reads real timer and locks attacking facing
+  ---
+  duration_ms: 0.4497
+  ...
+# Subtest: 037 observed phase tracks remaining timer; paused frame and foot do not drift
+ok 298 - 037 observed phase tracks remaining timer; paused frame and foot do not drift
+  ---
+  duration_ms: 0.952
+  ...
+# Subtest: 037 dead entities are visual remnants only; source fields and hp stay unchanged
+ok 299 - 037 dead entities are visual remnants only; source fields and hp stay unchanged
+  ---
+  duration_ms: 0.2449
+  ...
+# Subtest: 037 flipping preserves identical world anchor and balances Canvas stack
+ok 300 - 037 flipping preserves identical world anchor and balances Canvas stack
+  ---
+  duration_ms: 3.9027
+  ...
+# Subtest: 037 draw exception restores Canvas and marks broken resource once
+ok 301 - 037 draw exception restores Canvas and marks broken resource once
+  ---
+  duration_ms: 1.7127
+  ...
+# Subtest: 037 scene missing resources falls back; clipping and integer parallax are read only
+ok 302 - 037 scene missing resources falls back; clipping and integer parallax are read only
+  ---
+  duration_ms: 2.4536
+  ...
+# Subtest: 038 ten maps select their own far/mid scenes and a missing pair falls back to the realm
+ok 303 - 038 ten maps select their own far/mid scenes and a missing pair falls back to the realm
+  ---
+  duration_ms: 3.689
+  ...
+# Subtest: 037 all visual families and attack styles select distinct animation routes
+ok 304 - 037 all visual families and attack styles select distinct animation routes
+  ---
+  duration_ms: 1.0243
+  ...
+# Subtest: 037 visual observation leaves simulation unchanged at 30 fps
+ok 305 - 037 visual observation leaves simulation unchanged at 30 fps
+  ---
+  duration_ms: 85.0778
+  ...
+# Subtest: 037 visual observation leaves simulation unchanged at 60 fps
+ok 306 - 037 visual observation leaves simulation unchanged at 60 fps
+  ---
+  duration_ms: 83.1198
+  ...
+# Subtest: 037 visual observation leaves simulation unchanged at 120 fps
+ok 307 - 037 visual observation leaves simulation unchanged at 120 fps
+  ---
+  duration_ms: 117.3091
+  ...
+# Subtest: 037 legacy instant impact uses recovery timer without inventing an active window
+ok 308 - 037 legacy instant impact uses recovery timer without inventing an active window
+  ---
+  duration_ms: 0.4838
+  ...
+# Subtest: 037 hit flash cannot hide a real windup or strike pose
+ok 309 - 037 hit flash cannot hide a real windup or strike pose
+  ---
+  duration_ms: 0.2894
+  ...
+# Subtest: 037 missing shared resource script keeps both renderers in safe fallback
+ok 310 - 037 missing shared resource script keeps both renderers in safe fallback
+  ---
+  duration_ms: 0.451
+  ...
+1..310
+# tests 317
+# suites 0
+# pass 317
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 8889.5396

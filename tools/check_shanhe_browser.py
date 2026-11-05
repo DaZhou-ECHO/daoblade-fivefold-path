@@ -29,6 +29,7 @@ window.addEventListener('load',async()=>{
  const clickText=(node,text)=>{const b=[...node.querySelectorAll('button')].find(b=>b.textContent===text);check(b,'button '+text);b.click();};
  let phase='login';
  const proof={routes:[],combat:[]};window.__shanheProof=proof;
+ window.addEventListener('error',event=>{(proof.errors??=[]).push({message:event.message,stack:event.error?.stack,player:window.DaoBladeSwordUI?.game?{combo:DaoBladeSwordUI.game.player.combo,slash:DaoBladeSwordUI.game.player.slash,cast:DaoBladeSwordUI.game.player.qiCast}:null});});
  try{
   window.confirm=()=>true;window.prompt=()=> '山河初行';
   await until(()=>!$('#entry-auth-form').hidden,'login visible');
@@ -123,11 +124,69 @@ window.addEventListener('load',async()=>{
    await until(()=>$('[data-action=bounty_claim]')&&!$('[data-action=bounty_claim]').disabled,'completed bounty');
    $('[data-action=bounty_claim]').click();await until(()=>$('[data-action=bounty_accept]'),'claimed reward');await idle();$('#shanhe-journal [data-close]').click();
   }
+  if(screen==='death'){
+   phase='049 death retry';$('.village-hud [data-go=atlas]').click();await idle();
+   $('[data-realm=fire]').click();$('[data-enter-route=ridge]').click();
+   await until(()=>activeGame?.journey,'death trial');await idle();
+   const g=activeGame,id=g.labTrial.id;
+   for(let i=0;i<16000&&!g.finished;i++){
+    const target=g.enemies.find(e=>!e.dead&&!e.optional);
+    if(target&&Math.abs(target.x-g.player.x)>35)g.keys.add('right');else g.keys.delete('right');
+    if(g.player.onGround&&g.platforms.some(s=>s.collision==='solid'&&s.x>=g.player.x&&s.x-g.player.x<100))g.performAction('jump');
+    g.update(1/60);if(i%300===0)await pause(1);
+   }
+   check(g.finished&&g.lastOutcome==='defeat','real enemy defeat');
+   await until(()=>$('#result-dialog').open,'defeat settlement');
+   $('#retry-result').click();
+   await until(()=>activeGame!==g&&activeGame?.journey&&!activeGame.labPending,'retry starts new game');await idle();
+   check(activeGame.labTrial.id!==id&&activeGame.combatVersion===3,'new trial after retry');
+   check(!activeGame.swordWindow&&!activeGame.swordCharge,'retry clears transient actions');
+   proof.death={outcome:g.lastOutcome,retryVersion:activeGame.combatVersion};
+   $('#quit-run').click();await idle();
+  }
+  if(screen==='sword'||screen==='sword-practice'){
+   phase='049 sword';$('.village-hud [data-go=journey]').click();await idle();
+   check($('#sword-catalog').querySelectorAll('button').length===8,'eight recipes');
+   const savedBefore=await (await DaoBladeSaves.fetch('/api/journey')).json();
+   $('#sword-equip').click();await pause(50);
+   check($('#bagua-capacity').textContent.includes('5/6'),'starter capacity');
+   check(DaoBladeJourneyUI.entrySummary().dirty,'recipe is draft');
+   $('#journey-save').click();await idle();
+   const saved=await (await DaoBladeSaves.fetch('/api/journey')).json();
+   check(saved.compiled.combo.id==='li-gen','saved combo');
+   $('#sword-try-draft').click();await until(()=>DaoBladeSwordUI.game&&!$('#sword-arena').hidden,'actual practice');
+   const canvas=$('#sword-canvas');const key=(code,down)=>canvas.dispatchEvent(new KeyboardEvent(down?'keydown':'keyup',{code,bubbles:true,cancelable:true}));
+   key('KeyQ',true);key('KeyQ',false);
+   await until(()=>DaoBladeSwordUI.game.swordWindow,'real hit arms combo');
+   key('KeyE',true);key('KeyE',false);
+   await until(()=>DaoBladeSwordUI.game.swordShield?.kind==='lamp','follow-up creates lamp shield');
+   await until(()=>DaoBladeSwordUI.game.swordLastCombo?.event==='shield_hit','enemy consumes shield');
+   proof.sword={combo:'li-gen',actualEnemyShieldHit:true,practiceVersion:DaoBladeSwordUI.game.combatVersion};
+   key('Escape',true);check($('#sword-arena').hidden,'Escape returns from practice');
+   $('#sword-beads').click();check($('.scene-node-editor').classList.contains('sword-drawer-open'),'bead drawer opens');
+   $('#sword-beads').dispatchEvent(new KeyboardEvent('keydown',{code:'Escape',key:'Escape',bubbles:true,cancelable:true}));
+   if($('.scene-node-editor').classList.contains('sword-drawer-open')){
+    check(!$('.bagua-inspector').classList.contains('scene-guide-open'),'Escape closes nested guide');
+    $('#sword-beads').dispatchEvent(new KeyboardEvent('keydown',{code:'Escape',key:'Escape',bubbles:true,cancelable:true}));
+   }
+   check(!$('.scene-node-editor').classList.contains('sword-drawer-open'),'Escape closes drawer first');
+   const after=await (await DaoBladeSaves.fetch('/api/journey')).json();
+   check(JSON.stringify(saved)===JSON.stringify(after),'practice never writes save');
+   for(const id of ['gen-zhen','zhen-kun','kun-xun','xun-qian','qian-kan','kan-dui','dui-li']){
+    $(`[data-sword-recipe="${id}"]`).click();$('#sword-try').click();
+    await until(()=>!$('#sword-arena').hidden&&DaoBladeSwordUI.game?.lab.combo?.id===id,'borrow recipe '+id);
+    check($('#sword-arena-title').textContent.includes('一级借用'),'borrow label');
+    await pause(350);check($('#runtime-error').hidden,'borrow runtime '+id);
+    $('#sword-arena-close').click();
+   }
+   $('[data-sword-recipe="li-gen"]').click();
+   if(screen==='sword-practice'){$('#sword-try-draft').click();await until(()=>!$('#sword-arena').hidden,'screenshot practice');}
+  }
   if(screen==='map'){$('.village-hud [data-go=atlas]').click();await idle();}
   if(screen==='board'){$('.village-hud [data-go=journey]').click();await idle();}
   if(screen==='battle'){$('.village-hud [data-go=atlas]').click();await idle();$('[data-realm=fire]').click();$('[data-enter-route=ridge]').click();await until(()=>activeGame?.journey,'final battle');await idle();}
-  await pause(200);check($('#runtime-error').hidden,'no runtime errors');document.title='PASS_048';
- }catch(e){document.title='FAIL_048 '+phase+' '+e.message+' '+($('#quest-error')?.textContent||'');console.error(e);}
+  await pause(200);check($('#runtime-error').hidden,'no runtime errors '+$('#runtime-error').textContent);document.title='PASS_048';
+ }catch(e){document.title='FAIL_048 '+phase+' '+e.message+' '+($('#quest-error')?.textContent||'')+' '+($('#runtime-error')?.textContent||'');console.error(e);}
 });
 """
 
