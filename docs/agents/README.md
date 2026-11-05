@@ -4,6 +4,7 @@
 
 | 任务ID | 任务目标 | 状态 | 当前接续Agent | 分支/基线 | 最新交接链接 | 依赖或阻塞 |
 |---|---|---|---|---|---|---|
+| 048-shanhe-journey | 山河世界观、桌面视口、三存档与村落任务 | 待验收 | agent-20261105-1023-s048 | codex/048-shanhe-journey / 0ec26c3 | [交接](048-shanhe-journey/agents/agent-20261105-1023-s048/HANDOFF.md) | Python142/Node296、四尺寸Chrome、十入口及两路线自动化实战通过；真人键鼠待验，仅本地 |
 | 047-scene-hud | 独立八宫与场景HUD、统一设置 | 待验收 | agent-20261104-1916-hud | codex/047-scene-hud / 897c709起 | [交接](047-scene-hud/agents/agent-20261104-1916-hud/HANDOFF.md) | 四视口Chrome通过；实体触控/完整人工通关待验，仅本地 |
 | 046-skill-guide | 八宫技能说明、构筑预览与短演示 | 待验收 | agent-20261104-1843-s6d1 | codex/046-skill-guide / 0b16030起 | [交接](046-skill-guide/agents/agent-20261104-1843-s6d1/HANDOFF.md) | Python132/Node291/Chrome桌面窄屏通过；实体触控与完整人工通关待验；仅本地 |
 | 045-swordheart-entry | 剑心环阵与登录优先开场 | 待验收 | agent-20261104-1301-m7q2 | codex/045-swordheart-entry / d5791b2起 | [交接](045-swordheart-entry/agents/agent-20261104-1301-m7q2/HANDOFF.md) | Python129/Node289/本地Chrome桌面与窄屏通过；实体触控、完整人工通关待验；仅本地 |
