@@ -22,10 +22,9 @@ ANIMS = {"idle": 2, "walk": 4, "windup": 2, "strike": 3,
          "heavy_windup": 2, "heavy_strike": 3, "heavy_recover": 2}
 
 
-def clean_specks(image, minimum=4):
-    """Remove isolated extraction/rotation specks with 8-connected alpha masks."""
-    alpha = image.getchannel("A")
-    occupied = {(x, y) for y in range(image.height) for x in range(image.width)
+def alpha_components(alpha):
+    """Yield 8-connected groups of visible pixels from an alpha channel."""
+    occupied = {(x, y) for y in range(alpha.height) for x in range(alpha.width)
                 if alpha.getpixel((x, y)) > 0}
     while occupied:
         first = occupied.pop()
@@ -39,6 +38,12 @@ def clean_specks(image, minimum=4):
                         occupied.remove(point)
                         queue.append(point)
                         group.append(point)
+        yield group
+
+
+def clean_specks(image, minimum=4):
+    """Remove isolated extraction or pose specks."""
+    for group in alpha_components(image.getchannel("A")):
         if len(group) < minimum:
             for point in group:
                 image.putpixel(point, (0, 0, 0, 0))
@@ -52,6 +57,33 @@ def pixelize(image, colors):
     result = image.convert("RGB").quantize(colors=colors).convert("RGBA")
     result.putalpha(alpha)
     return result
+
+
+def pose_sprite(base, foot, lean=0, bob=0, lift=0, stride=0):
+    """Warp one continuous image; never cut the blade away from its grip."""
+    fw, fh = base.size
+    fx, fy = foot
+    outer = max(fx+12, base.getbbox()[2]-2)
+
+    def source(x, y):
+        height = max(0, min(1, (fy-y) / (fy*.68)))
+        legs = max(0, 1 - abs(y-(fy-8)) / 16)
+        side = max(-1, min(1, (x-fx) / 9))
+        sx = x - lean*height - stride*legs*side
+        wing = max(0, min(1, (sx-fx-7) / (outer-fx-7)))
+        # The displacement rises gradually across the silhouette. Even where
+        # a weapon crosses the torso there is no hard crop or duplicate blade.
+        return sx, y - bob*height + lift*wing*wing
+
+    mesh = []
+    for y in range(0, fh, 6):
+        for x in range(0, fw, 6):
+            right, bottom = min(x+6, fw), min(y+6, fh)
+            quad = (*source(x, y), *source(x, bottom),
+                    *source(right, bottom), *source(right, y))
+            mesh.append(((x, y, right, bottom), quad))
+    return base.transform((fw, fh), Image.Transform.MESH, mesh,
+                          Image.Resampling.NEAREST)
 
 
 def enemy_frames(concept, row, col, output):
@@ -76,19 +108,6 @@ def enemy_frames(concept, row, col, output):
     if points:
         points.sort()
         foot = (points[len(points)//2], foot[1])
-    # Segment the weapon-bearing outer arm from the torso; animate independently.
-    pivot = (min(fw-12, foot[0]+5), round(foot[1]-cell.height*.52))
-    split = min(fw-4, pivot[0]+2)
-    arm = Image.new("RGBA", (fw, fh))
-    body = base.copy()
-    for y in range(fh):
-        for x in range(split, fw):
-            # Keep the planted boots, but remove old weapon tips at ground
-            # height as well; otherwise they remain as detached duplicate pixels.
-            if y >= foot[1]-12 and x <= foot[0]+10:
-                continue
-            arm.putpixel((x, y), base.getpixel((x, y)))
-            body.putpixel((x, y), (0, 0, 0, 0))
     atlas = Image.new("RGBA", (fw*4, fh*len(ANIMS)))
     animations = {}
     for line, (name, count) in enumerate(ANIMS.items()):
@@ -96,27 +115,31 @@ def enemy_frames(concept, row, col, output):
         for i in range(count):
             t = i/max(1, count-1)
             frame = Image.new("RGBA", (fw, fh))
-            angle, dx, dy = 0, 0, 0
+            lean = bob = lift = stride = 0
             if name == "idle":
-                dy = -i
-                angle = i * 4
+                bob, lift = -2*i, 2*i
             elif name == "walk":
-                dx, dy = [0, 1, 0, -1][i], [0, -1, 0, -1][i]
-            elif "windup" in name:
-                angle, dx = 24+18*t, -round(2*t)
-            elif "strike" in name:
-                angle = -15-45*t if "cast" not in name else -8-14*t
-                dx = round((5 if "dash" in name else 2)*math.sin(t*math.pi))
-            elif "recover" in name:
-                angle = -25*(1-t)
+                lean, bob, stride = [-2, 1, 3, 1][i], -2*(i % 2), [1, 3, -1, -3][i]
+            elif name.endswith("windup"):
+                lean, bob, lift = -2-3*t, 2*t, 5+13*t
+            elif name.endswith("strike"):
+                lean, bob, lift = 3+4*math.sin(t*math.pi), -2+3*t, 10-16*t
+            elif name.endswith("recover"):
+                lean, bob, lift = 3*(1-t), 2*(1-t), -5*(1-t)
             elif name == "hurt":
-                dx, dy = -2, 1
-            if name == "heavy_windup":
-                angle = 55+35*t
+                lean, bob = -5, 3
+            if name == "dash_windup":
+                lean, bob, lift = -3-4*t, 3+3*t, 1+5*t
+            elif name == "dash_strike":
+                lean, bob, lift, stride = 7+4*math.sin(t*math.pi), 2, 3-5*t, 2-4*t
+            elif name == "heavy_windup":
+                lean, bob, lift = -3-4*t, -2*t, 10+16*t
             elif name == "heavy_strike":
-                angle = 45-115*t
-            elif name == "heavy_recover":
-                angle = -35*(1-t)
+                lean, bob, lift = 4+3*t, 4*t, 17-25*t
+            elif name == "cast_windup":
+                lean, bob, lift = -2*t, -3*t, 5+8*t
+            elif name == "cast_strike":
+                lean, bob, lift = 2+3*t, -3+3*t, 11-5*t
             if name == "death":
                 # Collapse around the feet; gameplay death already happened.
                 collapsed = base.resize((fw, max(4, round(fh*(1-.78*t)))),
@@ -125,32 +148,11 @@ def enemy_frames(concept, row, col, output):
                 if i == 3:
                     frame.putalpha(frame.getchannel("A").point(lambda p: p//2))
             else:
-                lean = -.035 if "windup" in name else (
-                    .09 if "dash_strike" in name else .045 if "strike" in name else 0)
-                posed = body.transform((fw, fh), Image.Transform.AFFINE,
-                                       (1, lean, -lean*foot[1], 0, 1, 0),
-                                       Image.Resampling.NEAREST)
-                frame.alpha_composite(posed, (dx, dy))
-                # Rotate weapon/arm around a fixed shoulder on a padded canvas.
-                pad = Image.new("RGBA", (fw*3, fh*3))
-                pad.alpha_composite(arm, (fw, fh))
-                rotated = pad.rotate(angle, Image.Resampling.NEAREST,
-                                     center=(fw+pivot[0], fh+pivot[1]))
-                frame.alpha_composite(rotated.crop((fw, fh, fw*2, fh*2)), (dx, dy))
-                if name == "idle":
-                    # Breathing moves the torso, while boots remain planted.
-                    lx, rx = max(0, foot[0]-10), min(fw, foot[0]+11)
-                    frame.alpha_composite(base.crop((lx, foot[1]-10, rx, foot[1])),
-                                          (lx, foot[1]-10))
-                if name == "walk":
-                    # Separate boots/robe ends sway, while the shared foot anchor stays fixed.
-                    y = foot[1]-9
-                    legs = frame.crop((0, y, fw, foot[1]))
-                    frame.paste((0, 0, 0, 0), (0, y, fw, foot[1]))
-                    frame.alpha_composite(legs, ([0, 1, 0, -1][i], y))
+                frame = pose_sprite(base, foot, lean, bob, lift, stride)
                 if "cast" in name:
                     d = ImageDraw.Draw(frame)
-                    x, y = min(fw-8, pivot[0]+11), pivot[1]-7
+                    x = min(fw-8, foot[0]+16)
+                    y = round(foot[1]-cell.height*.52)-7
                     d.rectangle((x, y-i, x+3+i, y+4+i), fill=COLORS[row])
             frame = clean_specks(pixelize(frame, 47 if boss else 31), 8 if boss else 4)
             atlas.alpha_composite(frame, (i*fw, line*fh))
@@ -275,21 +277,33 @@ def scene_assets(source, row, output):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--enemy-source", required=True, type=Path)
-    parser.add_argument("--scene-source", required=True, type=Path)
+    scene_mode = parser.add_mutually_exclusive_group(required=True)
+    scene_mode.add_argument("--scene-source", type=Path)
+    scene_mode.add_argument("--enemies-only", action="store_true",
+                            help="Rebuild enemy sheets; preserve the existing scene manifest.")
     args = parser.parse_args()
     out = ROOT / "static/sprites/world-v1"
     out.mkdir(parents=True, exist_ok=True)
-    concept, scene = Image.open(args.enemy_source), Image.open(args.scene_source)
-    manifest = {"schemaVersion": 1, "realms": {}, "families": {}}
-    for row, realm in enumerate(REALMS):
-        manifest["realms"][realm] = scene_assets(scene, row, out)
-        for col, kind in enumerate(["guard", "special", "ranged", "boss"]):
-            manifest["families"][realm+"-"+kind] = enemy_frames(concept, row, col, out)
-    from build_route_scenes import build_routes
-    manifest["maps"] = build_routes(out)
-    (out / "manifest.json").write_text(
+    manifest_path = out / "manifest.json"
+    if args.enemies_only:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    else:
+        manifest = {"schemaVersion": 1, "realms": {}, "families": {}}
+        with Image.open(args.scene_source) as scene:
+            for row, realm in enumerate(REALMS):
+                manifest["realms"][realm] = scene_assets(scene, row, out)
+        from build_route_scenes import build_routes
+        manifest["maps"] = build_routes(out)
+
+    with Image.open(args.enemy_source) as concept:
+        for row, realm in enumerate(REALMS):
+            for col, kind in enumerate(("guard", "special", "ranged", "boss")):
+                manifest["families"][f"{realm}-{kind}"] = enemy_frames(concept, row, col, out)
+    manifest_path.write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2)+"\n", encoding="utf-8")
-    print("Built 20 enemy atlases, 30 scene/terrain/prop PNGs and manifest.")
+    print("Built 20 enemy atlases; " + ("scene assets kept." if args.enemies_only
+                                        else "30 scene/terrain/prop PNGs built."))
+
 
 
 if __name__ == "__main__":
