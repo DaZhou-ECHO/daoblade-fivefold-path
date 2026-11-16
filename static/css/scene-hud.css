@@ -1,0 +1,67 @@
+/* 047 scene-first layout, loaded after the earlier presentation layers. */
+.topbar,.main-nav{display:none!important}
+#panel-sanctuary,#panel-game{animation:none}.ink-cloud{display:none}
+#pause-overlay{z-index:20}
+.village-stage{height:100dvh;min-height:420px}
+.village-heading{top:18px;max-width:320px;padding:8px 12px;background:#102c36b8;border:0;box-shadow:none}
+.village-heading .eyebrow{display:none}.village-heading h2{font-size:22px}
+.scene-character{position:absolute;right:20px;top:18px;z-index:3;display:grid;gap:4px;min-width:180px;text-align:left;padding:12px 18px;border:1px solid #9eab87;background:#102c36e8;color:#efe6cc;font:inherit;cursor:pointer}
+.scene-character strong{font-size:22px;color:#edcf8c}.scene-character small{font-size:13px}
+.village-hud{right:20px;gap:4px}.village-hud button{min-height:48px;width:62px;font:inherit;color:#efe6cc;background:#163940;border:1px solid #829c86;cursor:pointer}
+.village-hud button .hud-icon{height:24px;font-size:19px}.scene-skills{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:8px;background:#102c36d9;padding:8px}
+.scene-skills button{min-height:44px;background:#244b4b;border:1px solid #b1ae7c;color:#f3e5ba;font:inherit;cursor:pointer}.scene-skills small{font-size:12px}
+.village-prompt{bottom:90px}
+.scene-settings-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px}.scene-settings-tabs button, #settings-dialog button,#scene-build-dialog button{min-height:44px;border:1px solid #8ca28a;background:#214348;color:#f3e5ba;padding:8px 12px;cursor:pointer}
+.scene-settings-tabs [aria-pressed=true]{border-color:#efd194;background:#385c53}
+#settings-dialog .account-actions{display:flex;flex-wrap:wrap;gap:12px;justify-content:start}#settings-dialog select{min-height:44px;background:#173b41;color:#fff;padding:8px}
+#scene-build-dialog{max-height:85dvh;overflow:auto;padding:24px;color:#eee4c7}#scene-build-dialog .scene-skill{display:inline-grid}
+body.board-screen #panel-sanctuary,body.board-screen #village-window-backdrop{display:none!important}
+body.board-screen #panel-journey{position:fixed!important;inset:56px 0 0!important;transform:none!important;width:100%!important;max-width:none!important;height:calc(100dvh - 56px)!important;max-height:none!important;margin:0!important;padding:12px 22px 90px!important;border:0!important;overflow:auto!important;background:radial-gradient(ellipse at 25% 35%,#214b4c,#0c252f 70%)!important;box-shadow:none!important}
+body.board-screen #panel-journey>.section-heading,body.board-screen #bagua-tabs{display:none}
+body.board-screen #village-window-toolbar{height:56px;top:0;inset-inline:0;padding:6px 22px;font-size:20px}
+body.board-screen .bagua-workspace{display:grid;grid-template-columns:minmax(0,42fr) minmax(0,28fr) minmax(0,30fr);gap:18px;align-items:start}
+body.board-screen .bagua-chart-wrap,body.board-screen .bagua-inspector,.scene-node-editor{min-width:0;padding:10px;border:1px solid #819982;background:#102f35aa}
+body.board-screen .bagua-palaces{max-width:560px;margin:auto;gap:3px}body.board-screen .bagua-palace{min-height:110px;padding:8px 3px}
+body.board-screen .bagua-palace small{font-size:12px}body.board-screen .bagua-palace .bagua-purpose{display:none}
+body.board-screen .bagua-slots{grid-template-columns:repeat(2,minmax(0,1fr))}body.board-screen .bagua-slot{min-width:0;font-size:12px}body.board-screen .bagua-slot b{font-size:13px}
+body.board-screen .bagua-actions{position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;align-items:center;justify-content:end;gap:10px;padding:10px 22px;min-height:66px;background:#102c36f5;border-top:1px solid #a7a278}
+body.board-screen .bagua-actions details[open]{background:#163b40}body.board-screen .bagua-actions details button{display:block}
+.scene-guide-toggle{min-height:44px;width:100%;border:1px solid #8b9c7c;background:#20474b;color:#f3e5ba;cursor:pointer}.scene-node-editor h3{color:#edcf8c}.scene-node-editor .bagua-node-detail{padding:10px}
+body.board-screen .bagua-inspector{font-size:14px;line-height:1.6}body.board-screen #skill-mobile-detail{display:none}
+body.board-screen .bagua-record{margin:0}body.board-screen #bagua-board-pane>details{margin:12px 0}
+summary{cursor:pointer;min-height:44px;padding:10px;color:#edcf8c}
+body:has(#panel-game.active) .shell{width:100%;max-width:none;margin:0}#panel-game{padding:0!important;border:0!important}
+#panel-game .canvas-wrap{height:100dvh;background:#081923;display:grid;place-items:center;border:0;border-radius:0}
+#game-canvas{width:100%;max-height:100dvh;object-fit:contain;aspect-ratio:16/9}
+#panel-game .game-heading{position:fixed;left:18px;top:12px;z-index:5;max-width:48%;padding:8px 12px;background:#102c36cc;border:0;display:block;font-size:13px}
+#panel-game .game-heading .game-stats,#leave-run,#pause-run,.control-bar{display:none!important}
+#enemy-readout,#route-readout{position:fixed;left:18px;top:126px;z-index:5;font-size:12px;max-width:40%;background:#102c36bd;margin:0;padding:4px 8px;pointer-events:none}#route-readout{top:160px}
+.scene-battle-stats{position:absolute;right:18px;top:18px;z-index:5;display:grid;gap:6px;width:215px;padding:10px;background:#102c36dc;font-size:13px;color:#f0e4c5}.scene-battle-stats span{display:block}.scene-battle-stats b{float:right}.scene-battle-stats meter{display:block;width:100%;height:14px;accent-color:#a8ca8b}.scene-battle-stats button{min-height:44px;background:#244b4b;color:#f1e4bd;border:1px solid #95a585}
+#skill-hud{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:8px;background:#102c36dd;padding:8px;z-index:5;color:#f3e5ba}
+.scene-skill{display:grid;position:relative;gap:3px;min-width:90px;text-align:center;padding:6px 10px;border:1px solid #8b9e7e;background:linear-gradient(to top,#081b29b0 var(--cool),transparent var(--cool)),#284d4c;font-size:12px}.scene-skill b{color:#f1d18f}.scene-skill strong{font-size:15px}.scene-skill.unready{border-style:dashed;color:#c1cbbb}#skill-hud>small{max-width:120px;font-size:11px}
+.large-hud .scene-battle-stats{width:260px;font-size:16px}.large-hud .scene-skill{font-size:15px;min-width:110px}.large-hud .scene-character{font-size:18px}
+button:focus-visible,summary:focus-visible{outline:3px solid #f4d483;outline-offset:2px}
+@media(max-width:1199px){body.board-screen .bagua-workspace{grid-template-columns:minmax(0,45fr) minmax(0,55fr)}body.board-screen .bagua-inspector{display:none;grid-column:2}body.board-screen .bagua-inspector.scene-guide-open{display:block}}
+@media(max-width:700px){
+ .scene-character{right:8px;top:10px;min-width:130px;padding:7px 10px;font-size:12px}.scene-character strong{font-size:17px}.scene-character small{font-size:11px}.village-heading{left:8px;top:10px;max-width:calc(100% - 160px)}.village-heading h2{font-size:16px}
+ .village-hud{grid-template-columns:repeat(6,minmax(0,1fr));gap:2px;right:0}.village-hud button{width:100%;min-width:0;min-height:52px;display:grid;justify-items:center;font-size:11px;padding:2px}.village-hud .hud-icon{display:none}.scene-skills{display:none}.village-touch{bottom:64px}.village-prompt{bottom:132px}
+ body.board-screen #panel-journey{padding:8px 8px 110px!important}body.board-screen .bagua-workspace{display:flex;flex-direction:column;gap:10px}body.board-screen .bagua-chart-wrap,body.board-screen .scene-node-editor,body.board-screen .bagua-inspector{width:100%}body.board-screen .bagua-palace{min-height:88px}body.board-screen .bagua-palace .bagua-trigram{transform:scale(.8)}body.board-screen .bagua-slots{grid-template-columns:repeat(4,minmax(0,1fr));gap:3px}body.board-screen .bagua-slot em{display:none}body.board-screen .bagua-slot b{font-size:11px}body.board-screen .bagua-slot .bagua-trigram{display:none}body.board-screen .bagua-actions{padding:8px;justify-content:center;gap:4px;flex-wrap:wrap}body.board-screen .bagua-actions button{min-height:44px;padding:7px;font-size:12px}
+ .scene-battle-stats{width:145px;right:8px;top:8px;padding:7px;font-size:11px}.scene-battle-stats button{min-height:44px;font-size:11px}.large-hud .scene-battle-stats{width:168px;font-size:12px}#panel-game .game-heading{left:6px;top:6px;max-width:48%;font-size:11px;padding:4px}#enemy-readout,#route-readout{font-size:10px;left:6px;max-width:44%}#skill-hud{display:none}.touch-controls{position:fixed;bottom:8px;z-index:6;width:100%;padding:0 6px}.touch-controls button{min-height:44px;min-width:44px;font-size:11px}
+}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}.bagua-channel-pulse{animation:none!important}}
+/* Eight compass positions form a ring around the sword, rather than nine tiles. */
+body.board-screen .bagua-palaces{display:block;aspect-ratio:1;margin:12px auto;width:100%}
+body.board-screen .bagua-palace,body.board-screen .bagua-heart{position:absolute;width:26%;height:26%;min-height:0;margin:0;padding:3px;transform:translate(-50%,-50%)}
+body.board-screen [data-bagua-palace=xun]{left:20%;top:20%}body.board-screen [data-bagua-palace=li]{left:50%;top:10%}body.board-screen [data-bagua-palace=kun]{left:80%;top:20%}
+body.board-screen [data-bagua-palace=zhen]{left:10%;top:50%}body.board-screen [data-bagua-palace=dui]{left:90%;top:50%}
+body.board-screen [data-bagua-palace=gen]{left:20%;top:80%}body.board-screen [data-bagua-palace=kan]{left:50%;top:90%}body.board-screen [data-bagua-palace=qian]{left:80%;top:80%}
+body.board-screen .bagua-heart{left:50%;top:50%;border-radius:50%}body.board-screen .bagua-heart img{height:70%;width:22px}
+body.board-screen #bagua-actions{position:fixed;left:0;right:0;bottom:0;margin:0;z-index:40;border:0;border-top:1px solid #a7a278}
+body.board-screen .bagua-element{font-size:11px}.scene-mobile-open{display:none}
+@media(max-width:700px){
+ body.board-screen .bagua-palace{font-size:10px;gap:0}body.board-screen .bagua-palace .bagua-element{display:none}body.board-screen .bagua-palace b{font-size:14px}body.board-screen .bagua-palace .bagua-trigram{height:23px}body.board-screen .bagua-chart-wrap{overflow:hidden;padding:12px 20px}
+ .scene-mobile-open{display:block;min-height:44px;width:100%;background:#224c4c;color:#eedda8;border:1px solid #98a784;cursor:pointer}
+ body.board-screen .scene-node-editor{display:none;position:fixed;left:0;right:0;bottom:74px;max-height:62dvh;overflow:auto;z-index:30;background:#12343b;border:2px solid #97a47e;padding:10px}
+ body.board-screen.board-detail-open .scene-node-editor{display:block}
+ body.board-screen .bagua-inspector.scene-guide-open{position:fixed;inset:100px 8px 80px;overflow:auto;z-index:33;background:#173b40}
+}

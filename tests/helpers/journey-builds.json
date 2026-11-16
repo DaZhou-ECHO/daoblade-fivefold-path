@@ -1,6 +1,8 @@
 [
   {
     "campaign": true,
+    "combat_version": 3,
+    "combo": null,
     "ruleset_id": "journey-v1",
     "used": 3,
     "capacity": 6,
@@ -35,6 +37,12 @@
       "xun.mind",
       "xun.trace"
     ],
+    "training": {
+      "sword": 0,
+      "step": 0,
+      "guard": 0
+    },
+    "cosmetic": "plain",
     "skill": {
       "enabled": true,
       "burn_damage": 4
@@ -42,6 +50,8 @@
   },
   {
     "campaign": true,
+    "combat_version": 3,
+    "combo": null,
     "ruleset_id": "journey-v1",
     "used": 3,
     "capacity": 6,
@@ -76,6 +86,12 @@
       "li.mind",
       "li.trace"
     ],
+    "training": {
+      "sword": 0,
+      "step": 0,
+      "guard": 0
+    },
+    "cosmetic": "plain",
     "skill": {
       "enabled": true,
       "burn_damage": 4
@@ -83,6 +99,8 @@
   },
   {
     "campaign": true,
+    "combat_version": 3,
+    "combo": null,
     "ruleset_id": "journey-v1",
     "used": 3,
     "capacity": 6,
@@ -117,6 +135,12 @@
       "kun.mind",
       "kun.trace"
     ],
+    "training": {
+      "sword": 0,
+      "step": 0,
+      "guard": 0
+    },
+    "cosmetic": "plain",
     "skill": {
       "enabled": true,
       "burn_damage": 4
@@ -124,6 +148,8 @@
   },
   {
     "campaign": true,
+    "combat_version": 3,
+    "combo": null,
     "ruleset_id": "journey-v1",
     "used": 3,
     "capacity": 6,
@@ -158,6 +184,12 @@
       "zhen.mind",
       "zhen.trace"
     ],
+    "training": {
+      "sword": 0,
+      "step": 0,
+      "guard": 0
+    },
+    "cosmetic": "plain",
     "skill": {
       "enabled": true,
       "burn_damage": 4
@@ -165,6 +197,8 @@
   },
   {
     "campaign": true,
+    "combat_version": 3,
+    "combo": null,
     "ruleset_id": "journey-v1",
     "used": 3,
     "capacity": 6,
@@ -199,6 +233,12 @@
       "dui.mind",
       "dui.trace"
     ],
+    "training": {
+      "sword": 0,
+      "step": 0,
+      "guard": 0
+    },
+    "cosmetic": "plain",
     "skill": {
       "enabled": true,
       "burn_damage": 4
@@ -206,6 +246,8 @@
   },
   {
     "campaign": true,
+    "combat_version": 3,
+    "combo": null,
     "ruleset_id": "journey-v1",
     "used": 3,
     "capacity": 6,
@@ -240,6 +282,12 @@
       "gen.mind",
       "gen.trace"
     ],
+    "training": {
+      "sword": 0,
+      "step": 0,
+      "guard": 0
+    },
+    "cosmetic": "plain",
     "skill": {
       "enabled": true,
       "burn_damage": 4
@@ -247,6 +295,8 @@
   },
   {
     "campaign": true,
+    "combat_version": 3,
+    "combo": null,
     "ruleset_id": "journey-v1",
     "used": 3,
     "capacity": 6,
@@ -281,6 +331,12 @@
       "kan.mind",
       "kan.trace"
     ],
+    "training": {
+      "sword": 0,
+      "step": 0,
+      "guard": 0
+    },
+    "cosmetic": "plain",
     "skill": {
       "enabled": true,
       "burn_damage": 4
@@ -288,6 +344,8 @@
   },
   {
     "campaign": true,
+    "combat_version": 3,
+    "combo": null,
     "ruleset_id": "journey-v1",
     "used": 3,
     "capacity": 6,
@@ -322,6 +380,12 @@
       "qian.mind",
       "qian.trace"
     ],
+    "training": {
+      "sword": 0,
+      "step": 0,
+      "guard": 0
+    },
+    "cosmetic": "plain",
     "skill": {
       "enabled": true,
       "burn_damage": 4

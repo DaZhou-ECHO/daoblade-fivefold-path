@@ -51,6 +51,8 @@ def request_api(client):
     data = client.get('/api/journey').get_json()
     def action(action, **extra):
         nonlocal data
+        if action == "settle" and extra.get("win") is True:
+            extra.setdefault("exit_id", "exit")
         res = client.post('/api/journey', json={"action": action, "revision": data['revision'], "owner_id": None, **extra})
         assert res.status_code == 200, res.get_json()
         data = res.get_json()

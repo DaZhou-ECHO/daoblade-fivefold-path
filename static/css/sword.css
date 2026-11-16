@@ -1,0 +1,33 @@
+body.board-screen .bagua-workspace{grid-template-columns:minmax(280px,.9fr) minmax(450px,1.5fr);align-items:start}
+body.board-screen .bagua-palaces{width:100%;max-width:520px}
+body.board-screen .bagua-palace,body.board-screen .bagua-heart{width:24%;height:24%;min-height:0}
+body.board-screen [data-bagua-palace=li]{top:14%}body.board-screen [data-bagua-palace=kan]{top:86%}
+body.board-screen [data-bagua-palace=zhen]{left:14%}body.board-screen [data-bagua-palace=dui]{left:86%}
+body.board-screen .bagua-palace b{font-size:17px}body.board-screen .bagua-palace small{font-size:10px}
+body.board-screen .scene-node-editor{display:none}
+body.board-screen .scene-node-editor.sword-drawer-open{display:block;position:fixed;z-index:42;right:18px;top:65px;bottom:160px;width:min(480px,90vw);overflow:auto;background:#173b3f;box-shadow:0 0 0 100vmax #081b2980}
+#sword-config,#sword-arena{padding:16px;border:1px solid #9ba780;background:#14383d;color:#e9dfbb;min-width:0}
+#sword-config h3,#sword-config h4{margin:0;color:#efda9f}#sword-config h4{font-size:23px}
+.sword-config-head,#sword-arena header{display:flex;align-items:center;justify-content:space-between;gap:10px}
+#sword-save-state{font-size:12px;color:#d9cb9d}
+#sword-config button,#sword-arena button,#sword-target{min-height:44px;padding:8px 12px;background:#23494b;color:#efdfb1;border:1px solid #8ca78e;cursor:pointer;font:inherit;font-size:13px}
+#sword-config button:disabled{opacity:.5;cursor:default}#sword-config button[aria-pressed=true]{border:2px solid #f1d283;background:#456459}
+#sword-config button:focus-visible,#sword-arena button:focus-visible,#sword-canvas:focus-visible{outline:3px solid #f1d283;outline-offset:3px}
+#sword-pair-controls,.sword-config-actions,.sword-arena-controls{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+#sword-current{display:grid;grid-template-columns:90px 1fr;gap:16px;padding:16px 0;border-top:1px solid #647e6e;border-bottom:1px solid #647e6e}
+.sword-hex{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:#264c49;padding:12px}.sword-hex small{font-size:11px;text-align:center}
+.sword-trigram{width:36px;display:inline-grid;gap:4px;vertical-align:middle}.sword-trigram i{display:block;height:4px;background:#e3d29d}.sword-trigram .broken{background:linear-gradient(to right,#e3d29d 42%,transparent 42%,transparent 58%,#e3d29d 58%)}
+.sword-frames{display:flex;gap:8px;list-style:none;padding:0;font-size:12px;line-height:1.7}.sword-frames li{flex:1;padding:10px;background:#244a48}.sword-frames b{display:block;color:#efcc80}
+.sword-vignette{display:block;width:100%;height:85px;margin-bottom:8px}
+#sword-current p{font-size:12px;line-height:1.7}#sword-error{color:#ffc29b;min-height:18px;font-size:12px}
+#sword-catalog{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}#sword-catalog button{display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center;padding:12px 5px}#sword-catalog small,#sword-catalog em{font-size:11px;font-style:normal}
+.bagua-palace.sword-partner{outline:2px dashed #efce8a;outline-offset:2px}
+.sword-practicing .bagua-palace .bagua-element{display:none}
+#sword-arena[hidden],#sword-config[hidden]{display:none!important}#sword-arena{grid-column:1/-1}
+#sword-canvas{width:100%;aspect-ratio:16/9;max-height:57dvh;display:block;background:#112f3b;image-rendering:pixelated}
+#sword-arena p{font-size:13px;line-height:1.6}.sword-practicing .bagua-workspace{grid-template-columns:minmax(260px,.7fr) minmax(360px,1fr)!important}
+.sword-practicing #sword-catalog{grid-template-columns:repeat(4,minmax(0,1fr))}
+body.board-screen #bagua-summary{font-size:12px;padding:8px 12px}body.board-screen #bagua-summary p{margin:3px 0}
+@media(min-width:1550px){.sword-practicing .bagua-workspace{grid-template-columns:minmax(250px,.7fr) minmax(390px,1fr) minmax(550px,1.3fr)!important}.sword-practicing #sword-arena{grid-column:3;grid-row:1}.sword-practicing #sword-catalog{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:1000px){body.board-screen .bagua-workspace{grid-template-columns:minmax(230px,.8fr) minmax(360px,1fr)}#sword-catalog{grid-template-columns:repeat(2,minmax(0,1fr))}.sword-frames{flex-direction:column}}
+@media(prefers-reduced-motion:reduce){#sword-config *,#sword-arena *{animation:none!important;transition:none!important}}

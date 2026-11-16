@@ -1,0 +1,83 @@
+
+[Python tests]
+........................................................................ [ 50%]
+......................................................................   [100%]
+142 passed in 75.87s (0:01:15)
+
+
+# tests 296
+# suites 0
+# pass 296
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 11309.323
+
+[JS syntax: action-state.js]
+
+[JS syntax: array-lab-rules.js]
+
+[JS syntax: array-lab-ui.js]
+
+[JS syntax: bagua-board.js]
+
+[JS syntax: battle-audio.js]
+
+[JS syntax: battle-events.js]
+
+[JS syntax: battle-viewport.js]
+
+[JS syntax: character-art.js]
+
+[JS syntax: character-preview.js]
+
+[JS syntax: combat-controller.js]
+
+[JS syntax: combat-feedback.js]
+
+[JS syntax: enemy-art.js]
+
+[JS syntax: game.js]
+
+[JS syntax: journey-home.js]
+
+[JS syntax: journey-ui.js]
+
+[JS syntax: level-definitions.js]
+
+[JS syntax: level-progress.js]
+
+[JS syntax: rules.js]
+
+[JS syntax: save-slots.js]
+
+[JS syntax: scene-art.js]
+
+[JS syntax: scene-ui.js]
+
+[JS syntax: shanhe-ui.js]
+
+[JS syntax: skill-guide.js]
+
+[JS syntax: trial-state.js]
+
+[JS syntax: village.js]
+
+[JS syntax: village-progress.js]
+
+[JS syntax: world-art-assets.js]
+
+[JS syntax: world-art-benchmark.js]
+
+[JS syntax: world-art-preview.js]
+
+[Agent document files and links]
+Agent document file/link checks PASSED (content review still required).
+
+[Git whitespace]
+warning: in the working copy of 'static/js/village.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/test_journey_import.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/village.test.cjs', LF will be replaced by CRLF the next time Git touches it
+
+All local checks passed. Browser/visual/audio acceptance is recorded separately.

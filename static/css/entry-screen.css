@@ -1,0 +1,27 @@
+/* 045: one explicit identity choice before the village becomes interactive. */
+.entry-screen[hidden]{display:none!important}
+body.entry-locked .topbar,body.entry-locked .main-nav,body.entry-locked .shell,body.entry-locked .village-window-toolbar,body.entry-locked .village-window-backdrop{visibility:hidden}
+.entry-screen{position:fixed;inset:0;z-index:40;overflow:auto;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 73% 15%,#537b78 0,#244e51 27%,#0b252d 72%);color:#f2e7c5}
+.entry-landscape{position:fixed;inset:0;overflow:hidden;pointer-events:none;background:repeating-linear-gradient(90deg,transparent 0 31px,#d5e3ce05 32px 33px)}
+.entry-mountain{position:absolute;left:-12%;width:125%;height:58%;bottom:0;clip-path:polygon(0 68%,10% 39%,17% 62%,28% 18%,40% 60%,53% 27%,64% 65%,77% 16%,88% 54%,100% 22%,100% 100%,0 100%)}
+.mountain-back{bottom:15%;background:#6d9c91;opacity:.32}.mountain-front{background:#173d41;opacity:.8;transform:scaleX(-1)}
+.entry-shell{position:relative;display:grid;grid-template-columns:minmax(280px,1fr) minmax(330px,.93fr);width:min(1050px,100%);min-height:620px;border:4px solid #d9bd7e;background:#11353b;box-shadow:10px 10px 0 #071c25,0 0 0 7px #204b4b;isolation:isolate}
+.entry-shell:after{content:"";position:absolute;inset:11px;z-index:-1;border:1px solid #8da89355;pointer-events:none}
+.entry-hero{position:relative;display:flex;align-items:center;flex-direction:column;justify-content:space-between;min-height:590px;padding:34px 25px 24px;border-right:3px solid #ab9b6c;background:radial-gradient(circle at 50% 53%,#3e6660 0,#20474a 47%,#12373f 80%);text-align:center}
+.entry-hero .eyebrow{color:#e6c984;letter-spacing:.25em}.entry-hero h1{margin:0;color:#fff0bb;font:700 clamp(52px,6vw,86px)/1.1 "STKaiti","KaiTi",serif;text-shadow:4px 4px 0 #665e40}.entry-hero>p:not(.eyebrow){margin:4px 0;color:#d4e0cf;letter-spacing:.16em}
+.entry-portrait{display:grid;place-items:center;width:min(100%,285px);height:330px;margin:8px 0;background:radial-gradient(ellipse at 50% 80%,#d2c17c44,transparent 52%)}
+.entry-portrait canvas{display:block;width:256px;max-width:100%;height:320px;image-rendering:pixelated}
+.entry-hero small{padding:6px 18px;border-top:1px solid #c5ba82;color:#d7d5ae;letter-spacing:.18em}
+.entry-panel{display:flex;align-items:stretch;flex-direction:column;justify-content:center;gap:11px;padding:40px clamp(24px,4vw,54px)}
+.entry-panel .eyebrow{color:#e6c683;letter-spacing:.22em}.entry-panel h2{margin:0;color:#f9e9b5;font:700 34px/1.2 "STKaiti","KaiTi",serif}.entry-panel p{line-height:1.5}.entry-panel #entry-intro{min-height:46px;margin:0 0 11px;color:#d4e1d5}
+.entry-panel button{min-height:48px;cursor:pointer}.entry-panel button:focus-visible,.entry-panel input:focus-visible{outline:3px solid #ffe29d;outline-offset:2px}
+.entry-panel #entry-return,.entry-panel #entry-auth-form{display:grid;gap:11px}.entry-panel #entry-return[hidden],.entry-panel #entry-auth-form[hidden]{display:none!important}
+.entry-progress{display:grid;grid-template-columns:1fr 1fr;gap:8px}.entry-progress span{display:grid;gap:6px;padding:12px;border:2px solid #728f7d;background:#1d4848;color:#cbdccf}.entry-progress strong{color:#ffe6a5;font-size:20px}
+#entry-trial{min-height:46px;padding:10px 12px;border-left:4px solid #d7be83;background:#224c4a;color:#e8e2c4}
+.entry-auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:5px}.entry-auth-tabs button{border:2px solid #748f80;background:#244d4b;color:#d7e5d4;font:700 19px "STKaiti","KaiTi",serif}.entry-auth-tabs button[aria-pressed="true"]{border-color:#e9cb87;background:#41614e;color:#fff0bd}
+.entry-panel label{display:grid;gap:6px;color:#e7d7aa}.entry-panel input{width:100%;min-height:46px;padding:8px 12px;border:2px solid #809d8e;background:#0c2934;color:#fff4d7;font:inherit}
+.entry-panel .pixel-button{border-radius:1px}.entry-panel .entry-guest{margin-top:4px;border-color:#738f82;background:#1b4043;color:#dfebdc}
+.entry-panel .pixel-button.primary{border-color:#e5cb8b;background:#3d624d;color:#fff0ba}
+#entry-error{min-height:24px;margin:0;color:#ffbaa8}#entry-error:empty{display:none}
+@media(max-width:700px){.entry-screen{display:block;padding:10px}.entry-shell{grid-template-columns:1fr;min-height:0}.entry-hero{min-height:255px;padding:14px 14px 8px;border-right:0;border-bottom:3px solid #ab9b6c}.entry-hero h1{font-size:43px}.entry-hero>p:not(.eyebrow){font-size:13px}.entry-portrait{height:126px;margin:0}.entry-portrait canvas{width:102px;height:128px}.entry-hero small{font-size:11px}.entry-panel{gap:8px;padding:22px 20px 28px}.entry-panel h2{font-size:28px}.entry-panel #entry-intro{min-height:0;margin-bottom:4px}.entry-progress strong{font-size:17px}}
+@media(prefers-reduced-motion:reduce){.entry-screen *{animation:none!important;transition:none!important}}

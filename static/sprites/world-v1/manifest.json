@@ -1,0 +1,1984 @@
+{
+  "schemaVersion": 1,
+  "realms": {
+    "fire": {
+      "far": "/static/sprites/world-v1/fire-far.png",
+      "mid": "/static/sprites/world-v1/fire-mid.png",
+      "tiles": "/static/sprites/world-v1/fire-tiles.png",
+      "props": "/static/sprites/world-v1/fire-props.png",
+      "accent": "#f39b60"
+    },
+    "wood": {
+      "far": "/static/sprites/world-v1/wood-far.png",
+      "mid": "/static/sprites/world-v1/wood-mid.png",
+      "tiles": "/static/sprites/world-v1/wood-tiles.png",
+      "props": "/static/sprites/world-v1/wood-props.png",
+      "accent": "#91be83"
+    },
+    "earth": {
+      "far": "/static/sprites/world-v1/earth-far.png",
+      "mid": "/static/sprites/world-v1/earth-mid.png",
+      "tiles": "/static/sprites/world-v1/earth-tiles.png",
+      "props": "/static/sprites/world-v1/earth-props.png",
+      "accent": "#d6b578"
+    },
+    "metal": {
+      "far": "/static/sprites/world-v1/metal-far.png",
+      "mid": "/static/sprites/world-v1/metal-mid.png",
+      "tiles": "/static/sprites/world-v1/metal-tiles.png",
+      "props": "/static/sprites/world-v1/metal-props.png",
+      "accent": "#bccbd4"
+    },
+    "water": {
+      "far": "/static/sprites/world-v1/water-far.png",
+      "mid": "/static/sprites/world-v1/water-mid.png",
+      "tiles": "/static/sprites/world-v1/water-tiles.png",
+      "props": "/static/sprites/world-v1/water-props.png",
+      "accent": "#8dcddd"
+    }
+  },
+  "families": {
+    "fire-guard": {
+      "name": "焦甲剑卒",
+      "src": "/static/sprites/world-v1/fire-guard.png",
+      "frameSize": [
+        64,
+        96
+      ],
+      "foot": [
+        31,
+        90
+      ],
+      "bodyHeight": 44,
+      "animations": {
+        "idle": {
+          "row": 0,
+          "count": 2,
+          "fps": 7
+        },
+        "walk": {
+          "row": 1,
+          "count": 4,
+          "fps": 10
+        },
+        "windup": {
+          "row": 2,
+          "count": 2,
+          "fps": 10
+        },
+        "strike": {
+          "row": 3,
+          "count": 3,
+          "fps": 10
+        },
+        "recover": {
+          "row": 4,
+          "count": 2,
+          "fps": 10
+        },
+        "hurt": {
+          "row": 5,
+          "count": 1,
+          "fps": 10
+        },
+        "death": {
+          "row": 6,
+          "count": 4,
+          "fps": 10
+        },
+        "dash_windup": {
+          "row": 7,
+          "count": 2,
+          "fps": 10
+        },
+        "dash_strike": {
+          "row": 8,
+          "count": 3,
+          "fps": 10
+        },
+        "dash_recover": {
+          "row": 9,
+          "count": 2,
+          "fps": 10
+        },
+        "cast_windup": {
+          "row": 10,
+          "count": 2,
+          "fps": 10
+        },
+        "cast_strike": {
+          "row": 11,
+          "count": 3,
+          "fps": 10
+        },
+        "cast_recover": {
+          "row": 12,
+          "count": 2,
+          "fps": 10
+        },
+        "heavy_windup": {
+          "row": 13,
+          "count": 2,
+          "fps": 10
+        },
+        "heavy_strike": {
+          "row": 14,
+          "count": 3,
+          "fps": 10
+        },
+        "heavy_recover": {
+          "row": 15,
+          "count": 2,
+          "fps": 10
+        }
+      }
+    },
+    "fire-special": {
+      "name": "赤焰突进傀",
+      "src": "/static/sprites/world-v1/fire-special.png",
+      "frameSize": [
+        96,
+        96
+      ],
+      "foot": [
+        48,
+        90
+      ],
+      "bodyHeight": 76,
+      "animations": {
+        "idle": {
+          "row": 0,
+          "count": 2,
+          "fps": 7
+        },
+        "walk": {
+          "row": 1,
+          "count": 4,
+          "fps": 10
+        },
+        "windup": {
+          "row": 2,
+          "count": 2,
+          "fps": 10
+        },
+        "strike": {
+          "row": 3,
+          "count": 3,
+          "fps": 10
+        },
+        "recover": {
+          "row": 4,
+          "count": 2,
+          "fps": 10
+        },
+        "hurt": {
+          "row": 5,
+          "count": 1,
+          "fps": 10
+        },
+        "death": {
+          "row": 6,
+          "count": 4,
+          "fps": 10
+        },
+        "dash_windup": {
+          "row": 7,
+          "count": 2,
+          "fps": 10
+        },
+        "dash_strike": {
+          "row": 8,
+          "count": 3,
+          "fps": 10
+        },
+        "dash_recover": {
+          "row": 9,
+          "count": 2,
+          "fps": 10
+        },
+        "cast_windup": {
+          "row": 10,
+          "count": 2,
+          "fps": 10
+        },
+        "cast_strike": {
+          "row": 11,
+          "count": 3,
+          "fps": 10
+        },
+        "cast_recover": {
+          "row": 12,
+          "count": 2,
+          "fps": 10
+        },
+        "heavy_windup": {
+          "row": 13,
+          "count": 2,
+          "fps": 10
+        },
+        "heavy_strike": {
+          "row": 14,
+          "count": 3,
+          "fps": 10
+        },
+        "heavy_recover": {
+          "row": 15,
+          "count": 2,
+          "fps": 10
+        }
+      }
+    },
+    "fire-ranged": {
+      "name": "炉符妖侍",
+      "src": "/static/sprites/world-v1/fire-ranged.png",
+      "frameSize": [
+        64,
+        96
+      ],
+      "foot": [
+        23,
+        90
+      ],
+      "bodyHeight": 47,
+      "animations": {
+        "idle": {
+          "row": 0,
+          "count": 2,
+          "fps": 7
+        },
+        "walk": {
+          "row": 1,
+          "count": 4,
+          "fps": 10
+        },
+        "windup": {
+          "row": 2,
+          "count": 2,
+          "fps": 10
+        },
+        "strike": {
+          "row": 3,
+          "count": 3,
+          "fps": 10
+        },
+        "recover": {
+          "row": 4,
+          "count": 2,
+          "fps": 10
+        },
+        "hurt": {
+          "row": 5,
+          "count": 1,
+          "fps": 10
+        },
+        "death": {
+          "row": 6,
+          "count": 4,
+          "fps": 10
+        },
+        "dash_windup": {
+          "row": 7,
+          "count": 2,
+          "fps": 10
+        },
+        "dash_strike": {
+          "row": 8,
+          "count": 3,
+          "fps": 10
+        },
+        "dash_recover": {
+          "row": 9,
+          "count": 2,
+          "fps": 10
+        },
+        "cast_windup": {
+          "row": 10,
+          "count": 2,
+          "fps": 10
+        },
+        "cast_strike": {
+          "row": 11,
+          "count": 3,
+          "fps": 10
+        },
+        "cast_recover": {
+          "row": 12,
+          "count": 2,
+          "fps": 10
+        },
+        "heavy_windup": {
+          "row": 13,
+          "count": 2,
+          "fps": 10
+        },
+        "heavy_strike": {
+          "row": 14,
+          "count": 3,
+          "fps": 10
+        },
+        "heavy_recover": {
+          "row": 15,
+          "count": 2,
+          "fps": 10
+        }
+      }
+    },
+    "fire-boss": {
+      "name": "离火剑魁",
+      "src": "/static/sprites/world-v1/fire-boss.png",
+      "frameSize": [
+        128,
+        144
+      ],
+      "foot": [
+        72,
+        138
+      ],
+      "bodyHeight": 114,
+      "animations": {
+        "idle": {
+          "row": 0,
+          "count": 2,
+          "fps": 7
+        },
+        "walk": {
+          "row": 1,
+          "count": 4,
+          "fps": 10
+        },
+        "windup": {
+          "row": 2,
+          "count": 2,
+          "fps": 10
+        },
+        "strike": {
+          "row": 3,
+          "count": 3,
+          "fps": 10
+        },
+        "recover": {
+          "row": 4,
+          "count": 2,
+          "fps": 10
+        },
+        "hurt": {
+          "row": 5,
+          "count": 1,
+          "fps": 10
+        },
+        "death": {
+          "row": 6,
+          "count": 4,
+          "fps": 10
+        },
+        "dash_windup": {
+          "row": 7,
+          "count": 2,
+          "fps": 10
+        },
+        "dash_strike": {
+          "row": 8,
+          "count": 3,
+          "fps": 10
+        },
+        "dash_recover": {
+          "row": 9,
+          "count": 2,
+          "fps": 10
+        },
+        "cast_windup": {
+          "row": 10,
+          "count": 2,
+          "fps": 10
+        },
+        "cast_strike": {
+          "row": 11,
+          "count": 3,
+          "fps": 10
+        },
+        "cast_recover": {
+          "row": 12,
+          "count": 2,
+          "fps": 10
+        },
+        "heavy_windup": {
+          "row": 13,
+          "count": 2,
+          "fps": 10
+        },
+        "heavy_strike": {
+          "row": 14,
+          "count": 3,
+          "fps": 10
+        },
+        "heavy_recover": {
+          "row": 15,
+          "count": 2,
+          "fps": 10
+        }
+      }
+    },
+    "wood-guard": {
+      "name": "木灵刀卫",
+      "src": "/static/sprites/world-v1/wood-guard.png",
+      "frameSize": [
+        64,
+        96
+      ],
+      "foot": [
+        32,
+        90
+      ],
+      "bodyHeight": 50,
+      "animations": {
+        "idle": {
+          "row": 0,
+          "count": 2,
+          "fps": 7
+        },
+        "walk": {
+          "row": 1,
+          "count": 4,
+          "fps": 10
+        },
+        "windup": {
+          "row": 2,
+          "count": 2,
+          "fps": 10
+        },
+        "strike": {
+          "row": 3,
+          "count": 3,
+          "fps": 10
+        },
+        "recover": {
+          "row": 4,
+          "count": 2,
+          "fps": 10
+        },
+        "hurt": {
+          "row": 5,
+          "count": 1,
+          "fps": 10
+        },
+        "death": {
+          "row": 6,
+          "count": 4,
+          "fps": 10
+        },
+        "dash_windup": {
+          "row": 7,
+          "count": 2,
+          "fps": 10
+        },
+        "dash_strike": {
+          "row": 8,
+          "count": 3,
+          "fps": 10
+        },
+        "dash_recover": {
+          "row": 9,
+          "count": 2,
+          "fps": 10
+        },
+        "cast_windup": {
+          "row": 10,
+          "count": 2,
+          "fps": 10
+        },
+        "cast_strike": {
+          "row": 11,
+          "count": 3,
+          "fps": 10
+        },
+        "cast_recover": {
+          "row": 12,
+          "count": 2,
+          "fps": 10
+        },
+        "heavy_windup": {
+          "row": 13,
+          "count": 2,
+          "fps": 10
+        },
+        "heavy_strike": {
+          "row": 14,
+          "count": 3,
+          "fps": 10
+        },
+        "heavy_recover": {
+          "row": 15,
+          "count": 2,
+          "fps": 10
+        }
+      }
+    },
+    "wood-special": {
+      "name": "藤根伏行妖",
+      "src": "/static/sprites/world-v1/wood-special.png",
+      "frameSize": [
+        96,
+        96
+      ],
+      "foot": [
+        57,
+        90
+      ],
+      "bodyHeight": 76,
+      "animations": {
+        "idle": {
+          "row": 0,
+          "count": 2,
+          "fps": 7
+        },
+        "walk": {
+          "row": 1,
+          "count": 4,
+          "fps": 10
+        },
+        "windup": {
+          "row": 2,
+          "count": 2,
+          "fps": 10
+        },
+        "strike": {
+          "row": 3,
+          "count": 3,
+          "fps": 10
+        },
+        "recover": {
+          "row": 4,
+          "count": 2,
+          "fps": 10
+        },
+        "hurt": {
+          "row": 5,
+          "count": 1,
+          "fps": 10
+        },
+        "death": {
+          "row": 6,
+          "count": 4,
+          "fps": 10
+        },
+        "dash_windup": {
+          "row": 7,
+          "count": 2,
+          "fps": 10
+        },
+        "dash_strike": {
+          "row": 8,
+          "count": 3,
+          "fps": 10
+        },
+        "dash_recover": {
+          "row": 9,
+          "count": 2,
+          "fps": 10
+        },
+        "cast_windup": {
+          "row": 10,
+          "count": 2,
+          "fps": 10
+        },
+        "cast_strike": {
+          "row": 11,
+          "count": 3,
+          "fps": 10
+        },
+        "cast_recover": {
+          "row": 12,
+          "count": 2,
+          "fps": 10
+        },
+        "heavy_windup": {
+          "row": 13,
+          "count": 2,
+          "fps": 10
+        },
+        "heavy_strike": {
+          "row": 14,
+          "count": 3,
+          "fps": 10
+        },
+        "heavy_recover": {
+          "row": 15,
+          "count": 2,
+          "fps": 10
+        }
+      }
+    },
+    "wood-ranged": {
+      "name": "蘑灯木巫",
+      "src": "/static/sprites/world-v1/wood-ranged.png",
+      "frameSize": [
+        64,
+        96
+      ],
+      "foot": [
+        26,
+        90
+      ],
+      "bodyHeight": 50,
+      "animations": {
+        "idle": {
+          "row": 0,
+          "count": 2,
+          "fps": 7
+        },
+        "walk": {
+          "row": 1,
+          "count": 4,
+          "fps": 10
+        },
+        "windup": {
+          "row": 2,
+          "count": 2,
+          "fps": 10
+        },
+        "strike": {
+          "row": 3,
+          "count": 3,
+          "fps": 10
+        },
+        "recover": {
+          "row": 4,
+          "count": 2,
+          "fps": 10
+        },
+        "hurt": {
+          "row": 5,
+          "count": 1,
+          "fps": 10
+        },
+        "death": {
+          "row": 6,
+          "count": 4,
+          "fps": 10
+        },
+        "dash_windup": {
+          "row": 7,
+          "count": 2,
+          "fps": 10
+        },
+        "dash_strike": {
+          "row": 8,
+          "count": 3,
+          "fps": 10
+        },
+        "dash_recover": {
+          "row": 9,
+          "count": 2,
+          "fps": 10
+        },
+        "cast_windup": {
+          "row": 10,
+          "count": 2,
+          "fps": 10
+        },
+        "cast_strike": {
+          "row": 11,
+          "count": 3,
+          "fps": 10
+        },
+        "cast_recover": {
+          "row": 12,
+          "count": 2,
+          "fps": 10
+        },
+        "heavy_windup": {
+          "row": 13,
+          "count": 2,
+          "fps": 10
+        },
+        "heavy_strike": {
+          "row": 14,
+          "count": 3,
+          "fps": 10
+        },
+        "heavy_recover": {
+          "row": 15,
+          "count": 2,
+          "fps": 10
+        }
+      }
+    },
+    "wood-boss": {
+      "name": "古木守灵",
+      "src": "/static/sprites/world-v1/wood-boss.png",
+      "frameSize": [
+        128,
+        144
+      ],
+      "foot": [
+        51,
+        138
+      ],
+      "bodyHeight": 114,
+      "animations": {
+        "idle": {
+          "row": 0,
+          "count": 2,
+          "fps": 7
+        },
+        "walk": {
+          "row": 1,
+          "count": 4,
+          "fps": 10
+        },
+        "windup": {
+          "row": 2,
+          "count": 2,
+          "fps": 10
+        },
+        "strike": {
+          "row": 3,
+          "count": 3,
+          "fps": 10
+        },
+        "recover": {
+          "row": 4,
+          "count": 2,
+          "fps": 10
+        },
+        "hurt": {
+          "row": 5,
+          "count": 1,
+          "fps": 10
+        },
+        "death": {
+          "row": 6,
+          "count": 4,
+          "fps": 10
+        },
+        "dash_windup": {
+          "row": 7,
+          "count": 2,
+          "fps": 10
+        },
+        "dash_strike": {
+          "row": 8,
+          "count": 3,
+          "fps": 10
+        },
+        "dash_recover": {
+          "row": 9,
+          "count": 2,
+          "fps": 10
+        },
+        "cast_windup": {
+          "row": 10,
+          "count": 2,
+          "fps": 10
+        },
+        "cast_strike": {
+          "row": 11,
+          "count": 3,
+          "fps": 10
+        },
+        "cast_recover": {
+          "row": 12,
+          "count": 2,
+          "fps": 10
+        },
+        "heavy_windup": {
+          "row": 13,
+          "count": 2,
+          "fps": 10
+        },
+        "heavy_strike": {
+          "row": 14,
+          "count": 3,
+          "fps": 10
+        },
+        "heavy_recover": {
+          "row": 15,
+          "count": 2,
+          "fps": 10
+        }
+      }
+    },
+    "earth-guard": {
+      "name": "岩甲卫",
+      "src": "/static/sprites/world-v1/earth-guard.png",
+      "frameSize": [
+        64,
+        96
+      ],
+      "foot": [
+        32,
+        90
+      ],
+      "bodyHeight": 50,
+      "animations": {
+        "idle": {
+          "row": 0,
+          "count": 2,
+          "fps": 7
+        },
+        "walk": {
+          "row": 1,
+          "count": 4,
+          "fps": 10
+        },
+        "windup": {
+          "row": 2,
+          "count": 2,
+          "fps": 10
+        },
+        "strike": {
+          "row": 3,
+          "count": 3,
+          "fps": 10
+        },
+        "recover": {
+          "row": 4,
+          "count": 2,
+          "fps": 10
+        },
+        "hurt": {
+          "row": 5,
+          "count": 1,
+          "fps": 10
+        },
+        "death": {
+          "row": 6,
+          "count": 4,
+          "fps": 10
+        },
+        "dash_windup": {
+          "row": 7,
+          "count": 2,
+          "fps": 10
+        },
+        "dash_strike": {
+          "row": 8,
+          "count": 3,
+          "fps": 10
+        },
+        "dash_recover": {
+          "row": 9,
+          "count": 2,
+          "fps": 10
+        },
+        "cast_windup": {
+          "row": 10,
+          "count": 2,
+          "fps": 10
+        },
+        "cast_strike": {
+          "row": 11,
+          "count": 3,
+          "fps": 10
+        },
+        "cast_recover": {
+          "row": 12,
+          "count": 2,
+          "fps": 10
+        },
+        "heavy_windup": {
+          "row": 13,
+          "count": 2,
+          "fps": 10
+        },
+        "heavy_strike": {
+          "row": 14,
+          "count": 3,
+          "fps": 10
+        },
+        "heavy_recover": {
+          "row": 15,
+          "count": 2,
+          "fps": 10
+        }
+      }
+    },
+    "earth-special": {
+      "name": "持锤石傀",
+      "src": "/static/sprites/world-v1/earth-special.png",
+      "frameSize": [
+        96,
+        96
+      ],
+      "foot": [
+        48,
+        90
+      ],
+      "bodyHeight": 76,
+      "animations": {
+        "idle": {
+          "row": 0,
+          "count": 2,
+          "fps": 7
+        },
+        "walk": {
+          "row": 1,
+          "count": 4,
+          "fps": 10
+        },
+        "windup": {
+          "row": 2,
+          "count": 2,
+          "fps": 10
+        },
+        "strike": {
+          "row": 3,
+          "count": 3,
+          "fps": 10
+        },
+        "recover": {
+          "row": 4,
+          "count": 2,
+          "fps": 10
+        },
+        "hurt": {
+          "row": 5,
+          "count": 1,
+          "fps": 10
+        },
+        "death": {
+          "row": 6,
+          "count": 4,
+          "fps": 10
+        },
+        "dash_windup": {
+          "row": 7,
+          "count": 2,
+          "fps": 10
+        },
+        "dash_strike": {
+          "row": 8,
+          "count": 3,
+          "fps": 10
+        },
+        "dash_recover": {
+          "row": 9,
+          "count": 2,
+          "fps": 10
+        },
+        "cast_windup": {
+          "row": 10,
+          "count": 2,
+          "fps": 10
+        },
+        "cast_strike": {
+          "row": 11,
+          "count": 3,
+          "fps": 10
+        },
+        "cast_recover": {
+          "row": 12,
+          "count": 2,
+          "fps": 10
+        },
+        "heavy_windup": {
+          "row": 13,
+          "count": 2,
+          "fps": 10
+        },
+        "heavy_strike": {
+          "row": 14,
+          "count": 3,
+          "fps": 10
+        },
+        "heavy_recover": {
+          "row": 15,
+          "count": 2,
+          "fps": 10
+        }
+      }
+    },
+    "earth-ranged": {
+      "name": "投岩陶俑",
+      "src": "/static/sprites/world-v1/earth-ranged.png",
+      "frameSize": [
+        64,
+        96
+      ],
+      "foot": [
+        32,
+        90
+      ],
+      "bodyHeight": 50,
+      "animations": {
+        "idle": {
+          "row": 0,
+          "count": 2,
+          "fps": 7
+        },
+        "walk": {
+          "row": 1,
+          "count": 4,
+          "fps": 10
+        },
+        "windup": {
+          "row": 2,
+          "count": 2,
+          "fps": 10
+        },
+        "strike": {
+          "row": 3,
+          "count": 3,
+          "fps": 10
+        },
+        "recover": {
+          "row": 4,
+          "count": 2,
+          "fps": 10
+        },
+        "hurt": {
+          "row": 5,
+          "count": 1,
+          "fps": 10
+        },
+        "death": {
+          "row": 6,
+          "count": 4,
+          "fps": 10
+        },
+        "dash_windup": {
+          "row": 7,
+          "count": 2,
+          "fps": 10
+        },
+        "dash_strike": {
+          "row": 8,
+          "count": 3,
+          "fps": 10
+        },
+        "dash_recover": {
+          "row": 9,
+          "count": 2,
+          "fps": 10
+        },
+        "cast_windup": {
+          "row": 10,
+          "count": 2,
+          "fps": 10
+        },
+        "cast_strike": {
+          "row": 11,
+          "count": 3,
+          "fps": 10
+        },
+        "cast_recover": {
+          "row": 12,
+          "count": 2,
+          "fps": 10
+        },
+        "heavy_windup": {
+          "row": 13,
+          "count": 2,
+          "fps": 10
+        },
+        "heavy_strike": {
+          "row": 14,
+          "count": 3,
+          "fps": 10
+        },
+        "heavy_recover": {
+          "row": 15,
+          "count": 2,
+          "fps": 10
+        }
+      }
+    },
+    "earth-boss": {
+      "name": "镇岳石魁",
+      "src": "/static/sprites/world-v1/earth-boss.png",
+      "frameSize": [
+        128,
+        144
+      ],
+      "foot": [
+        72,
+        138
+      ],
+      "bodyHeight": 114,
+      "animations": {
+        "idle": {
+          "row": 0,
+          "count": 2,
+          "fps": 7
+        },
+        "walk": {
+          "row": 1,
+          "count": 4,
+          "fps": 10
+        },
+        "windup": {
+          "row": 2,
+          "count": 2,
+          "fps": 10
+        },
+        "strike": {
+          "row": 3,
+          "count": 3,
+          "fps": 10
+        },
+        "recover": {
+          "row": 4,
+          "count": 2,
+          "fps": 10
+        },
+        "hurt": {
+          "row": 5,
+          "count": 1,
+          "fps": 10
+        },
+        "death": {
+          "row": 6,
+          "count": 4,
+          "fps": 10
+        },
+        "dash_windup": {
+          "row": 7,
+          "count": 2,
+          "fps": 10
+        },
+        "dash_strike": {
+          "row": 8,
+          "count": 3,
+          "fps": 10
+        },
+        "dash_recover": {
+          "row": 9,
+          "count": 2,
+          "fps": 10
+        },
+        "cast_windup": {
+          "row": 10,
+          "count": 2,
+          "fps": 10
+        },
+        "cast_strike": {
+          "row": 11,
+          "count": 3,
+          "fps": 10
+        },
+        "cast_recover": {
+          "row": 12,
+          "count": 2,
+          "fps": 10
+        },
+        "heavy_windup": {
+          "row": 13,
+          "count": 2,
+          "fps": 10
+        },
+        "heavy_strike": {
+          "row": 14,
+          "count": 3,
+          "fps": 10
+        },
+        "heavy_recover": {
+          "row": 15,
+          "count": 2,
+          "fps": 10
+        }
+      }
+    },
+    "metal-guard": {
+      "name": "断剑傀",
+      "src": "/static/sprites/world-v1/metal-guard.png",
+      "frameSize": [
+        64,
+        96
+      ],
+      "foot": [
+        21,
+        90
+      ],
+      "bodyHeight": 50,
+      "animations": {
+        "idle": {
+          "row": 0,
+          "count": 2,
+          "fps": 7
+        },
+        "walk": {
+          "row": 1,
+          "count": 4,
+          "fps": 10
+        },
+        "windup": {
+          "row": 2,
+          "count": 2,
+          "fps": 10
+        },
+        "strike": {
+          "row": 3,
+          "count": 3,
+          "fps": 10
+        },
+        "recover": {
+          "row": 4,
+          "count": 2,
+          "fps": 10
+        },
+        "hurt": {
+          "row": 5,
+          "count": 1,
+          "fps": 10
+        },
+        "death": {
+          "row": 6,
+          "count": 4,
+          "fps": 10
+        },
+        "dash_windup": {
+          "row": 7,
+          "count": 2,
+          "fps": 10
+        },
+        "dash_strike": {
+          "row": 8,
+          "count": 3,
+          "fps": 10
+        },
+        "dash_recover": {
+          "row": 9,
+          "count": 2,
+          "fps": 10
+        },
+        "cast_windup": {
+          "row": 10,
+          "count": 2,
+          "fps": 10
+        },
+        "cast_strike": {
+          "row": 11,
+          "count": 3,
+          "fps": 10
+        },
+        "cast_recover": {
+          "row": 12,
+          "count": 2,
+          "fps": 10
+        },
+        "heavy_windup": {
+          "row": 13,
+          "count": 2,
+          "fps": 10
+        },
+        "heavy_strike": {
+          "row": 14,
+          "count": 3,
+          "fps": 10
+        },
+        "heavy_recover": {
+          "row": 15,
+          "count": 2,
+          "fps": 10
+        }
+      }
+    },
+    "metal-special": {
+      "name": "银甲刺卫",
+      "src": "/static/sprites/world-v1/metal-special.png",
+      "frameSize": [
+        96,
+        96
+      ],
+      "foot": [
+        48,
+        90
+      ],
+      "bodyHeight": 76,
+      "animations": {
+        "idle": {
+          "row": 0,
+          "count": 2,
+          "fps": 7
+        },
+        "walk": {
+          "row": 1,
+          "count": 4,
+          "fps": 10
+        },
+        "windup": {
+          "row": 2,
+          "count": 2,
+          "fps": 10
+        },
+        "strike": {
+          "row": 3,
+          "count": 3,
+          "fps": 10
+        },
+        "recover": {
+          "row": 4,
+          "count": 2,
+          "fps": 10
+        },
+        "hurt": {
+          "row": 5,
+          "count": 1,
+          "fps": 10
+        },
+        "death": {
+          "row": 6,
+          "count": 4,
+          "fps": 10
+        },
+        "dash_windup": {
+          "row": 7,
+          "count": 2,
+          "fps": 10
+        },
+        "dash_strike": {
+          "row": 8,
+          "count": 3,
+          "fps": 10
+        },
+        "dash_recover": {
+          "row": 9,
+          "count": 2,
+          "fps": 10
+        },
+        "cast_windup": {
+          "row": 10,
+          "count": 2,
+          "fps": 10
+        },
+        "cast_strike": {
+          "row": 11,
+          "count": 3,
+          "fps": 10
+        },
+        "cast_recover": {
+          "row": 12,
+          "count": 2,
+          "fps": 10
+        },
+        "heavy_windup": {
+          "row": 13,
+          "count": 2,
+          "fps": 10
+        },
+        "heavy_strike": {
+          "row": 14,
+          "count": 3,
+          "fps": 10
+        },
+        "heavy_recover": {
+          "row": 15,
+          "count": 2,
+          "fps": 10
+        }
+      }
+    },
+    "metal-ranged": {
+      "name": "御刃机关傀",
+      "src": "/static/sprites/world-v1/metal-ranged.png",
+      "frameSize": [
+        64,
+        96
+      ],
+      "foot": [
+        55,
+        90
+      ],
+      "bodyHeight": 50,
+      "animations": {
+        "idle": {
+          "row": 0,
+          "count": 2,
+          "fps": 7
+        },
+        "walk": {
+          "row": 1,
+          "count": 4,
+          "fps": 10
+        },
+        "windup": {
+          "row": 2,
+          "count": 2,
+          "fps": 10
+        },
+        "strike": {
+          "row": 3,
+          "count": 3,
+          "fps": 10
+        },
+        "recover": {
+          "row": 4,
+          "count": 2,
+          "fps": 10
+        },
+        "hurt": {
+          "row": 5,
+          "count": 1,
+          "fps": 10
+        },
+        "death": {
+          "row": 6,
+          "count": 4,
+          "fps": 10
+        },
+        "dash_windup": {
+          "row": 7,
+          "count": 2,
+          "fps": 10
+        },
+        "dash_strike": {
+          "row": 8,
+          "count": 3,
+          "fps": 10
+        },
+        "dash_recover": {
+          "row": 9,
+          "count": 2,
+          "fps": 10
+        },
+        "cast_windup": {
+          "row": 10,
+          "count": 2,
+          "fps": 10
+        },
+        "cast_strike": {
+          "row": 11,
+          "count": 3,
+          "fps": 10
+        },
+        "cast_recover": {
+          "row": 12,
+          "count": 2,
+          "fps": 10
+        },
+        "heavy_windup": {
+          "row": 13,
+          "count": 2,
+          "fps": 10
+        },
+        "heavy_strike": {
+          "row": 14,
+          "count": 3,
+          "fps": 10
+        },
+        "heavy_recover": {
+          "row": 15,
+          "count": 2,
+          "fps": 10
+        }
+      }
+    },
+    "metal-boss": {
+      "name": "金甲剑傀",
+      "src": "/static/sprites/world-v1/metal-boss.png",
+      "frameSize": [
+        128,
+        144
+      ],
+      "foot": [
+        58,
+        138
+      ],
+      "bodyHeight": 114,
+      "animations": {
+        "idle": {
+          "row": 0,
+          "count": 2,
+          "fps": 7
+        },
+        "walk": {
+          "row": 1,
+          "count": 4,
+          "fps": 10
+        },
+        "windup": {
+          "row": 2,
+          "count": 2,
+          "fps": 10
+        },
+        "strike": {
+          "row": 3,
+          "count": 3,
+          "fps": 10
+        },
+        "recover": {
+          "row": 4,
+          "count": 2,
+          "fps": 10
+        },
+        "hurt": {
+          "row": 5,
+          "count": 1,
+          "fps": 10
+        },
+        "death": {
+          "row": 6,
+          "count": 4,
+          "fps": 10
+        },
+        "dash_windup": {
+          "row": 7,
+          "count": 2,
+          "fps": 10
+        },
+        "dash_strike": {
+          "row": 8,
+          "count": 3,
+          "fps": 10
+        },
+        "dash_recover": {
+          "row": 9,
+          "count": 2,
+          "fps": 10
+        },
+        "cast_windup": {
+          "row": 10,
+          "count": 2,
+          "fps": 10
+        },
+        "cast_strike": {
+          "row": 11,
+          "count": 3,
+          "fps": 10
+        },
+        "cast_recover": {
+          "row": 12,
+          "count": 2,
+          "fps": 10
+        },
+        "heavy_windup": {
+          "row": 13,
+          "count": 2,
+          "fps": 10
+        },
+        "heavy_strike": {
+          "row": 14,
+          "count": 3,
+          "fps": 10
+        },
+        "heavy_recover": {
+          "row": 15,
+          "count": 2,
+          "fps": 10
+        }
+      }
+    },
+    "water-guard": {
+      "name": "水魇刀客",
+      "src": "/static/sprites/world-v1/water-guard.png",
+      "frameSize": [
+        64,
+        96
+      ],
+      "foot": [
+        32,
+        90
+      ],
+      "bodyHeight": 50,
+      "animations": {
+        "idle": {
+          "row": 0,
+          "count": 2,
+          "fps": 7
+        },
+        "walk": {
+          "row": 1,
+          "count": 4,
+          "fps": 10
+        },
+        "windup": {
+          "row": 2,
+          "count": 2,
+          "fps": 10
+        },
+        "strike": {
+          "row": 3,
+          "count": 3,
+          "fps": 10
+        },
+        "recover": {
+          "row": 4,
+          "count": 2,
+          "fps": 10
+        },
+        "hurt": {
+          "row": 5,
+          "count": 1,
+          "fps": 10
+        },
+        "death": {
+          "row": 6,
+          "count": 4,
+          "fps": 10
+        },
+        "dash_windup": {
+          "row": 7,
+          "count": 2,
+          "fps": 10
+        },
+        "dash_strike": {
+          "row": 8,
+          "count": 3,
+          "fps": 10
+        },
+        "dash_recover": {
+          "row": 9,
+          "count": 2,
+          "fps": 10
+        },
+        "cast_windup": {
+          "row": 10,
+          "count": 2,
+          "fps": 10
+        },
+        "cast_strike": {
+          "row": 11,
+          "count": 3,
+          "fps": 10
+        },
+        "cast_recover": {
+          "row": 12,
+          "count": 2,
+          "fps": 10
+        },
+        "heavy_windup": {
+          "row": 13,
+          "count": 2,
+          "fps": 10
+        },
+        "heavy_strike": {
+          "row": 14,
+          "count": 3,
+          "fps": 10
+        },
+        "heavy_recover": {
+          "row": 15,
+          "count": 2,
+          "fps": 10
+        }
+      }
+    },
+    "water-special": {
+      "name": "寒鳞游卫",
+      "src": "/static/sprites/world-v1/water-special.png",
+      "frameSize": [
+        96,
+        96
+      ],
+      "foot": [
+        48,
+        90
+      ],
+      "bodyHeight": 76,
+      "animations": {
+        "idle": {
+          "row": 0,
+          "count": 2,
+          "fps": 7
+        },
+        "walk": {
+          "row": 1,
+          "count": 4,
+          "fps": 10
+        },
+        "windup": {
+          "row": 2,
+          "count": 2,
+          "fps": 10
+        },
+        "strike": {
+          "row": 3,
+          "count": 3,
+          "fps": 10
+        },
+        "recover": {
+          "row": 4,
+          "count": 2,
+          "fps": 10
+        },
+        "hurt": {
+          "row": 5,
+          "count": 1,
+          "fps": 10
+        },
+        "death": {
+          "row": 6,
+          "count": 4,
+          "fps": 10
+        },
+        "dash_windup": {
+          "row": 7,
+          "count": 2,
+          "fps": 10
+        },
+        "dash_strike": {
+          "row": 8,
+          "count": 3,
+          "fps": 10
+        },
+        "dash_recover": {
+          "row": 9,
+          "count": 2,
+          "fps": 10
+        },
+        "cast_windup": {
+          "row": 10,
+          "count": 2,
+          "fps": 10
+        },
+        "cast_strike": {
+          "row": 11,
+          "count": 3,
+          "fps": 10
+        },
+        "cast_recover": {
+          "row": 12,
+          "count": 2,
+          "fps": 10
+        },
+        "heavy_windup": {
+          "row": 13,
+          "count": 2,
+          "fps": 10
+        },
+        "heavy_strike": {
+          "row": 14,
+          "count": 3,
+          "fps": 10
+        },
+        "heavy_recover": {
+          "row": 15,
+          "count": 2,
+          "fps": 10
+        }
+      }
+    },
+    "water-ranged": {
+      "name": "冰灯引潮妖",
+      "src": "/static/sprites/world-v1/water-ranged.png",
+      "frameSize": [
+        64,
+        96
+      ],
+      "foot": [
+        32,
+        90
+      ],
+      "bodyHeight": 50,
+      "animations": {
+        "idle": {
+          "row": 0,
+          "count": 2,
+          "fps": 7
+        },
+        "walk": {
+          "row": 1,
+          "count": 4,
+          "fps": 10
+        },
+        "windup": {
+          "row": 2,
+          "count": 2,
+          "fps": 10
+        },
+        "strike": {
+          "row": 3,
+          "count": 3,
+          "fps": 10
+        },
+        "recover": {
+          "row": 4,
+          "count": 2,
+          "fps": 10
+        },
+        "hurt": {
+          "row": 5,
+          "count": 1,
+          "fps": 10
+        },
+        "death": {
+          "row": 6,
+          "count": 4,
+          "fps": 10
+        },
+        "dash_windup": {
+          "row": 7,
+          "count": 2,
+          "fps": 10
+        },
+        "dash_strike": {
+          "row": 8,
+          "count": 3,
+          "fps": 10
+        },
+        "dash_recover": {
+          "row": 9,
+          "count": 2,
+          "fps": 10
+        },
+        "cast_windup": {
+          "row": 10,
+          "count": 2,
+          "fps": 10
+        },
+        "cast_strike": {
+          "row": 11,
+          "count": 3,
+          "fps": 10
+        },
+        "cast_recover": {
+          "row": 12,
+          "count": 2,
+          "fps": 10
+        },
+        "heavy_windup": {
+          "row": 13,
+          "count": 2,
+          "fps": 10
+        },
+        "heavy_strike": {
+          "row": 14,
+          "count": 3,
+          "fps": 10
+        },
+        "heavy_recover": {
+          "row": 15,
+          "count": 2,
+          "fps": 10
+        }
+      }
+    },
+    "water-boss": {
+      "name": "寒潭水魇",
+      "src": "/static/sprites/world-v1/water-boss.png",
+      "frameSize": [
+        128,
+        144
+      ],
+      "foot": [
+        64,
+        138
+      ],
+      "bodyHeight": 114,
+      "animations": {
+        "idle": {
+          "row": 0,
+          "count": 2,
+          "fps": 7
+        },
+        "walk": {
+          "row": 1,
+          "count": 4,
+          "fps": 10
+        },
+        "windup": {
+          "row": 2,
+          "count": 2,
+          "fps": 10
+        },
+        "strike": {
+          "row": 3,
+          "count": 3,
+          "fps": 10
+        },
+        "recover": {
+          "row": 4,
+          "count": 2,
+          "fps": 10
+        },
+        "hurt": {
+          "row": 5,
+          "count": 1,
+          "fps": 10
+        },
+        "death": {
+          "row": 6,
+          "count": 4,
+          "fps": 10
+        },
+        "dash_windup": {
+          "row": 7,
+          "count": 2,
+          "fps": 10
+        },
+        "dash_strike": {
+          "row": 8,
+          "count": 3,
+          "fps": 10
+        },
+        "dash_recover": {
+          "row": 9,
+          "count": 2,
+          "fps": 10
+        },
+        "cast_windup": {
+          "row": 10,
+          "count": 2,
+          "fps": 10
+        },
+        "cast_strike": {
+          "row": 11,
+          "count": 3,
+          "fps": 10
+        },
+        "cast_recover": {
+          "row": 12,
+          "count": 2,
+          "fps": 10
+        },
+        "heavy_windup": {
+          "row": 13,
+          "count": 2,
+          "fps": 10
+        },
+        "heavy_strike": {
+          "row": 14,
+          "count": 3,
+          "fps": 10
+        },
+        "heavy_recover": {
+          "row": 15,
+          "count": 2,
+          "fps": 10
+        }
+      }
+    }
+  },
+  "maps": {
+    "fire:ridge": {
+      "far": "/static/sprites/world-v1/fire-far.png",
+      "mid": "/static/sprites/world-v1/fire-mid.png"
+    },
+    "fire:hollow": {
+      "far": "/static/sprites/world-v1/fire-hollow-far.png",
+      "mid": "/static/sprites/world-v1/fire-hollow-mid.png"
+    },
+    "wood:ridge": {
+      "far": "/static/sprites/world-v1/wood-far.png",
+      "mid": "/static/sprites/world-v1/wood-mid.png"
+    },
+    "wood:hollow": {
+      "far": "/static/sprites/world-v1/wood-hollow-far.png",
+      "mid": "/static/sprites/world-v1/wood-hollow-mid.png"
+    },
+    "earth:ridge": {
+      "far": "/static/sprites/world-v1/earth-far.png",
+      "mid": "/static/sprites/world-v1/earth-mid.png"
+    },
+    "earth:hollow": {
+      "far": "/static/sprites/world-v1/earth-hollow-far.png",
+      "mid": "/static/sprites/world-v1/earth-hollow-mid.png"
+    },
+    "metal:ridge": {
+      "far": "/static/sprites/world-v1/metal-far.png",
+      "mid": "/static/sprites/world-v1/metal-mid.png"
+    },
+    "metal:hollow": {
+      "far": "/static/sprites/world-v1/metal-hollow-far.png",
+      "mid": "/static/sprites/world-v1/metal-hollow-mid.png"
+    },
+    "water:ridge": {
+      "far": "/static/sprites/world-v1/water-far.png",
+      "mid": "/static/sprites/world-v1/water-mid.png"
+    },
+    "water:hollow": {
+      "far": "/static/sprites/world-v1/water-hollow-far.png",
+      "mid": "/static/sprites/world-v1/water-hollow-mid.png"
+    }
+  }
+}

@@ -36,32 +36,44 @@ def init_db() -> None:
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
         )"""
     )
-    database.execute(
-        """
-        CREATE TABLE IF NOT EXISTS game_saves (
-            slot TEXT PRIMARY KEY,
-            state_json TEXT NOT NULL,
-            updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            revision INTEGER NOT NULL DEFAULT 0,
-            user_id INTEGER REFERENCES users(id)
+    database.execute("CREATE TABLE IF NOT EXISTS app_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)")
+    retired = database.execute("SELECT value FROM app_meta WHERE key='legacy_retired'").fetchone()
+    legacy_present = database.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name IN ('game_saves','array_lab_saves')").fetchone()
+    legacy_enabled = not retired and (legacy_present or current_app.config.get("LEGACY_DIAGNOSTICS", False))
+    if legacy_enabled:
+        database.execute(
+            """CREATE TABLE IF NOT EXISTS game_saves (
+                slot TEXT PRIMARY KEY, state_json TEXT NOT NULL,
+                updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                revision INTEGER NOT NULL DEFAULT 0, user_id INTEGER REFERENCES users(id)
+            )"""
         )
-        """
-    )
-    columns = {row["name"] for row in database.execute("PRAGMA table_info(game_saves)")}
-    if "revision" not in columns:
-        database.execute("ALTER TABLE game_saves ADD COLUMN revision INTEGER NOT NULL DEFAULT 0")
-    if "user_id" not in columns:
-        database.execute("ALTER TABLE game_saves ADD COLUMN user_id INTEGER REFERENCES users(id)")
-    database.execute("CREATE UNIQUE INDEX IF NOT EXISTS saves_user_idx ON game_saves(user_id)")
-    database.execute("""CREATE TABLE IF NOT EXISTS array_lab_saves (
-        slot TEXT PRIMARY KEY, state_json TEXT NOT NULL, revision INTEGER NOT NULL
-    )""")
-    database.execute("""CREATE TABLE IF NOT EXISTS array_lab_results (
-        trial_id TEXT NOT NULL, slot TEXT NOT NULL, receipt_json TEXT NOT NULL,
-        PRIMARY KEY(trial_id, slot)
-    )""")
+        columns = {row["name"] for row in database.execute("PRAGMA table_info(game_saves)")}
+        if "revision" not in columns:
+            database.execute("ALTER TABLE game_saves ADD COLUMN revision INTEGER NOT NULL DEFAULT 0")
+        if "user_id" not in columns:
+            database.execute("ALTER TABLE game_saves ADD COLUMN user_id INTEGER REFERENCES users(id)")
+        database.execute("CREATE UNIQUE INDEX IF NOT EXISTS saves_user_idx ON game_saves(user_id)")
+        database.execute("""CREATE TABLE IF NOT EXISTS array_lab_saves (
+            slot TEXT PRIMARY KEY, state_json TEXT NOT NULL, revision INTEGER NOT NULL
+        )""")
+        database.execute("""CREATE TABLE IF NOT EXISTS array_lab_results (
+            trial_id TEXT NOT NULL, slot TEXT NOT NULL, receipt_json TEXT NOT NULL,
+            PRIMARY KEY(trial_id, slot)
+        )""")
+        database.execute("""CREATE TABLE IF NOT EXISTS journey_migrations (
+            slot TEXT PRIMARY KEY, legacy_revision INTEGER NOT NULL,
+            journey_revision INTEGER NOT NULL, receipt_json TEXT NOT NULL
+        )""")
+    elif not retired:
+        database.execute("INSERT OR IGNORE INTO app_meta VALUES('legacy_retired','1')")
     database.execute("CREATE TABLE IF NOT EXISTS journey_saves (slot TEXT PRIMARY KEY, state_json TEXT NOT NULL, revision INTEGER NOT NULL)")
     database.execute("CREATE TABLE IF NOT EXISTS journey_results (slot TEXT NOT NULL, trial_id TEXT NOT NULL, receipt_json TEXT NOT NULL, PRIMARY KEY(slot,trial_id))")
+    database.execute("""CREATE TABLE IF NOT EXISTS journey_unifications (
+        slot TEXT PRIMARY KEY, revisions_json TEXT NOT NULL, receipt_json TEXT NOT NULL
+    )""")
+    from save_slots import init_directory
+    init_directory(database)
     database.commit()
 
 

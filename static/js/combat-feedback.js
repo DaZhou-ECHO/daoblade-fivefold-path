@@ -21,9 +21,10 @@
         } else if (event.type === "player_hurt" && event.amount > 0) {
           const block = [...items].reverse().find(item => item.type === "player_blocked"
             && item.target === event.target_id && item.time === event.time);
-          if (block) { block.text = `格挡 -${amount}`; return; }
+          if (block) { block.text = block.text==="格挡"?"格挡 -"+amount:block.text+" · 伤-"+amount; return; }
           text = `-${amount}`; color = "#ff9a8b";
-        } else if (event.type === "player_blocked") { text = "格挡"; color = "#b4dff5"; }
+        } else if (event.type === "player_blocked") { text = event.guard_cost ? "普通挡 · 气-"+event.guard_cost : "格挡"; color = "#b4dff5"; }
+        else if (event.type === "player_guard_broken") { text = "破防"; color = "#ff806b"; strong = true; }
         else if (event.type === "player_parried") { text = "完美格挡"; color = "#fff0a5"; strong = true; }
         else return;
         const row = items.filter(item => item.target === event.target_id && item.life > .45).length % 3;

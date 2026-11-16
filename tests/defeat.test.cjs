@@ -435,3 +435,14 @@ test('034 暂停按钮幂等：自动暂停后再点暂停不能恢复战斗，�
  h.nodes.get('#pause-run').handlers.click();assert.equal(h.game.pause,true);
  h.game.keyDown({code:'Escape',preventDefault(){}});assert.equal(h.game.pause,false);
 });
+
+test('047 模态设置拦截战斗Esc与动作，关闭后由明确操作恢复',()=>{
+ const h=harness({practice:true});h.game.setPause(true);
+ h.game.keyDown({code:'KeyA',preventDefault(){}});
+ const dialog=h.nodes.get('dialog[open]');dialog.open=true;
+ h.game.keyDown({code:'Escape',preventDefault(){}});
+ h.game.keyDown({code:'KeyJ',preventDefault(){}});
+ assert.equal(h.game.pause,true);assert.equal(h.game.keys.size,0);
+ dialog.open=false;h.game.keyDown({code:'Escape',preventDefault(){}});
+ assert.equal(h.game.pause,false);
+});

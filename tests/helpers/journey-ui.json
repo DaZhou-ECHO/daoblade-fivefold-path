@@ -1,7 +1,7 @@
 {
   "config": {
     "ruleset_id": "journey-v1",
-    "schema_version": 1,
+    "schema_version": 2,
     "palaces": [
       {
         "id": "xun",
@@ -103,6 +103,40 @@
         "name": "回廊"
       }
     ],
+    "training": {
+      "branches": {
+        "sword": "剑术",
+        "step": "身法",
+        "guard": "护体"
+      },
+      "costs": [
+        8,
+        12,
+        16
+      ]
+    },
+    "cosmetics": {
+      "plain": {
+        "name": "本命素剑",
+        "price": 0,
+        "color": "#b6dbe6"
+      },
+      "azure": {
+        "name": "青岚剑",
+        "price": 2,
+        "color": "#6ee6bd"
+      },
+      "sunset": {
+        "name": "赤霞剑",
+        "price": 4,
+        "color": "#ff9b75"
+      },
+      "frost": {
+        "name": "霜魄剑",
+        "price": 6,
+        "color": "#91d9ff"
+      }
+    },
     "nodes": [
       {
         "id": "xun.core",
@@ -706,11 +740,283 @@
         "role": "mind",
         "palace": "qian"
       }
+    ],
+    "skill_guide": {
+      "qian": {
+        "purpose": "拉开距离，前方直击",
+        "timing": "面对前方较远目标，先对准朝向再施放。",
+        "limit": "直击只检查前方范围，不会追踪或绕过朝向限制。",
+        "effect": "前方远距直击",
+        "mind": "提高基础攻击",
+        "image": "天 · 健",
+        "pair": "kan"
+      },
+      "kun": {
+        "purpose": "应对包围，推开近敌",
+        "timing": "敌人从两侧靠近时，用周身攻击争取空间。",
+        "limit": "首领只会小幅位移；此招不回复生命。",
+        "effect": "周身攻击并推开目标",
+        "mind": "提高最大生命",
+        "image": "地 · 顺",
+        "pair": "zhen"
+      },
+      "zhen": {
+        "purpose": "打乱普通敌人的进攻",
+        "timing": "观察普通敌人蓄势，在近处施放打断。",
+        "limit": "首领不受同样的蓄势打断。",
+        "effect": "前方直击，打断普通敌人蓄势",
+        "mind": "基础劈砍附加击退",
+        "image": "雷 · 动",
+        "pair": "kun"
+      },
+      "xun": {
+        "purpose": "向前穿行，改变站位",
+        "timing": "沿当前高度穿过敌人，先检查落点和地形。",
+        "limit": "地形可能缩短移动；不是向上跳跃，落点仍有危险。",
+        "effect": "向前移动并攻击经过目标",
+        "mind": "提高移动速度",
+        "image": "风 · 入",
+        "pair": "gen"
+      },
+      "kan": {
+        "purpose": "减缓敌人，争取行动时间",
+        "timing": "对准逼近的目标，减速后调整站位或衔接另一招。",
+        "limit": "首领减速时间更短；不是精准格挡能力。",
+        "effect": "前方寒流，命中减速",
+        "mind": "缩短主动技能冷却",
+        "image": "水 · 陷",
+        "pair": "qian"
+      },
+      "li": {
+        "purpose": "直击后持续灼烧",
+        "timing": "命中后利用灼烧时间移动，或衔接另一主动。",
+        "limit": "再次命中刷新灼烧计时，不叠加独立灼烧层。",
+        "effect": "前方直击，附加灼烧",
+        "mind": "提高主动技能直击伤害",
+        "image": "火 · 丽",
+        "pair": "dui"
+      },
+      "gen": {
+        "purpose": "临时护盾，近身应对",
+        "timing": "需要短时保护时施放，同时攻击前方近敌。",
+        "limit": "重复施放不累加护盾；仍需移动和格挡。",
+        "effect": "获得护盾并前方近击",
+        "mind": "提高防御",
+        "image": "山 · 止",
+        "pair": "xun"
+      },
+      "dui": {
+        "purpose": "命中回气，维持施招",
+        "timing": "确认目标在前方范围内，命中后回收部分剑意。",
+        "limit": "空放不回气；命中多个目标也只回气一次。",
+        "effect": "前方直击，命中回复剑意",
+        "mind": "提高剑意恢复速度",
+        "image": "泽 · 悦",
+        "pair": "li"
+      }
+    },
+    "node_guide": {
+      "core": {
+        "effect": "连接后开通本宫主动；仍须配置到主动栏。",
+        "growth": "每升一级，招式直击参数增加2。"
+      },
+      "trace": {
+        "effect": "连接核心后强化本宫招式。",
+        "growth": "1/2/3级分别增加4/5/6直击参数。"
+      },
+      "edge": {
+        "effect": "连接纹路后提高伤害，消耗升至16；与流式互斥。",
+        "growth": "1/2/3级分别增加6/8/10直击参数。"
+      },
+      "flow": {
+        "effect": "连接纹路后降低消耗，同时减少伤害；与锐式互斥。",
+        "growth": "1/2/3级消耗8/7/6，直击参数修正−3/−2/−1。"
+      },
+      "mind": {
+        "effect": "连接核心并放入心法栏后，提供本宫心法效果。",
+        "growth": "随灵珠等级提高；当前效果见心法页。"
+      }
+    },
+    "world": {
+      "version": 1,
+      "title": "青岚山川图",
+      "chapter": "逆脉妖潮",
+      "intro": "村井一夜失水，入山的药队迟迟未归。本命剑在旧碑前轻鸣：异变正在沿古代镇脉网络蔓延。",
+      "ending": "五处记录拼成了同一幅引脉图。师父将旧阵改回疏导之用，井水重新流入村中；药队留下的最后一道剑讯，却指向图外的洞天。求仙之路，究竟由谁付出代价？",
+      "regions": {
+        "wood": {
+          "id": "qingluo",
+          "name": "青萝泽",
+          "x": 78,
+          "y": 44,
+          "mark": "林",
+          "landmark": "根桥药圃",
+          "purpose": "追寻失联药队，调查错季生长的药木。",
+          "clue": "树根缠住了旧镇脉碑。药队留下的记号说明，妖潮沿旧阵而来。",
+          "ridge": "从树冠追踪药队的路标。",
+          "hollow": "洞府窗下留着药队避雨的记述。"
+        },
+        "fire": {
+          "id": "chixia",
+          "name": "赤霞山",
+          "x": 76,
+          "y": 19,
+          "mark": "炉",
+          "landmark": "丹阙与炉台",
+          "purpose": "查明不熄的炉火，恢复封闭的山路。",
+          "clue": "炉台没有人在添柴。旧阵持续送入灵气，调度印记来自山外。",
+          "ridge": "登炉台观察灵气汇入的方向。",
+          "hollow": "炉后石廊保留着昔日工匠的刻痕。"
+        },
+        "earth": {
+          "id": "zhenyue",
+          "name": "镇岳故道",
+          "x": 22,
+          "y": 53,
+          "mark": "关",
+          "landmark": "石阶与驿院",
+          "purpose": "调查山体震动，让运粮的商道重新通行。",
+          "clue": "驿院旧碑记载：镇脉原为护佑聚落，后被改成引气入天的阵列。",
+          "ridge": "沿石阶查看故道的关隘。",
+          "hollow": "遗院断墙中藏有改阵前的记录。"
+        },
+        "metal": {
+          "id": "cangfeng",
+          "name": "藏锋岭",
+          "x": 28,
+          "y": 19,
+          "mark": "剑",
+          "landmark": "断剑林与铸剑院",
+          "purpose": "寻找修复旧阵的材料，以及失联者留下的记录。",
+          "clue": "旧剑匠以剑为引修补阵脉。本命剑的共鸣来自这种传承，仍需持剑者亲自判断去向。",
+          "ridge": "登断剑林寻找铸剑院的遗迹。",
+          "hollow": "沿矿脉读出修复镇脉的手记。"
+        },
+        "water": {
+          "id": "luoxing",
+          "name": "落星潭",
+          "x": 54,
+          "y": 79,
+          "mark": "水",
+          "landmark": "水阁与地下水廊",
+          "purpose": "追查村井失水与河道逆流。",
+          "clue": "潭底旧渠仍与村井相通。五地灵气被同一条隐脉抽走，尽头是一处被抹去的洞天。",
+          "ridge": "越水桥确认水位与流向。",
+          "hollow": "深入旧水廊，辨认逆流留下的痕迹。"
+        }
+      },
+      "commissions": [
+        {
+          "id": "mentor",
+          "title": "问剑初行",
+          "text": "到演武坪与师父交谈，认识村中的守脉传承。"
+        },
+        {
+          "id": "sword",
+          "title": "剑台照心",
+          "text": "查看本命剑台的八宫构筑，理解今日的出战。"
+        },
+        {
+          "id": "merchant",
+          "title": "商路消息",
+          "text": "到剑坊询问商路与剑饰。"
+        }
+      ]
+    },
+    "combos": [
+      {
+        "id": "li-gen",
+        "main": "li",
+        "sub": "gen",
+        "hexagram": "山火贲",
+        "name": "山灯护身",
+        "use": "护身",
+        "trigger": "离火直击命中",
+        "finish": "收剑成盾，首次承击释放近身火环",
+        "stance": "立剑于胸前，火光沿剑格收束"
+      },
+      {
+        "id": "gen-zhen",
+        "main": "gen",
+        "sub": "zhen",
+        "hexagram": "雷山小过",
+        "name": "听雷出鞘",
+        "use": "反击",
+        "trigger": "本次艮盾实际吸收敌方攻击",
+        "finish": "向来袭方向短刺，打断普通敌人",
+        "stance": "侧身承击，再沿剑身送出短刺"
+      },
+      {
+        "id": "zhen-kun",
+        "main": "zhen",
+        "sub": "kun",
+        "hexagram": "地雷复",
+        "name": "伏雷回震",
+        "use": "解围",
+        "trigger": "震招直击命中",
+        "finish": "地波先前行，再折回身后",
+        "stance": "压腕点地，回波从脚边折返"
+      },
+      {
+        "id": "kun-xun",
+        "main": "kun",
+        "sub": "xun",
+        "hexagram": "风地观",
+        "name": "拂尘退步",
+        "use": "退守",
+        "trigger": "坤招直击命中",
+        "finish": "面对前方退步，原处留一道风痕",
+        "stance": "身体后移，剑尖仍指向原处"
+      },
+      {
+        "id": "xun-qian",
+        "main": "xun",
+        "sub": "qian",
+        "hexagram": "天风姤",
+        "name": "过隙回锋",
+        "use": "穿行",
+        "trigger": "巽招实际越过敌人",
+        "finish": "从落点回身，沿穿行路线平刺",
+        "stance": "先穿身，再回腕折剑"
+      },
+      {
+        "id": "qian-kan",
+        "main": "qian",
+        "sub": "kan",
+        "hexagram": "水天需",
+        "name": "候潮一线",
+        "use": "预判",
+        "trigger": "乾招直击命中",
+        "finish": "命中处留潮痕，稍后合拢并减速",
+        "stance": "平举剑尖，潮线先张后合"
+      },
+      {
+        "id": "kan-dui",
+        "main": "kan",
+        "sub": "dui",
+        "hexagram": "泽水困",
+        "name": "收澜归剑",
+        "use": "回气",
+        "trigger": "寒流直击命中",
+        "finish": "水光回到当前站位，命中回气一次",
+        "stance": "收肘引剑，水光沿回线归来"
+      },
+      {
+        "id": "dui-li",
+        "main": "dui",
+        "sub": "li",
+        "hexagram": "火泽睽",
+        "name": "分灯照影",
+        "use": "分击",
+        "trigger": "回锋直击命中",
+        "finish": "主灯照命中者，副灯照其后最近敌人",
+        "stance": "转腕分光，两点灯火依次亮起"
+      }
     ]
   },
   "state": {
     "ruleset_id": "journey-v1",
-    "schema_version": 1,
+    "schema_version": 2,
     "rank": 0,
     "beads": [
       {
@@ -821,13 +1127,48 @@
         "earth": 0,
         "metal": 0,
         "water": 0
+      },
+      "route_clears": {
+        "fire:ridge": 0,
+        "fire:hollow": 0,
+        "wood:ridge": 0,
+        "wood:hollow": 0,
+        "earth:ridge": 0,
+        "earth:hollow": 0,
+        "metal:ridge": 0,
+        "metal:hollow": 0,
+        "water:ridge": 0,
+        "water:hollow": 0
       }
     },
-    "active_trial": null
+    "training": {
+      "sword": 0,
+      "step": 0,
+      "guard": 0
+    },
+    "cosmetics": {
+      "tickets": 0,
+      "owned": [
+        "plain"
+      ],
+      "equipped": "plain"
+    },
+    "active_trial": null,
+    "story": {
+      "version": 1,
+      "intro_read": false,
+      "read_clues": [],
+      "completed": false,
+      "commissions": [],
+      "bounty": null,
+      "claimed": []
+    }
   },
   "revision": 0,
   "compiled": {
     "campaign": true,
+    "combat_version": 3,
+    "combo": null,
     "ruleset_id": "journey-v1",
     "used": 5,
     "capacity": 6,
@@ -866,6 +1207,12 @@
       "li.edge",
       "li.trace"
     ],
+    "training": {
+      "sword": 0,
+      "step": 0,
+      "guard": 0
+    },
+    "cosmetic": "plain",
     "skill": {
       "enabled": true,
       "burn_damage": 4
@@ -874,5 +1221,181 @@
   "receipt": null,
   "replayed": false,
   "trial_compiled": null,
+  "guide": {
+    "saved": {
+      "skills": [
+        {
+          "id": "li",
+          "name": "离火",
+          "element": "fire",
+          "damage": 28,
+          "cost": 16,
+          "cooldown": 1.5,
+          "range": 170,
+          "variant": "锐式",
+          "extra": "灼烧3秒，每秒4；再次命中刷新计时"
+        },
+        null
+      ],
+      "minds": [
+        {
+          "id": "gen",
+          "text": "防御 +2"
+        }
+      ],
+      "used": 5,
+      "capacity": 6
+    },
+    "catalog": {
+      "qian": {
+        "skill": null,
+        "base_skill": {
+          "id": "qian",
+          "name": "贯剑",
+          "element": "metal",
+          "damage": 18,
+          "cost": 12,
+          "cooldown": 1.5,
+          "range": 300,
+          "variant": "基础",
+          "extra": "前方远距直击，不追踪"
+        },
+        "mind": "基础攻击 +2",
+        "mind_level": 1
+      },
+      "kun": {
+        "skill": null,
+        "base_skill": {
+          "id": "kun",
+          "name": "承岳",
+          "element": "earth",
+          "damage": 18,
+          "cost": 12,
+          "cooldown": 1.5,
+          "range": 170,
+          "variant": "基础",
+          "extra": "推开：普通敌人70，首领15"
+        },
+        "mind": "最大生命 +15",
+        "mind_level": 1
+      },
+      "zhen": {
+        "skill": null,
+        "base_skill": {
+          "id": "zhen",
+          "name": "震荡",
+          "element": "wood",
+          "damage": 18,
+          "cost": 12,
+          "cooldown": 1.5,
+          "range": 170,
+          "variant": "基础",
+          "extra": "普通敌人蓄势打断，攻击间隔至少0.6秒；首领不硬控"
+        },
+        "mind": "劈砍击退 10，首领 2",
+        "mind_level": 1
+      },
+      "xun": {
+        "skill": null,
+        "base_skill": {
+          "id": "xun",
+          "name": "贯风",
+          "element": "wood",
+          "damage": 18,
+          "cost": 12,
+          "cooldown": 1.5,
+          "range": 170,
+          "variant": "基础",
+          "extra": "向前最多180距离，短时保护0.2秒；地形可能缩短"
+        },
+        "mind": "移动速度 +12",
+        "mind_level": 1
+      },
+      "kan": {
+        "skill": null,
+        "base_skill": {
+          "id": "kan",
+          "name": "寒流",
+          "element": "water",
+          "damage": 18,
+          "cost": 12,
+          "cooldown": 1.5,
+          "range": 220,
+          "variant": "基础",
+          "extra": "减速：普通敌人2秒，首领0.8秒"
+        },
+        "mind": "技能冷却 ×0.90",
+        "mind_level": 1
+      },
+      "li": {
+        "skill": {
+          "id": "li",
+          "name": "离火",
+          "element": "fire",
+          "damage": 28,
+          "cost": 16,
+          "cooldown": 1.5,
+          "range": 170,
+          "variant": "锐式",
+          "extra": "灼烧3秒，每秒4；再次命中刷新计时"
+        },
+        "base_skill": {
+          "id": "li",
+          "name": "离火",
+          "element": "fire",
+          "damage": 18,
+          "cost": 12,
+          "cooldown": 1.5,
+          "range": 170,
+          "variant": "基础",
+          "extra": "灼烧3秒，每秒4；再次命中刷新计时"
+        },
+        "mind": "技能直击 +2",
+        "mind_level": 1
+      },
+      "gen": {
+        "skill": {
+          "id": "gen",
+          "name": "止戈",
+          "element": "earth",
+          "damage": 18,
+          "cost": 12,
+          "cooldown": 1.5,
+          "range": 170,
+          "variant": "基础",
+          "extra": "护盾12，持续3秒，不累加"
+        },
+        "base_skill": {
+          "id": "gen",
+          "name": "止戈",
+          "element": "earth",
+          "damage": 18,
+          "cost": 12,
+          "cooldown": 1.5,
+          "range": 170,
+          "variant": "基础",
+          "extra": "护盾12，持续3秒，不累加"
+        },
+        "mind": "防御 +2",
+        "mind_level": 1
+      },
+      "dui": {
+        "skill": null,
+        "base_skill": {
+          "id": "dui",
+          "name": "回锋",
+          "element": "metal",
+          "damage": 18,
+          "cost": 12,
+          "cooldown": 1.5,
+          "range": 170,
+          "variant": "基础",
+          "extra": "命中回8剑意，每次施放一次"
+        },
+        "mind": "剑意恢复 +1/秒",
+        "mind_level": 1
+      }
+    }
+  },
   "owner_id": null
 }

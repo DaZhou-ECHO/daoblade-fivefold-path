@@ -1,0 +1,226 @@
+{
+  "desktop": [
+    {
+      "realm": "fire",
+      "viewport": [
+        1280,
+        720
+      ],
+      "canvas": [
+        960,
+        540
+      ],
+      "local_load_ms": 422.2000000178814,
+      "asset_failures": 0,
+      "legacy": {
+        "mode": "Canvas",
+        "draw_ms": {
+          "mean": 0.17916666542490323,
+          "p95": 0.30000001192092896
+        },
+        "frame_interval_ms": {
+          "mean": 6.060833333333236,
+          "p95": 6.199999999982538
+        },
+        "frames": 120
+      },
+      "png": {
+        "mode": "PNG",
+        "draw_ms": {
+          "mean": 0.33750000074505804,
+          "p95": 0.5
+        },
+        "frame_interval_ms": {
+          "mean": 6.060833333333479,
+          "p95": 6.2000000000116415
+        },
+        "frames": 120
+      }
+    },
+    {
+      "realm": "wood",
+      "viewport": [
+        1280,
+        720
+      ],
+      "canvas": [
+        960,
+        540
+      ],
+      "local_load_ms": 422.2000000178814,
+      "asset_failures": 0,
+      "legacy": {
+        "mode": "Canvas",
+        "draw_ms": {
+          "mean": 0.10999999841054281,
+          "p95": 0.20000001788139343
+        },
+        "frame_interval_ms": {
+          "mean": 6.061666666666619,
+          "p95": 6.199999999982538
+        },
+        "frames": 120
+      },
+      "png": {
+        "mode": "PNG",
+        "draw_ms": {
+          "mean": 0.3658333328862985,
+          "p95": 0.5
+        },
+        "frame_interval_ms": {
+          "mean": 6.061666666666619,
+          "p95": 6.199999999982538
+        },
+        "frames": 120
+      }
+    },
+    {
+      "realm": "earth",
+      "viewport": [
+        1280,
+        720
+      ],
+      "canvas": [
+        960,
+        540
+      ],
+      "local_load_ms": 422.2000000178814,
+      "asset_failures": 0,
+      "legacy": {
+        "mode": "Canvas",
+        "draw_ms": {
+          "mean": 0.10083333378036817,
+          "p95": 0.20000001788139343
+        },
+        "frame_interval_ms": {
+          "mean": 6.060000000000097,
+          "p95": 6.199999999982538
+        },
+        "frames": 120
+      },
+      "png": {
+        "mode": "PNG",
+        "draw_ms": {
+          "mean": 0.36333333353201547,
+          "p95": 0.5
+        },
+        "frame_interval_ms": {
+          "mean": 6.111666666666618,
+          "p95": 6.2000000000116415
+        },
+        "frames": 120
+      }
+    },
+    {
+      "realm": "metal",
+      "viewport": [
+        1280,
+        720
+      ],
+      "canvas": [
+        960,
+        540
+      ],
+      "local_load_ms": 422.2000000178814,
+      "asset_failures": 0,
+      "legacy": {
+        "mode": "Canvas",
+        "draw_ms": {
+          "mean": 0.11999999905625978,
+          "p95": 0.20000001788139343
+        },
+        "frame_interval_ms": {
+          "mean": 6.060833333333236,
+          "p95": 6.2000000000116415
+        },
+        "frames": 120
+      },
+      "png": {
+        "mode": "PNG",
+        "draw_ms": {
+          "mean": 0.35749999980131786,
+          "p95": 0.5
+        },
+        "frame_interval_ms": {
+          "mean": 6.060000000000097,
+          "p95": 6.100000000005821
+        },
+        "frames": 120
+      }
+    },
+    {
+      "realm": "water",
+      "viewport": [
+        1280,
+        720
+      ],
+      "canvas": [
+        960,
+        540
+      ],
+      "local_load_ms": 422.2000000178814,
+      "asset_failures": 0,
+      "legacy": {
+        "mode": "Canvas",
+        "draw_ms": {
+          "mean": 0.10416666741172473,
+          "p95": 0.20000001788139343
+        },
+        "frame_interval_ms": {
+          "mean": 6.061666666666619,
+          "p95": 6.199999999982538
+        },
+        "frames": 120
+      },
+      "png": {
+        "mode": "PNG",
+        "draw_ms": {
+          "mean": 0.34666666636864346,
+          "p95": 0.5
+        },
+        "frame_interval_ms": {
+          "mean": 6.060833333333236,
+          "p95": 6.2000000000116415
+        },
+        "frames": 120
+      }
+    }
+  ],
+  "narrow": {
+    "realm": "fire",
+    "viewport": [
+      491,
+      668
+    ],
+    "canvas": [
+      960,
+      540
+    ],
+    "local_load_ms": 207.59999999403954,
+    "asset_failures": 0,
+    "legacy": {
+      "mode": "Canvas",
+      "draw_ms": {
+        "mean": 0.22333333492279053,
+        "p95": 0.4000000059604645
+      },
+      "frame_interval_ms": {
+        "mean": 6.06,
+        "p95": 6.2999999999999545
+      },
+      "frames": 120
+    },
+    "png": {
+      "mode": "PNG",
+      "draw_ms": {
+        "mean": 0.37916666666666665,
+        "p95": 0.5
+      },
+      "frame_interval_ms": {
+        "mean": 6.059999999999999,
+        "p95": 6.2999999999999545
+      },
+      "frames": 120
+    }
+  }
+}

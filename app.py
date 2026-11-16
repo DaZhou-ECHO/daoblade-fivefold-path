@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import os
+import json
 import re
 import secrets
 import sqlite3
 from pathlib import Path
 
-from flask import Flask, jsonify, render_template, request, session
+from flask import Flask, jsonify, render_template, request, session, g
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from database import init_app as init_database
@@ -19,6 +20,7 @@ from array_lab import CONFIG as LAB_CONFIG, default_lab_state, validate_lab_stat
 from database import load_lab_record, save_lab_state
 from array_lab_trials import transition_trial
 import journey
+import save_slots
 
 
 def create_app(test_config: dict | None = None) -> Flask:
@@ -30,11 +32,18 @@ def create_app(test_config: dict | None = None) -> Flask:
         JSON_AS_ASCII=False,
         SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SAMESITE="Lax",
+        LEGACY_DIAGNOSTICS=False,
     )
     if test_config:
         app.config.update(test_config)
     Path(app.instance_path).mkdir(parents=True, exist_ok=True)
     init_database(app)
+
+    @app.before_request
+    def retired_apis():
+        if not app.config["LEGACY_DIAGNOSTICS"] and (request.path in {"/api/state", "/api/reset", "/api/journey/import-preview", "/api/journey/import-confirm"}
+                or request.path.startswith("/api/lab/")):
+            return jsonify(error="旧版接口已停用，请使用正式征程"), 410
 
     def current_user():
         user_id = session.get("user_id")
@@ -43,7 +52,43 @@ def create_app(test_config: dict | None = None) -> Flask:
         return get_db().execute("SELECT id, username FROM users WHERE id=?", (user_id,)).fetchone()
 
     def save_slot(user):
+        if hasattr(g, "journey_slot"):
+            return g.journey_slot
         return f"user:{user['id']}" if user else "local"
+
+    @app.before_request
+    def scope_journey():
+        if not (request.path.startswith("/api/journey") or request.path == "/api/auth/import-guest"):
+            return None
+        user = current_user()
+        payload = request.get_json(silent=True) or {}
+        save_id = request.args.get("save_id") if request.method == "GET" else payload.get("save_id") if isinstance(payload, dict) else None
+        # Historical diagnostics deliberately exercise the retired single-slot contract.
+        if save_id is None and app.config["LEGACY_DIAGNOSTICS"]:
+            return None
+        try:
+            g.journey_slot = save_slots.resolve(user["id"] if user else None, save_id)
+        except ValueError as exc:
+            return jsonify(error=str(exc)), 409
+
+    @app.route("/api/saves", methods=["GET", "POST"])
+    @app.route("/api/saves/<save_id>", methods=["PATCH", "DELETE"])
+    def saves(save_id=None):
+        user = current_user()
+        owner = user["id"] if user else None
+        try:
+            if request.method == "GET":
+                return jsonify(saves=save_slots.listing(owner), owner_id=owner)
+            if not csrf_ok(user):
+                return jsonify(error="会话校验失败"), 403
+            payload = request.get_json(silent=True)
+            if not isinstance(payload, dict):
+                raise ValueError("请求必须是JSON对象")
+            save_slots.register_old(owner) if owner is not None else None
+            result = save_slots.edit(owner, save_id, request.method, payload)
+            return jsonify(save_id=result, saves=save_slots.listing(owner)), 201 if request.method == "POST" else 200
+        except ValueError as exc:
+            return jsonify(error=str(exc)), 409
 
     def csrf_ok(user):
         return not user or secrets.compare_digest(
@@ -114,18 +159,42 @@ def create_app(test_config: dict | None = None) -> Flask:
             return jsonify(error="请先登录"), 401
         if not csrf_ok(user):
             return jsonify(error="会话校验失败"), 403
-        if load_state_record(save_slot(user)):
-            return jsonify(error="账号已有存档，不能覆盖"), 409
-        guest = load_state_record("local")
-        if not guest:
-            return jsonify(error="没有可导入的游客存档"), 404
-        state = validate_state(guest["state"], guest["state"])
-        revision = save_state(state, save_slot(user), 0, user["id"])
-        return jsonify(ok=True, state=state, revision=revision, contract=rules_metadata())
+        db = get_db()
+        db.execute("BEGIN IMMEDIATE")
+        try:
+            if journey.unification_required("local") or journey.unification_required(save_slot(user)):
+                db.rollback()
+                return jsonify(error="请先分别完成游客与账号的单档合并"), 409
+            guest_journey = db.execute("SELECT state_json, revision FROM journey_saves WHERE slot='local'").fetchone()
+            target = save_slot(user)
+            if target.startswith("save:") and not db.execute("SELECT 1 FROM save_directory WHERE storage=?", (target,)).fetchone():
+                db.rollback()
+                return jsonify(error="征程已被删除，请重新选档"), 409
+            imported = db.execute("SELECT target,receipt_json FROM guest_imports WHERE source='local'").fetchone()
+            if imported:
+                db.rollback()
+                if imported["target"] == target:
+                    return jsonify(ok=True, journey_imported=True, replayed=True)
+                return jsonify(error="该游客征程已导入其他存档，不能重复复制"), 409
+            if not guest_journey:
+                db.rollback()
+                return jsonify(error="没有可导入的游客存档"), 404
+            if db.execute("SELECT 1 FROM journey_saves WHERE slot=?", (target,)).fetchone():
+                db.rollback()
+                return jsonify(error="账号已有征程存档，不能覆盖"), 409
+            state = journey.normalize_journey(json.loads(guest_journey["state_json"]))
+            db.execute("INSERT INTO journey_saves VALUES(?,?,1)", (target, json.dumps(state, ensure_ascii=False)))
+            db.execute("INSERT INTO journey_results SELECT ?,trial_id,receipt_json FROM journey_results WHERE slot='local'", (target,))
+            db.execute("INSERT INTO guest_imports VALUES('local',?,?)", (target, json.dumps({"journey_imported": True})))
+            db.commit()
+            return jsonify(ok=True, journey_imported=True)
+        except Exception:
+            db.rollback()
+            raise
 
     @app.get("/")
     def index():
-        return render_template("index.html", ruleset=get_ruleset())
+        return render_template("index.html", ruleset=get_ruleset(), journey_maps=journey.MAPS_V2)
 
     @app.get("/api/rules")
     def get_rules():
@@ -230,8 +299,77 @@ def create_app(test_config: dict | None = None) -> Flask:
     @app.get("/api/journey")
     def get_journey():
         user = current_user()
-        state, revision = journey.read_journey(save_slot(user))
-        return jsonify(**journey.response(state, revision), config=journey.CONFIG, owner_id=user["id"] if user else None)
+        try:
+            state, revision = journey.read_journey(save_slot(user))
+            return jsonify(**journey.response(state, revision), config=journey.CONFIG,
+                           owner_id=user["id"] if user else None,
+                           migration_required=journey.unification_required(save_slot(user)))
+        except ValueError as exc:
+            return jsonify(error=str(exc)), 400
+
+    @app.post("/api/journey/practice-preview")
+    @app.post("/api/journey/build-preview")
+    def journey_build_preview():
+        user = current_user()
+        if not csrf_ok(user):
+            return jsonify(error="会话校验失败"), 403
+        payload = request.get_json(silent=True)
+        owner = user["id"] if user else None
+        if not isinstance(payload, dict) or type(payload.get("revision")) is not int or payload["revision"] < 0:
+            return jsonify(error="缺少有效版本号"), 400
+        if "owner_id" not in payload or type(payload["owner_id"]) is not type(owner) or payload["owner_id"] != owner:
+            return jsonify(error="账号已变化，请重读征程"), 409
+        try:
+            if request.path.endswith("practice-preview"):
+                return jsonify(journey.preview_sword_practice(save_slot(user), payload["revision"], payload))
+            return jsonify(journey.preview_build(save_slot(user), payload["revision"], payload.get("nodes"), payload.get("loadout")))
+        except (ValueError, TypeError, KeyError) as exc:
+            return jsonify(error=str(exc) if isinstance(exc, ValueError) else "构筑字段无效"), 409 if "其他窗口" in str(exc) else 400
+
+    @app.get("/api/journey/unify-preview")
+    def journey_import_preview():
+        try:
+            return jsonify(**journey.unify_preview(save_slot(current_user())))
+        except ValueError as exc:
+            return jsonify(error=str(exc)), 400
+
+    @app.post("/api/journey/unify-confirm")
+    def journey_import_confirm():
+        user = current_user()
+        if not csrf_ok(user):
+            return jsonify(error="会话校验失败"), 403
+        payload = request.get_json(silent=True)
+        owner = user["id"] if user else None
+        if (not isinstance(payload, dict) or payload.get("owner_id") != owner
+                or type(payload.get("revisions")) is not dict):
+            return jsonify(error="账号或预览版本无效，请重新预览"), 409
+        try:
+            return jsonify(**journey.unify_confirm(save_slot(user), payload["revisions"]))
+        except ValueError as exc:
+            return jsonify(error=str(exc)), 409
+
+    @app.get("/api/journey/import-preview")
+    def legacy_import_preview():
+        try:
+            return jsonify(**journey.import_preview(save_slot(current_user())))
+        except ValueError as exc:
+            return jsonify(error=str(exc)), 400
+
+    @app.post("/api/journey/import-confirm")
+    def legacy_import_confirm():
+        user = current_user()
+        if not csrf_ok(user):
+            return jsonify(error="会话校验失败"), 403
+        payload = request.get_json(silent=True)
+        owner = user["id"] if user else None
+        if (not isinstance(payload, dict) or payload.get("owner_id") != owner
+                or type(payload.get("legacy_revision")) is not int
+                or type(payload.get("journey_revision")) is not int):
+            return jsonify(error="账号或预览版本无效，请重新预览"), 409
+        try:
+            return jsonify(**journey.confirm_import(save_slot(user), payload["legacy_revision"], payload["journey_revision"]))
+        except ValueError as exc:
+            return jsonify(error=str(exc)), 409
 
     @app.post("/api/journey")
     def journey_action():

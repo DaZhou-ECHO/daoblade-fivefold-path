@@ -923,6 +923,29 @@ test("032 八宫选中技能进入真实引擎，各自元素/机制，拆核心
   }
 });
 
+test("040 师门被动只强化基础劈砍、移动和生命，挑战快照固定等级",()=>{
+  const api=gameContext(),base=require('./helpers/journey-builds.json')[1];
+  const trained=JSON.parse(JSON.stringify(base));trained.training={sword:3,step:3,guard:3};
+  const trial={id:'teacher-040',realm_id:'fire',map_id:'ridge',combat_version:2,map_version:2,checkpoint:null,claimed_altars:[]};
+  const ordinary=new api.BattleGame('fire',{labTrial:trial,labCompiled:base});
+  const mastered=new api.BattleGame('fire',{labTrial:trial,labCompiled:trained});
+  assert.equal(mastered.stats.speed,ordinary.stats.speed*1.06);
+  assert.equal(mastered.stats.hpMax,ordinary.stats.hpMax+15);
+  const strikes=[];
+  for(const game of [ordinary,mastered]){
+    const p=game.player;p.combo=1;p.slash=.15;p.slashDuration=.28;p.attackId=4;game.stats.crit=0;
+    game.enemies=[game.enemy('dummy','师门试剑目标',p.x+p.w+12,1000,'dummy')];
+    game.enemies[0].y=p.y;game.enemies[0].h=p.h;game.hazards=[];
+    const hit=game.hitEnemy.bind(game);game.hitEnemy=(enemy,damage,crit,dot,kind,...rest)=>{if(kind==='slash')strikes.push(damage);return hit(enemy,damage,crit,dot,kind,...rest);};
+  }
+  const hpA=ordinary.enemies[0].hp,hpB=mastered.enemies[0].hp;
+  ordinary.update(1/60);mastered.update(1/60);
+  const damageA=hpA-ordinary.enemies[0].hp,damageB=hpB-mastered.enemies[0].hp;
+  assert.ok(damageA>0&&damageB>damageA);
+  assert.equal(strikes.length,2);
+  assert.ok(Math.abs(strikes[1]/strikes[0]-1.09)<.001);
+});
+
 
 test("032 十张地图两条支路基础单跳到达并双向返回主路",()=>{
   const levels=require('../static/js/level-definitions.js'),compiled=require('./helpers/journey-builds.json').find(b=>b.skills[0].id==='li');

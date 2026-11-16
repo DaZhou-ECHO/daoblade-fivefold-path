@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 600">
+<defs>
+ <pattern id="paper" width="22" height="18" patternUnits="userSpaceOnUse"><rect width="22" height="18" fill="#d9d3b3"/><path d="M0 4h11m6 9h5" stroke="#c4c2a4" opacity=".5"/></pattern>
+ <pattern id="woods" width="24" height="27" patternUnits="userSpaceOnUse"><path d="m12 2-9 17h6v6h6v-6h6Z" fill="#708574" opacity=".55"/></pattern>
+ <g id="peak"><path d="m-85 58 45-67 18 19L0-55 25 3 39-9 87 58Z" fill="#89968a" stroke="#657e76" stroke-width="3"/><path d="m-21 12 21-67 25 58L5-15-4 3Z" fill="#d6dcc5"/><path d="m0-22 7 40-25 30m43-39 12 31" fill="none" stroke="#6a8278" stroke-width="3"/></g>
+ <g id="hall"><path d="M-34 0h68v35h-68" fill="#786d50" stroke="#4d635b" stroke-width="3"/><path d="m-48 0 18-13 30-20 30 20L48 0Z" fill="#4d7169" stroke="#3b5d56" stroke-width="3"/><path d="M-40 0h80M-9 12H9v23H-9Z" fill="#c9b880" stroke="#385950" stroke-width="3"/></g>
+</defs>
+<rect width="1000" height="600" fill="url(#paper)"/>
+<path d="M0 104Q170 20 315 85T615 65 1000 105M0 493q145-53 262 18t327 23 411-34" fill="none" stroke="#b0b69c" stroke-width="36" opacity=".45"/>
+<g opacity=".7"><use href="#peak" x="80" y="120"/><use href="#peak" x="140" y="78"/><use href="#peak" x="416" y="80"/><use href="#peak" x="560" y="72"/><use href="#peak" x="924" y="240"/><use href="#peak" x="96" y="418"/><use href="#peak" x="834" y="488"/></g>
+<path d="M771 0q-82 76-66 131t-43 96-81 90 7 104-62 87-92 92" fill="none" stroke="#839f98" stroke-width="30"/>
+<path d="M771 0q-82 76-66 131t-43 96-81 90 7 104-62 87-92 92" fill="none" stroke="#b3cbc0" stroke-width="19"/>
+<path d="M286 152q49 120 212 165m-272 7q159 35 272-7t261-50m-261 50q40-99 250-202m-250 202q-11 112 41 158" fill="none" stroke="#9a8e69" stroke-width="12"/>
+<path d="M286 152q49 120 212 165m-272 7q159 35 272-7t261-50m-261 50q40-99 250-202m-250 202q-11 112 41 158" fill="none" stroke="#ece2bb" stroke-width="6" stroke-dasharray="13 7"/>
+<path d="M701 221h47m-17-12v28M564 352h45m-24-12v25" stroke="#716a50" stroke-width="6"/>
+<path d="m673 247 90-45 114 46-16 106-158 16-60-58Z" fill="url(#woods)"/>
+<g transform="translate(280 87)"><path d="m-57 20 25-66 8 66m34 3 6-78 10 78m24-2 19-66 1 66" fill="#627e7d" stroke="#4c6663" stroke-width="3"/><use href="#hall" y="10"/></g>
+<g transform="translate(760 80)"><use href="#peak"/><path d="M-27-10h54v20h-54m8-36h38v17h-38" fill="#b4805c"/><use href="#hall" y="5"/></g>
+<g transform="translate(220 280)"><path d="M-68 45h136v-13H-68m18-15H50V3H-50m19-16h62v-16h-62" fill="#9c9473" stroke="#6a7766" stroke-width="2"/><use href="#hall" y="-32"/></g>
+<g transform="translate(780 222)"><path d="M-70 12q68-38 138 0M-55 0v28m110-28v28" fill="none" stroke="#756950" stroke-width="8"/><use href="#hall" y="-28"/></g>
+<ellipse cx="540" cy="463" rx="91" ry="42" fill="#9bbcb4" stroke="#779e98" stroke-width="4"/><path d="M468 466h142m-124 13h86m-63 13h81" stroke="#c1d6c6" stroke-width="3"/>
+<use href="#hall" x="540" y="421"/>
+<g transform="translate(493 310)"><use href="#hall" x="-33" y="-16"/><use href="#hall" x="36" y="-1"/><path d="M-10 36h28v12h-28" fill="#7e9a87"/></g>
+<g fill="#3c5c52" font-family="serif"><text x="495" y="380" text-anchor="middle" font-size="23">青云村 · 行旅起点</text><text x="45" y="51" font-size="25">青岚山川</text><text x="46" y="76" font-size="13">道路相通，五地自由调查</text><text x="880" y="43" font-size="19">北 ↑</text><text x="50" y="563" font-size="14">西去镜湖城 · 海路远接行舟墟</text><text x="682" y="565" font-size="14">图外洞天，尚待问路</text></g>
+<path d="M363 203q53-15 118 0m-95 9h122m336 168q59-14 118 0m-109 11h135" fill="none" stroke="#ece9cf" stroke-width="9" opacity=".8"/>
+</svg>

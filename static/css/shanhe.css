@@ -1,0 +1,51 @@
+/* 048 desktop journey presentation. */
+#game-canvas{display:block;width:100%;height:100%;max-width:none;max-height:none;margin:0;aspect-ratio:auto;object-fit:fill}
+#panel-game .canvas-wrap{display:block;position:relative;overflow:hidden;width:100vw;height:100dvh}
+body:has(#panel-game.active){overflow:hidden}
+#panel-game .game-heading{max-width:36%;background:#102c3699;font-size:12px}
+#enemy-readout{top:114px;max-width:35%;background:#102c3680}
+#route-readout{top:157px;max-width:35%;background:#102c3680}
+.scene-battle-stats{width:200px;background:#102c36ae;border:1px solid #8eaa9c66}
+#skill-hud{bottom:12px;background:#102c36ad;border:1px solid #9fba9266}
+.scene-boss{position:absolute;z-index:5;top:18px;left:50%;transform:translateX(-50%);width:min(360px,28vw);padding:8px 12px;text-align:center;background:#102c36b8;color:#f1d399}.scene-boss meter{display:block;width:100%;height:15px;accent-color:#d5a16b}.scene-boss[hidden]{display:none}
+#panel-game .game-heading .objective-text{display:block}#enemy-readout{display:none}#route-readout{top:94px;max-height:38px;overflow:hidden}
+#scene-village-skills{display:none}
+.village-heading{max-width:340px}.village-prompt{bottom:26px}
+.village-hud [data-go=shop]{display:none}
+.village-hud{gap:10px}.village-hud button{width:62px;box-shadow:3px 3px #0c252e99}
+body.board-screen .bagua-workspace{grid-template-columns:minmax(0,2fr) minmax(300px,1fr)}
+body.board-screen .bagua-chart-wrap{grid-column:1}body.board-screen .scene-node-editor{grid-column:2}
+body.board-screen .bagua-palaces{max-width:570px;width:min(100%,calc(100dvh - 400px))}
+body.board-screen #panel-journey{padding-bottom:180px!important}
+body.board-screen .bagua-talismans{position:fixed;bottom:66px;left:0;right:0;z-index:39;background:#14383df5;border-top:1px solid #a7a278;padding:6px 22px;margin:0}
+body.board-screen .bagua-talismans>.eyebrow{display:none}
+body.board-screen .bagua-slots{grid-template-columns:repeat(4,minmax(0,1fr));max-width:none;gap:10px}
+body.board-screen .bagua-slot{min-height:62px;padding:5px;display:flex;align-items:center;justify-content:center;gap:10px}
+body.board-screen .bagua-slot .bagua-trigram{display:none}
+body.board-screen .bagua-inspector{display:none}
+body.board-screen .bagua-inspector.scene-guide-open{display:block;position:fixed;right:20px;top:72px;bottom:90px;width:min(500px,45vw);z-index:35;overflow:auto;background:#13343cf5;box-shadow:0 0 0 100vmax #081b2955}
+body.board-screen .bagua-inspector .scene-mobile-open{display:block}
+#bagua-tabs [data-bagua-tab=board]{display:none}
+.save-cards{display:grid;gap:12px}.save-card{padding:14px;background:#12343c;border:1px solid #93a48b}
+.save-card h4{margin:0;color:#eed398;font-size:21px}.save-card p{white-space:pre-line;font-size:13px;line-height:1.6}
+.save-card button{margin:3px;font-size:13px;padding:8px;min-height:44px}#save-error,#quest-error{color:#f7ad91}
+.entry-screen:has(#save-selection:not([hidden])) .entry-shell{max-width:1250px;grid-template-columns:250px 1fr}
+.entry-screen:has(#save-selection:not([hidden])) .entry-panel{max-height:93dvh;overflow:auto}
+.entry-screen:has(#save-selection:not([hidden])) .save-cards{grid-template-columns:repeat(3,minmax(0,1fr))}
+#shanhe-journal{width:min(1000px,90vw);max-height:90dvh;color:#e7e2c7;background:#12343b;padding:22px;border:3px solid #a4ad85}
+#shanhe-journal header{display:flex;justify-content:space-between;align-items:center;gap:18px}
+#shanhe-journal button{min-height:44px;background:#254b4d;color:#f1dfaa;border:1px solid #a1ae88;padding:8px 12px;cursor:pointer;margin:3px}
+#shanhe-journal button:disabled{opacity:.5;cursor:default}#shanhe-journal nav [aria-pressed=true]{background:#4d6553;border-color:#eed18e}
+#quest-content{max-height:58dvh;overflow:auto;padding-right:10px}#quest-content article{padding:16px;border:1px solid #668578;margin:12px 0;background:#1b4144}#quest-content h3{color:#e5ca90;margin-top:0}#quest-content p{line-height:1.75}
+#panel-atlas .atlas-map-frame{width:100%;min-width:0;aspect-ratio:5/3;min-height:0;background:#d9d3b3}
+#panel-atlas .atlas-scroll{min-width:0}#panel-atlas .atlas-landscape{width:100%;height:100%;object-fit:fill}
+#panel-atlas .atlas-realm{width:144px;min-height:56px;border-color:#657d64;background:#e4dfbd}
+#panel-atlas .atlas-layout{grid-template-columns:minmax(0,1.4fr) minmax(360px,1fr)}
+#panel-atlas .atlas-routes{grid-template-columns:1fr}
+#panel-atlas .section-heading{padding:4px 0 12px;gap:20px}#panel-atlas .section-heading h2{font-size:30px}#panel-atlas .section-heading>p{font-size:12px;max-width:52%}#panel-atlas .section-heading .eyebrow{font-size:11px;margin-bottom:5px}
+#panel-atlas .atlas-route{display:grid;grid-template-columns:115px minmax(0,1fr)}
+#panel-atlas .atlas-route-image{height:100%;min-height:145px}
+#panel-atlas .atlas-route-body{padding:10px}.atlas-route-body b{font-size:20px}
+.route-story{font-size:12px;color:#e2ce9e;margin-bottom:0}
+@media(max-width:1250px){.entry-screen:has(#save-selection:not([hidden])) .entry-shell{grid-template-columns:170px 1fr}.entry-hero h1{font-size:44px}.entry-portrait{max-width:160px}.save-card button{display:block;width:100%}#panel-atlas .atlas-layout{grid-template-columns:minmax(0,1.1fr) minmax(350px,1fr)}}
+@media(prefers-reduced-motion:reduce){#shanhe-journal *{animation:none!important}}
