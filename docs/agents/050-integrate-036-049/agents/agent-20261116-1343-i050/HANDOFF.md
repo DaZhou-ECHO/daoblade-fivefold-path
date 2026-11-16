@@ -2,13 +2,13 @@
 
 ## 身份与任务
 
-- 050-integrate-036-049 / agent-20261116-1343-i050。依据用户指令汇总代码、交接并上传 GitHub。
+- 050-integrate-036-049 / agent-20261116-1343-i050；2026-11-16 13:49 Asia/Shanghai；待验收。依据用户指令汇总代码、交接并上传 GitHub。
 - 接续入口：[037 美术修复](../../../037-map-monster-art/agents/agent-20261112-2129-w037/HANDOFF.md)、[049 八式合招](../../../049-bagua-combat/agents/agent-20261105-1155-s049/HANDOFF.md)。
 
 ## 当前代码现场
 
 - 仓库 DaZhou-ECHO/daoblade-fivefold-path；远端 develop 基线 27b7301，原候选 e868c4b，评审分支 work/050-integrate-036-049。
-- 远端基线于 2026-11-16 查询；发布状态见 [开发日志](DEVLOG.md) 和 GitHub。
+- 远端基线于 2026-11-16 查询；候选已上传，[草稿 PR #7](https://github.com/DaZhou-ECHO/daoblade-fivefold-path/pull/7) 已开放，目标 develop，未合并。详见 [开发日志](DEVLOG.md)。
 - 启动服务前检查目标端口和数据库；先前 5079 为隔离美术服务，可选择新端口。数据库和临时工具输出不进入提交。
 
 ## 已完成与未完成
@@ -25,7 +25,7 @@
 ## 验证与证据
 
 - e868c4b 工作树曾通过统一检查：153 Python、317 Node、31 个 JS 语法检查及 Agent 文档检查；50 PNG 校验、20 套怪物图集可复现。
-- 本轮无业务代码差异；新交接检查及 GitHub 核验见 [开发日志](DEVLOG.md) 与最终 PR。
+- 本轮无业务代码差异；新交接检查及 GitHub 核验见 [开发日志](DEVLOG.md) 与 [PR #7](https://github.com/DaZhou-ECHO/daoblade-fivefold-path/pull/7)。
 - 尚未验证：最终候选在实体手机、其他浏览器和完整真人流程中的可玩性。
 
 ## 下一位 Agent 的行动顺序
