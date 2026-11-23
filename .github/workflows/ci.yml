@@ -1,0 +1,74 @@
+name: DaoBlade checks
+
+on:
+  push:
+    branches: [main, develop, 'work/**']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  regression:
+    name: Regression (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    env:
+      DAOBLADE_DATABASE: work/ci.sqlite3
+      SECRET_KEY: ci-only-session-secret-not-for-release
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Python regression
+        run: python -m pytest -q -p no:cacheprovider --basetemp work/ci-pytest
+      - name: Frontend regression
+        run: node --test
+      - name: JavaScript syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in static/js/*.js; do node --check "$file"; done
+      - name: Agent documents and links
+        run: python tools/check_agent_docs.py
+      - name: Git whitespace
+        run: git diff --check
+
+  assets:
+    name: World art assets
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      # 这个任务故意只装 Pillow 与 pytest：美术校验不应依赖 Flask 等运行时依赖，
+      # tests/conftest.py 只在 app 夹具里延迟导入应用。
+      - name: Install art dependencies
+        run: python -m pip install -r requirements-art.txt pytest
+      - name: Character sprite validation
+        run: python tools/check_character_art.py
+      - name: World sprite validation
+        run: python tools/check_world_art.py
+      - name: Pillow asset regression
+        run: python -m pytest -q -p no:cacheprovider tests/test_world_art.py --basetemp work/ci-art

@@ -10,6 +10,7 @@ import sqlite3
 from pathlib import Path
 
 from flask import Flask, jsonify, render_template, request, session, g
+from werkzeug.exceptions import HTTPException
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from database import init_app as init_database
@@ -23,20 +24,71 @@ import journey
 import save_slots
 
 
-def create_app(test_config: dict | None = None) -> Flask:
-    app = Flask(__name__, instance_relative_config=True)
+DEFAULT_SECRET_KEY_FILENAME = "session-secret.key"
+
+API_ERROR_TEXT = {
+    400: "请求格式无效",
+    401: "请先登录账号",
+    403: "会话校验失败，请刷新页面后重试",
+    404: "接口或资源不存在",
+    405: "接口不支持该请求方法",
+    409: "存档状态已变化，请刷新后重试",
+    413: "请求体超过 1MB 上限",
+    415: "请求内容类型不受支持",
+    429: "请求过于频繁，请稍后再试",
+    500: "服务器内部错误，请稍后重试",
+}
+
+
+def resolve_secret_key(instance_path: str | Path) -> tuple[str, str]:
+    """返回（会话密钥，来源）。来源为 env / file / generated。
+
+    未显式设置 SECRET_KEY 时，把随机密钥写入 instance/session-secret.key 并复用，
+    避免公开的默认密钥伪造会话，同时保证重启后登录状态不失效。
+    """
+    env_secret = os.getenv("SECRET_KEY", "").strip()
+    if env_secret:
+        return env_secret, "env"
+    key_path = Path(instance_path) / DEFAULT_SECRET_KEY_FILENAME
+    try:
+        stored = key_path.read_text(encoding="utf-8").strip()
+    except OSError:
+        stored = ""
+    if len(stored) >= 32:
+        return stored, "file"
+    secret = secrets.token_urlsafe(48)
+    key_path.parent.mkdir(parents=True, exist_ok=True)
+    key_path.write_text(secret + "\n", encoding="utf-8")
+    try:
+        key_path.chmod(0o600)
+    except OSError:
+        pass
+    return secret, "generated"
+
+
+def create_app(test_config: dict | None = None, instance_path: str | None = None) -> Flask:
+    app = Flask(__name__, instance_relative_config=True, instance_path=instance_path)
     app.config.from_mapping(
-        SECRET_KEY=os.getenv("SECRET_KEY", "local-daoblade-development"),
+        SECRET_KEY=None,
         DATABASE=os.getenv("DAOBLADE_DATABASE") or str(Path(app.instance_path) / "daoblade.sqlite3"),
         MAX_CONTENT_LENGTH=1024 * 1024,
-        JSON_AS_ASCII=False,
         SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SAMESITE="Lax",
         LEGACY_DIAGNOSTICS=False,
     )
+    # Flask 3 用 json provider 取代已废弃的 JSON_AS_ASCII；中文错误直接可读，便于前端与排障。
+    app.json.ensure_ascii = False
     if test_config:
         app.config.update(test_config)
     Path(app.instance_path).mkdir(parents=True, exist_ok=True)
+    if not app.config.get("SECRET_KEY"):
+        secret, source = resolve_secret_key(app.instance_path)
+        app.config["SECRET_KEY"] = secret
+        if source == "generated":
+            app.logger.warning(
+                "未设置 SECRET_KEY，已生成本机会话密钥 %s；多人试用时请通过环境变量固定。",
+                Path(app.instance_path) / DEFAULT_SECRET_KEY_FILENAME,
+            )
     init_database(app)
 
     @app.before_request
@@ -70,6 +122,14 @@ def create_app(test_config: dict | None = None) -> Flask:
             g.journey_slot = save_slots.resolve(user["id"] if user else None, save_id)
         except ValueError as exc:
             return jsonify(error=str(exc)), 409
+
+    @app.errorhandler(HTTPException)
+    def http_error(exc: HTTPException):
+        """API 请求一律返回 JSON，页面请求沿用 Flask 默认页面。"""
+        if not (request.path.startswith("/api/") or request.is_json):
+            return exc.get_response()
+        message = API_ERROR_TEXT.get(exc.code or 500, exc.description or "请求失败")
+        return jsonify(error=message, status=exc.code), exc.code
 
     @app.route("/api/saves", methods=["GET", "POST"])
     @app.route("/api/saves/<save_id>", methods=["PATCH", "DELETE"])
@@ -389,7 +449,18 @@ def create_app(test_config: dict | None = None) -> Flask:
 
     @app.get("/api/health")
     def health():
-        return jsonify(status="ok", game="本命剑：八荒五行")
+        try:
+            get_db().execute("SELECT 1").fetchone()
+            database_ok = True
+        except sqlite3.Error:
+            database_ok = False
+        payload = jsonify(
+            status="ok" if database_ok else "degraded",
+            game="本命剑：八荒五行",
+            database=database_ok,
+            rules=rules_metadata(),
+        )
+        return (payload, 200) if database_ok else (payload, 503)
 
     return app
 

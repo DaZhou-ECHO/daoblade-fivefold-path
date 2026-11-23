@@ -26,11 +26,16 @@ try {
         throw 'pytest temporary directory must remain inside this repository.'
     }
     Invoke-ProjectCheck 'Python tests' $taskPython @('-m', 'pytest', '-q', '-p', 'no:cacheprovider', '--basetemp', $taskTemp)
-    $taskTests = @(Get-ChildItem -LiteralPath (Join-Path $taskRepoRoot 'tests') -Filter '*.test.cjs' -File | Sort-Object Name | ForEach-Object FullName)
-    if ($taskTests.Count -eq 0) { throw 'No frontend tests found.' }
-    Invoke-ProjectCheck 'Frontend tests (automatically discovered)' $taskNodeCommand.Source (@('--test') + $taskTests)
+    Invoke-ProjectCheck 'Frontend tests (node --test discovery)' $taskNodeCommand.Source @('--test')
     foreach ($taskScript in (Get-ChildItem -LiteralPath (Join-Path $taskRepoRoot 'static\js') -Filter '*.js' -File | Sort-Object Name)) {
         Invoke-ProjectCheck ("JS syntax: " + $taskScript.Name) $taskNodeCommand.Source @('--check', $taskScript.FullName)
+    }
+    $taskPillow = (& $taskPython -c "import importlib.util; print('yes' if importlib.util.find_spec('PIL') else 'no')").Trim()
+    if ($taskPillow -eq 'yes') {
+        Invoke-ProjectCheck 'Character sprite validation' $taskPython @('tools/check_character_art.py')
+        Invoke-ProjectCheck 'World sprite validation' $taskPython @('tools/check_world_art.py')
+    } else {
+        Write-Host "`n[Art checks skipped] Pillow missing. Install it with: .\.venv\Scripts\python.exe -m pip install -r requirements-art.txt"
     }
     Invoke-ProjectCheck 'Agent document files and links' $taskPython @('tools/check_agent_docs.py')
     Invoke-ProjectCheck 'Git whitespace' 'git' @('diff', '--check')
