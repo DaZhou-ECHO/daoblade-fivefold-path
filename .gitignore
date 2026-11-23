@@ -4,8 +4,9 @@ __pycache__/
 *.py[cod]
 instance/*.db
 instance/*.sqlite3
+instance/*.key
 .env
-/.pytest-tmp-character*/
+/.pytest-tmp*/
 /work/
 
 

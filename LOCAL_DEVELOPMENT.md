@@ -1,6 +1,6 @@
 # 本地开发接续
 
-这份说明针对迭代候选；003–034本地成果由035提交GitHub审核，最新远端/PR状态见[035交接](docs/agents/035-d06-playable-review/agents/agent-20261022-1339-p8a1/HANDOFF.md)，不能把候选当作已合并main。
+这份说明针对开发分支 `develop`。036–050 已按轮次上传并经 PR #7 合入 `develop`，`main` 仍是上一次稳定交付；当前工作轮次与状态见[任务索引](docs/agents/README.md)与[051交接](docs/agents/051-engineering-hardening/agents/agent-20261123-1900-h051/HANDOFF.md)，不能把候选当作已发布。
 
 ## 新Codex从哪里开始
 
@@ -43,6 +43,8 @@ $env:DAOBLADE_DATABASE = Join-Path (Get-Location) 'work/local-play.sqlite3'
 .\tools\check-project.ps1
 ```
 
-检查Python测试、自动发现的`tests/*.test.cjs`、全部`static/js/*.js`语法、Agent目录必需文件和本地链接、Git空白差异。任何检查失败即停止并返回失败；不会安装依赖、推送或修改正式存档。Python临时目录是专用`.pytest-tmp-character-check`，仅用于自检。
+检查Python测试、`node --test`自动发现的22个`tests/*.test.cjs`、全部31个`static/js/*.js`语法、Agent目录必需文件和本地链接、Git空白差异；安装了Pillow时还会校验12帧角色素材与50张世界PNG，未安装会明确提示跳过而不再静默略过。任何检查失败即停止并返回失败；不会安装依赖、推送或修改正式存档。Python临时目录是专用`.pytest-tmp-character-check`，仅用于自检，已加入`.gitignore`。
+
+美术依赖是可选的：`.\.venv\Scripts\python.exe -m pip install -r requirements-art.txt`后，自检会追加`tools/check_character_art.py`与`tools/check_world_art.py`，Python用例数从153增加到163。
 
 如果当前PowerShell策略不允许运行脚本，不修改系统策略；按README逐项运行Python/Node命令，并执行`.\.venv\Scripts\python.exe tools/check_agent_docs.py`。脚本检查不替代浏览器、视觉或实际听感验收，这些结果记录在每个Agent的交接中。
