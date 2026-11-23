@@ -11,9 +11,9 @@
 ## 当前代码现场
 
 - 仓库位置：`D:/desktop/研/研一/上课/软件工程/repo`（克隆自 DaZhou-ECHO/daoblade-fivefold-path）。
-- 分支与代码基线提交：`work/051-engineering-hardening`，基线 `develop` 43afe4d；本轮提交见 `git log --oneline -3`。
-- 远端核对时间及结果：2026-11-23 18:50 fetch，`origin/develop`=43afe4d、`origin/main`=c3cb5f5；分支已推送，PR 链接见任务索引。
-- PR链接及已核实状态：051 → develop，已推送并开 PR；CI 双平台结果以 PR 页面为准。
+- 分支与代码基线提交：`work/051-engineering-hardening`，基线 `develop` 43afe4d；本轮提交 `9cd7538`（实现）与 `b616a70`（CI 修正）。
+- 远端核对时间及结果：2026-11-23 18:50 fetch，`origin/develop`=43afe4d、`origin/main`=c3cb5f5；分支已推送。
+- PR链接及已核实状态：[PR #8](https://github.com/DaZhou-ECHO/daoblade-fivefold-path/pull/8) → `develop`。2026-11-23 19:13 核实 `Regression (ubuntu-latest)`、`Regression (windows-latest)`、`World art assets` 三个任务在 `b616a70` 上全部 success；合并状态见 PR 页面。
 - 未提交文件：无（本轮全部改动已提交）；`work/`、`instance/`、`.pytest-tmp*` 为本机产物，已被忽略。
 - 正在运行的服务或长任务：无。浏览器验收不适用本轮，未启动 Flask。
 
@@ -42,7 +42,9 @@
   - `node --test` → 317 pass / 0 fail。
   - `powershell -File tools/check-project.ps1` → 全项通过，退出码 0（含 31 个 JS 语法、12 帧角色、50 PNG、Agent 文档、Git 空白）。
   - `tools/check_world_art.py` → PASS：50 PNG / 10 场景对 / 20 家族 / 16 动作。
-- 人工检查及证据：[051实施](../../../../implementation/051-工程化收尾.md)记录了变更表、行为说明与验证矩阵；GitHub Actions 结果见 PR。
+  - `work/venv-art`（仅 pytest+Pillow、无 flask）→ `pytest tests/test_world_art.py` 2 passed。
+- CI 证据：[PR #8](https://github.com/DaZhou-ECHO/daoblade-fivefold-path/pull/8) 在 `b616a70` 上三个任务全绿（run 45162974036）。首轮 `assets` 因 conftest 模块级导入 Flask 失败（exit code 4），修正记录见 [051 实施](../../../../implementation/051-工程化收尾.md#首轮-ci-发现并修正的问题)。
+- 人工检查及证据：[051实施](../../../../implementation/051-工程化收尾.md)记录了变更表、行为说明、验证矩阵与真实 HTTP 冒烟结果。
 - 尚未验证或因环境无法验证：真实浏览器整局、实体手机触控、听觉验收；本轮无 UI/玩法改动，未重复 048/049 的浏览器脚本。
 
 ## 下一位 Agent 的行动顺序
