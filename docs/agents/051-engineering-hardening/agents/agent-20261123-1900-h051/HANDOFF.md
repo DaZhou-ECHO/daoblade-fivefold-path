@@ -6,14 +6,14 @@
 - 更新时间与时区：2026-11-23 19:30 Asia/Shanghai
 - 接手来源：050 [交接](../../../050-integrate-036-049/agents/agent-20261116-1343-i050/HANDOFF.md)；其建议“审核通过后合入 develop，下一轮从更新后的 develop 拉分支”。
 - 当前目标与验收条件：销掉挂起的工程化待办——启用 CI、会话密钥不再用公开默认值、API 错误统一 JSON、健康检查真实探测、自检覆盖美术素材。验收：`tools/check-project.ps1` 全绿，CI 在 GitHub 上跑绿，不改玩法与美术资源。
-- 状态：待审核
+- 状态：待验收（代码已合并 `develop` adb311e，CI 全绿；真人试玩与 `main` 跟进未包含）
 
 ## 当前代码现场
 
 - 仓库位置：`D:/desktop/研/研一/上课/软件工程/repo`（克隆自 DaZhou-ECHO/daoblade-fivefold-path）。
 - 分支与代码基线提交：`work/051-engineering-hardening`，基线 `develop` 43afe4d；本轮提交 `9cd7538`（实现）与 `b616a70`（CI 修正）。
 - 远端核对时间及结果：2026-11-23 18:50 fetch，`origin/develop`=43afe4d、`origin/main`=c3cb5f5；分支已推送。
-- PR链接及已核实状态：[PR #8](https://github.com/DaZhou-ECHO/daoblade-fivefold-path/pull/8) → `develop`。2026-11-23 19:13 核实 `Regression (ubuntu-latest)`、`Regression (windows-latest)`、`World art assets` 三个任务在 `b616a70` 上全部 success；合并状态见 PR 页面。
+- PR链接及已核实状态：[PR #8](https://github.com/DaZhou-ECHO/daoblade-fivefold-path/pull/8) → `develop`，2026-11-23 19:16 合并为 `adb311e`。`b3d56b4` 与合并提交上 `Regression (ubuntu-latest)`、`Regression (windows-latest)`、`World art assets` 均 success。
 - 未提交文件：无（本轮全部改动已提交）；`work/`、`instance/`、`.pytest-tmp*` 为本机产物，已被忽略。
 - 正在运行的服务或长任务：无。浏览器验收不适用本轮，未启动 Flask。
 
@@ -49,8 +49,8 @@
 
 ## 下一位 Agent 的行动顺序
 
-1. 先看 PR 的 CI 结果：若 `assets` 任务因 Pillow 版本或 `check_world_art.py` 路径失败，按日志修工作流而不是改素材。
-2. 审核通过后由维护者合并 develop；随后从更新后的 develop 拉下一个编号分支，不要在本分支继续堆改动。
+1. 先确认 `develop` 上最新一次 `DaoBlade checks` 仍为全绿；若 `assets` 任务因 Pillow 版本或 `check_world_art.py` 路径失败，按日志修工作流而不是改素材。
+2. 从更新后的 `develop` 拉下一个编号分支（`work/052-...`），不要在本分支继续堆改动。
 3. 下一项具体工作建议：`main` 与 `develop` 的差异整理（十余次提交）与首个稳定标签，或 048/049 挂起的真人实玩验收；两者都需要用户/维护者确认优先级。
 - 不应重复的工作与已失败方案：`node --test tests`（Node 24 把目录当模块，报 MODULE_NOT_FOUND）不要再用；GCM 交互式 `git push` 在非交互环境会挂起，改用已存凭据或显式令牌。
 - 需要用户决定的具体问题：是否为 051 建立版本标签；`main` 何时跟进。

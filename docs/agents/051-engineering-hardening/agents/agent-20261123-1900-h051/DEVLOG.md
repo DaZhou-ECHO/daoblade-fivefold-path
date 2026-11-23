@@ -39,3 +39,13 @@
 - 验证：`work/venv-art`（只装 requirements-art + pytest，确认无 flask）中 `pytest tests/test_world_art.py` 2 passed；主 venv 全量 163 passed、`node --test` 317 pass。
 - 未完成或阻塞：等待第二轮 CI。
 - 下一步：推送修正、复核双平台与 assets 全绿，再合并 PR #8 到 develop。
+
+## 2026-11-23 19:20 Asia/Shanghai — 合并与收尾
+
+- 目标：把这一轮真正落到 `develop`，并留下可接续的现场记录。
+- 基线：`work/051-engineering-hardening` b3d56b4；PR #8 `mergeable_state=clean`。
+- 操作与文件：b616a70 之后两轮 run 均绿（regression ubuntu/windows + world art assets）。19:16 以 merge commit 合并 PR #8 → `develop` adb311e；合并后 `develop` 上的 `DaoBlade checks` 同样三任务 success（run 记录见 PR）。本提交只更新索引状态、交接状态与实施说明中的合并事实。
+- 决定与依据：采用保留提交的合并方式，与此前 PR #3/#4/#6/#7 一致；不碰 `main`、不打标签，`main` 跟进留给维护者。
+- 验证：`git log --oneline` 确认 develop 顶端为 adb311e；本地 `tools/check_agent_docs.py` 与 `git status` 干净后再推送 docs 提交。
+- 未完成或阻塞：无代码层阻塞；真人试玩、实体设备与 U04–U06 美术项按原交接继续挂起。
+- 下一步：下一位从更新后的 `develop` 拉 `work/052-...`；优先处理 `main` 与 `develop` 的差异梳理或真人实玩验收。
