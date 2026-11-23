@@ -62,6 +62,8 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: '3.11'
+      # 这个任务故意只装 Pillow 与 pytest：美术校验不应依赖 Flask 等运行时依赖，
+      # tests/conftest.py 只在 app 夹具里延迟导入应用。
       - name: Install art dependencies
         run: python -m pip install -r requirements-art.txt pytest
       - name: Character sprite validation

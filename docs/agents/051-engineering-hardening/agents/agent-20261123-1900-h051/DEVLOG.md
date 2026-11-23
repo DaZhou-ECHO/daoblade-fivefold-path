@@ -29,3 +29,13 @@
 - 验证：`powershell -File tools/check-project.ps1` 全项通过、退出码 0（163 Python / 317 Node / 31 JS / 12 帧角色 / 50 PNG / Agent 文档 / 空白）。`tools/check_agent_docs.py` 对新目录与链接 PASS。
 - 未完成或阻塞：GitHub Actions 结果、PR 审核与合并待推送后确认。
 - 下一步：提交、推送 `work/051-engineering-hardening`，开 PR 到 develop 并核对 CI。
+
+## 2026-11-23 19:12 Asia/Shanghai — 首轮 CI 失败与修正
+
+- 目标：让新启用的工作流在 GitHub 上真正跑绿，而不是只在本机通过。
+- 基线：`work/051-engineering-hardening` 9cd7538 已推送，PR #8 已开。
+- 操作与文件：首轮 run 45162330578：`Regression (windows/ubuntu)` 均 success，`World art assets` 在 `Pillow asset regression` 失败，exit code 4，annotation 只有“Process completed with exit code 4”。定位为 `tests/conftest.py` 模块级 `from app import create_app`，而该任务只装 Pillow+pytest，未装 Flask，pytest 收集 conftest 即报错。改为在 `app` 夹具内延迟导入；`tests/test_world_art.py` 因此不再需要运行时依赖；`.github/workflows/ci.yml` 的 assets 任务补注释说明这一约束。
+- 决定与依据：修 conftest 而不是给 assets 任务加装 Flask——美术校验本就只依赖 Pillow，减少任务间耦合；延迟导入不改变任何测试行为。
+- 验证：`work/venv-art`（只装 requirements-art + pytest，确认无 flask）中 `pytest tests/test_world_art.py` 2 passed；主 venv 全量 163 passed、`node --test` 317 pass。
+- 未完成或阻塞：等待第二轮 CI。
+- 下一步：推送修正、复核双平台与 assets 全绿，再合并 PR #8 到 develop。

@@ -10,11 +10,12 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from app import create_app  # noqa: E402
-
 
 @pytest.fixture()
 def app(tmp_path):
+    # 延迟导入：只用 Pillow 的美术校验不需要安装 Flask 等运行时依赖。
+    from app import create_app
+
     application = create_app(
         {
             "TESTING": True,
@@ -29,4 +30,3 @@ def app(tmp_path):
 @pytest.fixture()
 def client(app):
     return app.test_client()
-
