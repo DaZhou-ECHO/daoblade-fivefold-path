@@ -2,7 +2,7 @@
 
 [![DaoBlade checks](https://github.com/DaZhou-ECHO/daoblade-fivefold-path/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/DaZhou-ECHO/daoblade-fivefold-path/actions/workflows/ci.yml)
 
-> 当前工作轮次：051「工程化收尾与健壮性」，基线 `develop` 43afe4d。本轮在 GitHub Actions 启用 CI，补上会话密钥持久化、API JSON 错误与健康检查，并把本地自检统一为一条命令。记录见[051实施](docs/implementation/051-工程化收尾.md)与[051交接](docs/agents/051-engineering-hardening/agents/agent-20261123-1900-h051/HANDOFF.md)。
+> 当前工作轮次：052「木境水墨」。木境高径与回廊的远中景分层、地形与道具、四个怪物族与最终 Boss「古木守灵」做了水墨化处理，战斗规则与其他四境未动。记录见[052 实施](docs/implementation/052-木境水墨.md)与[052交接](docs/agents/052-wood-ink/agents/agent-20261126-2320-w052/HANDOFF.md)；上一轮 051 的工程化收尾见[051 实施](docs/implementation/051-工程化收尾.md)。
 
 **DaoBlade: Fivefold Path** 是一个可在浏览器运行的横版修仙动作游戏。角色从青云新手村出发，与山河图、师父和商人交互；挑战五境各两张地图，获得本位灵珠、修为与外观券，配置八宫出战并突破筑基。
 
@@ -24,6 +24,7 @@
 
 - 师父的八宫说明提供用途、实际按键、限制、获得成长和五类珠槽说明；招式可看短演示与首领差异，装换显示服务端只读预览，保存后可回顾本次变化。
 - 五境各有高径、回廊两条路线，共十张可玩地图；每张有独立远中景、剑碑、支路与首领场。
+- 木境（高径/回廊）是水墨风格区：远中景分层、苔冠树皮地形、纸白剑碑与朱印、Boss 起手与攻击的墨池笔锋；其余四境保持原像素风。素材由 `tools/build_wood_ink_art.py` 从 [原始快照](docs/art/wood-v1-legacy/) 幂等重建，第三方位素材只作参考，见[素材与许可](docs/art/木境开源素材与许可清单.md)。
 - 固定灵珠按本位宫、功能和等级成长；八宫可拆换，最多出战 **2 个主动技能 + 2 个心法**。
 - 师门三系各三级：剑术增加基础劈砍伤害，身法增加速度，护体增加最大生命。每级依次消耗 8、12、16 修为；村中可免费重置并返还花费。
 - 正式路线每次胜利得 1 外观券，可购买并装备青岚、赤霞、霜魄剑；外观没有战斗数值。
