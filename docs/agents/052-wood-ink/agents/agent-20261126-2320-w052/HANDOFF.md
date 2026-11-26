@@ -13,7 +13,7 @@
 - 仓库位置：`D:/desktop/研/研一/上课/软件工程/repo`。
 - 分支与代码基线提交：`work/052-wood-ink`，基线 `develop` 7331dda。
 - 远端核对时间及结果：2026-11-26 23:14 fetch，`origin/develop` = 7331dda；用户预告的“12:00 上传”在拉取时尚无新提交。
-- PR链接及已核实状态：[PR #9](https://github.com/DaZhou-ECHO/daoblade-fivefold-path/pull/9)（主体）与 [PR #10](https://github.com/DaZhou-ECHO/daoblade-fivefold-path/pull/10)（浏览器验收 + 描边修正）均已并入 `develop`，合并提交分别为 `0faa588` 与 `45bf4a1`；两次 CI 的 `Regression (windows/ubuntu)`、`World art assets` 都 success（`0faa588` 自身的运行被 concurrency 取消，不是失败）。
+- PR链接及已核实状态：[PR #9](https://github.com/DaZhou-ECHO/daoblade-fivefold-path/pull/9)（主体）与 [PR #10](https://github.com/DaZhou-ECHO/daoblade-fivefold-path/pull/10)（浏览器验收 + 描边修正）均已并入 `develop`，合并提交 `0faa588` / `45bf4a1`。两个 PR 头（`8201a6e`、`8c0a8f6`）的 `Regression (windows/ubuntu)`、`World art assets` 均 success；两个合并提交自身的运行被 concurrency 取消（同分支随后推送文档提交），`develop` 顶端 `1af8b75` 全绿。
 - 未提交文件：无（本轮改动已提交）；`work/`、`instance/`、`.pytest-tmp*` 为本机产物，已被忽略。
 - 正在运行的服务或长任务：无。
 
