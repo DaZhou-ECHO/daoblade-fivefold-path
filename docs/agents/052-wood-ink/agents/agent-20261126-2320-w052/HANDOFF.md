@@ -6,14 +6,14 @@
 - 更新时间与时区：2026-11-27 00:12 Asia/Shanghai
 - 接手来源：051 [交接](../../../051-engineering-hardening/agents/agent-20261123-1900-h051/HANDOFF.md)；用户同时给了两份木境专项提示词（见 [TASK](../../TASK.md)）。
 - 当前目标与验收条件：只改木境——地图层次与材质、四个怪物族、Boss 技能水墨表现；清单尺寸/调色板/锚点与战斗规则不变；自动检查全绿并给出前后对照与许可清单。
-- 状态：待验收（功能候选已完成并上传，真人实玩与实体设备未验）
+- 状态：待验收（代码已合并 `develop` 0faa588，CI 三任务全绿；真人实玩与实体设备未验）
 
 ## 当前代码现场
 
 - 仓库位置：`D:/desktop/研/研一/上课/软件工程/repo`。
 - 分支与代码基线提交：`work/052-wood-ink`，基线 `develop` 7331dda。
 - 远端核对时间及结果：2026-11-26 23:14 fetch，`origin/develop` = 7331dda；用户预告的“12:00 上传”在拉取时尚无新提交。
-- PR链接及已核实状态：本项目 PR 见任务索引；CI 结果以 PR 页面为准。
+- PR链接及已核实状态：[PR #9](https://github.com/DaZhou-ECHO/daoblade-fivefold-path/pull/9) → `develop`，2026-11-26 23:34 合并为 `0faa588`；`8201a6e` 与合并提交上 `Regression (windows/ubuntu)`、`World art assets` 均 success。
 - 未提交文件：无（本轮改动已提交）；`work/`、`instance/`、`.pytest-tmp*` 为本机产物，已被忽略。
 - 正在运行的服务或长任务：无。
 
