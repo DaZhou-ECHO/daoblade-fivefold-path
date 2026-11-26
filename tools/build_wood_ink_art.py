@@ -31,8 +31,8 @@ PAPER = (233, 227, 209)
 MIST = (201, 208, 190)
 INK_MID = (54, 76, 64)
 INK_DEEP = (16, 24, 22)
-MOSS = (108, 138, 96)
-SAGE = (162, 184, 140)
+MOSS = (92, 118, 84)
+SAGE = (148, 168, 130)
 BARK = (96, 74, 46)
 SEAL = (164, 58, 45)
 
@@ -383,8 +383,8 @@ def outline_ink(image: Image.Image, width: int, height: int, strength: float = 0
             px[x, y] = (mixed[0], mixed[1], mixed[2], a)
 
 
-def rim_light(image: Image.Image, width: int, height: int, strength: float = 0.34) -> None:
-    """左上受光的纸白边：暗背景下把轮廓拉出来，同时保留水墨的“笔锋”。"""
+def rim_light(image: Image.Image, width: int, height: int, strength: float = 0.18) -> None:
+    """顶部受光的冷纸边：只在朝上一侧提一点，避免整圈发光。"""
     source = image.copy().load()
     px = image.load()
     for y in range(height):
@@ -393,10 +393,11 @@ def rim_light(image: Image.Image, width: int, height: int, strength: float = 0.3
             if a == 0:
                 continue
             above = source[x, y - 1][3] if y > 0 else 0
-            left = source[x - 1, y][3] if x > 0 else 0
-            if above or left:
+            if above:
                 continue
-            lit = lerp((r, g, b), PAPER, strength)
+            if luminance((r, g, b)) > 0.62:
+                continue
+            lit = lerp((r, g, b), MIST, strength)
             px[x, y] = (lit[0], lit[1], lit[2], a)
 
 
@@ -415,15 +416,17 @@ def wood_material(image: Image.Image, width: int, height: int, boss: bool) -> No
                 px[x, y] = (round(r * 0.95), round(g * 0.92), round(b * 0.96), a)
             elif g >= r and level > 0.26:        # 叶簇/苔藓：黄绿 → 苔青（去黄）
                 moss = lerp(MOSS, SAGE, min(1.0, level * 1.2))
-                mixed = lerp((r, g, b), moss, 0.46)
+                # 橄榄黄（绿远高于蓝）需要更重的混合，否则 3 倍检视下仍是荧光边。
+                strength = 0.72 if g > b * 1.5 else 0.46
+                mixed = lerp((r, g, b), moss, strength)
                 px[x, y] = (mixed[0], mixed[1], mixed[2], a)
             if level < 0.2:                      # 深部收墨，轮廓更稳
                 ink = lerp((r, g, b), INK_DEEP, 0.36)
                 px[x, y] = (ink[0], ink[1], ink[2], a)
-            elif warm_bark:                      # 树皮只轻提，避免整只怪变红
-                px[x, y] = (max(0, min(255, round(r * 1.04))),
-                            max(0, min(255, round(g * 1.02))),
-                            max(0, min(255, round(b * 1.05))), a)
+            elif warm_bark:                      # 树皮去饱和成墨褐，避免整只怪偏橙
+                px[x, y] = (max(0, min(255, round(r * 0.9))),
+                            max(0, min(255, round(g * 0.9))),
+                            max(0, min(255, round(b * 0.94))), a)
             else:                                # 叶簇中间调提亮，避免融进绿色天幕
                 lift = 1.12 if not boss else 1.16
                 px[x, y] = (max(0, min(255, round(r * lift))),
@@ -478,7 +481,7 @@ def build_monster(name: str, fw: int, fh: int, colors: int) -> None:
             out.alpha_composite(frame, (col * fw, row * fh))
     wood_material(out, width, height, name == "wood-boss")
     outline_ink(out, width, height, 0.5 if name == "wood-boss" else 0.46)
-    rim_light(out, width, height, 0.3 if name == "wood-boss" else 0.26)
+    rim_light(out, width, height, 0.16)
     save(quantize(out, colors), name)
 
 

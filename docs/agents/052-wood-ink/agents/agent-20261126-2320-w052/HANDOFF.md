@@ -37,8 +37,9 @@
 ## 验证与证据
 
 - 自动检查：`tools/check_world_art.py` PASS（50 PNG / 10 场景对 / 20 家族 / 16 动作 / 尺寸/透明/调色板/锚点）；`pytest -q` 163 passed；`node --test` 323 pass；`node --check static/js/wood-ink.js` 通过；`tools/check_agent_docs.py` 通过。
-- 画面：[前后对照](../../evidence/ridge-before-after.png)、[回廊](../../evidence/hollow-after.png)、[验收记录](../../evidence/验收记录.md)。合成帧复刻了 `game.js` 的绘制顺序与参数，但不是浏览器截图。
-- 尚未验证：真实浏览器整局、实体手机触控、听觉；Boss 墨迹在 30/60/120fps 下的观感。
+- 画面：[前后对照](../../evidence/ridge-before-after.png)、[回廊](../../evidence/hollow-after.png)、[真实 Chrome 高径](../../evidence/browser-preview-ridge.png)、[浏览器验收记录](../../evidence/验收记录.md)。
+- 浏览器检查：`python tools/check_wood_ink_browser.py`（隔离 Flask + headless Chrome + `tools/wood-ink-cdp.cjs`）打开世界美术预览页，报告 `本地资源 50/50 · 异常 0`，截取高径/回廊/Boss 三张；**不覆盖**登录后的整局实玩。
+- 尚未验证：正式关卡整局实玩、实体手机触控、听觉；Boss 墨迹在 30/60/120fps 下的观感。
 - 范围检查：`git diff --stat` 不含 `game.js`、`enemy-art.js`、`scene-art.js`、其他四境资源、玩家与武器资源。
 
 ## 下一位 Agent 的行动顺序

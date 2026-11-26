@@ -42,3 +42,14 @@
 - 验证：`tools/check_agent_docs.py`、`tools/check_world_art.py`、`node --test`、`pytest` 全部通过；CI 结果见 PR。
 - 未完成或阻塞：无代码层阻塞；真人实玩与实体设备仍挂起。
 - 下一步：合并后从更新后的 develop 拉 `work/053`，优先做浏览器实机验收或怪物手绘关键帧。
+
+## 2026-11-27 00:25 Asia/Shanghai — 补浏览器验收
+
+- 目标：用户要求“再试试”，把上一轮标为未完成的浏览器验证补上。
+- 基线：`develop` 1cda34a（052 已合并）。
+- 操作与文件：先试完整 UI 流程（注册→选档→山河图→木境）的 headless 驱动，遇到两个坑：旧 `chrome-profile` 里的 `DevToolsActivePort` 指向已退出实例、以及重复运行留下的同名账号导致注册 409；前者改为每次新建 profile，后者改为按时间戳生成账号。整局流程驱动仍不稳定，改为交付**可复现的浏览器渲染检查**：`tools/check_wood_ink_browser.py` + `tools/wood-ink-cdp.cjs` 打开 `/static/world-art-preview.html`（加载的正是游戏同一批脚本与 PNG），等待资源就绪后截取木境高径、回廊与 Boss 起手帧。
+- 决定与依据：预览页用的是生产环境的 `world-art-assets.js`/`scene-art.js`/`enemy-art.js` 与同一批资源，足以证明“浏览器能加载并渲染新素材”；不把预览截图说成关卡实玩。
+- 同时修正：3 倍检视下木灵刀卫仍有黄绿描边，把苔色目标调冷（MOSS 92/118/84、SAGE 148/168/130）、叶簇混合从 0.46 提到 0.72、去光只保留顶部冷边、树皮去饱和成墨褐；黄绿像素占比 8.7%→4.0%。
+- 验证：`check_wood_ink_browser.py` 报告 `本地资源 50/50 · 异常 0`；`check_world_art.py` PASS；`node --test` 323 pass；`pytest` 163 passed。
+- 未完成或阻塞：登录后的整局实玩自动化仍不稳定，未纳入工具。
+- 下一步：提交这部分与证据，推送并合并；整局实玩留给人工。
