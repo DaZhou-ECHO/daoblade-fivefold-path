@@ -6,7 +6,7 @@
 
 | 任务ID | 任务目标 | 状态 | 当前接续Agent | 分支/基线 | 最新交接链接 | 依赖或阻塞 |
 |---|---|---|---|---|---|---|
-| 052-wood-ink | 木境地图层次与水墨化、四个怪物族材质与轮廓、Boss 技能水墨表现层 | 待验收 | agent-20261126-2320-w052 | work/052-wood-ink / 7331dda | [交接](052-wood-ink/agents/agent-20261126-2320-w052/HANDOFF.md) | [PR #9](https://github.com/DaZhou-ECHO/daoblade-fivefold-path/pull/9) 已合并 `develop`（0faa588），CI 三任务全绿；共享只碰 index.html 一行与新增模块；浏览器实机与实体设备未验 |
+| 052-wood-ink | 木境地图层次与水墨化、四个怪物族材质与轮廓、Boss 技能水墨表现层 | 待验收 | agent-20261126-2320-w052 | work/052-wood-ink / 7331dda | [交接](052-wood-ink/agents/agent-20261126-2320-w052/HANDOFF.md) | [PR #9](https://github.com/DaZhou-ECHO/daoblade-fivefold-path/pull/9) 已合并 `develop`（0faa588，顶端 56cae89），CI 三任务全绿；共享只碰 index.html 一行与新增模块；浏览器实机与实体设备未验 |
 | 051-engineering-hardening | 启用 CI、会话密钥持久化、API JSON 错误、健康检查与统一自检 | 待验收 | agent-20261123-1900-h051 | work/051-engineering-hardening / 43afe4d | [交接](051-engineering-hardening/agents/agent-20261123-1900-h051/HANDOFF.md) | [PR #8](https://github.com/DaZhou-ECHO/daoblade-fivefold-path/pull/8) 已合并 `develop`（adb311e），CI 三任务全绿；真人试玩与 `main` 跟进不在本轮 |
 | 050-integrate-036-049 | 汇总并上传 036–049 累计候选 | 待验收 | agent-20261116-1343-i050 | work/050-integrate-036-049 / 27b7301 | [交接](050-integrate-036-049/agents/agent-20261116-1343-i050/HANDOFF.md) | 已上传 [草稿 PR #7](https://github.com/DaZhou-ECHO/daoblade-fivefold-path/pull/7) → develop，未合并；036–049 的状态以此行为准 |
 | 049-bagua-combat | 八式合招、剑台演武与攻击派生 | 待验收 | agent-20261105-1155-s049 | codex/049-bagua-combat / 4dd2df9 | [交接](049-bagua-combat/agents/agent-20261105-1155-s049/HANDOFF.md) | Python152/Node317、十入口/两路线/死亡重试及双桌面演武通过；真人平衡待验，仅本地 |

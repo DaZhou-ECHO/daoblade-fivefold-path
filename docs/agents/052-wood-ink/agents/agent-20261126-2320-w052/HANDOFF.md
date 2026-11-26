@@ -13,7 +13,7 @@
 - 仓库位置：`D:/desktop/研/研一/上课/软件工程/repo`。
 - 分支与代码基线提交：`work/052-wood-ink`，基线 `develop` 7331dda。
 - 远端核对时间及结果：2026-11-26 23:14 fetch，`origin/develop` = 7331dda；用户预告的“12:00 上传”在拉取时尚无新提交。
-- PR链接及已核实状态：[PR #9](https://github.com/DaZhou-ECHO/daoblade-fivefold-path/pull/9) → `develop`，2026-11-26 23:34 合并为 `0faa588`；`8201a6e` 与合并提交上 `Regression (windows/ubuntu)`、`World art assets` 均 success。
+- PR链接及已核实状态：[PR #9](https://github.com/DaZhou-ECHO/daoblade-fivefold-path/pull/9) → `develop`，2026-11-26 23:34 合并为 `0faa588`。PR 头 `8201a6e` 的 `Regression (windows/ubuntu)`、`World art assets` 均 success；合并后 `develop` 顶端 `56cae89` 同样全绿（`0faa588` 自身的运行为 concurrency 取消，不是失败）。
 - 未提交文件：无（本轮改动已提交）；`work/`、`instance/`、`.pytest-tmp*` 为本机产物，已被忽略。
 - 正在运行的服务或长任务：无。
 
